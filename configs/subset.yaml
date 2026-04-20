@@ -1,0 +1,25 @@
+# CNN/DailyMail subset selection configuration
+
+# How many samples to select from the dataset
+n_samples: 200
+
+# Random seed for deterministic subset selection
+seed: 42
+
+# Which split to sample from
+split: "test"
+
+# Path to a locally saved HF dataset (load_from_disk). Set to load without internet.
+# On MOGON: "data/cnn_dailymail_500"
+# Leave empty/null to download from HuggingFace Hub.
+local_dataset_path: null
+
+# Maximum article length in characters (articles longer than this are skipped)
+max_article_chars: 8000
+
+# Maximum reference summary length in characters
+max_summary_chars: 2000
+
+# Output paths (relative to project root)
+output_dir: "data/subset"
+output_filename: "subset_200.jsonl"

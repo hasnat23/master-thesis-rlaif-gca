@@ -1,0 +1,21 @@
+# AI judge configuration for preference elicitation
+
+# Judge model (used for both holistic and sentence-level judging)
+judge_model: "gpt-4o"
+temperature: 0.0
+max_tokens: 1024
+
+# Reliability controls (from proposal)
+confidence_threshold: 0.7       # Filter judgments below this confidence
+swap_check: true                # Run each pair twice with A/B order swapped
+require_evidence_rationale: true  # Judge must cite article evidence
+
+# Rate limiting (tenacity retry settings)
+max_retries: 5
+retry_wait_min: 2    # seconds
+retry_wait_max: 60   # seconds
+
+# Input/output paths (relative to project root)
+candidates_path: "data/candidates/candidates_200.jsonl"
+output_dir_holistic: "data/judgments/holistic"
+output_dir_sentence: "data/judgments/sentence_level"

@@ -1,0 +1,23 @@
+Meeting Summary — April 22, 2026
+===================================
+
+Attendees: [Student], [Supervisor]
+
+Key Discussion Points:
+1. Demonstrated Milestone 1 codebase — modular pipeline from data subset to evaluation
+2. All judging logic implemented: holistic, sentence-level, GCA aggregation, reliability filters
+3. Model choice still open — plan to test 2-3 candidates on MOGON before committing
+4. GCA formula reviewed: score = mean * (min/mean)^alpha, alpha=0.5
+5. Discussed confidence gating threshold (0.7) — may need tuning based on GPT-4o output distribution
+
+Action Items:
+- [ ] Test 2-3 7B models on MOGON (smoke test with 5 samples each)
+- [ ] Set up OpenAI API access for MOGON compute nodes
+- [ ] Run full 200-sample candidate generation once model is selected
+- [ ] Run 20-pair judge test with live GPT-4o calls
+- [ ] Report baseline ROUGE/BERTScore numbers at next meeting
+
+Decisions Made:
+- Proceed with 200-sample subset for initial experiments
+- Keep alpha=0.5 for GCA, revisit if sentence-level variance is low
+- Use tie_margin=0.05 for GCA winner determination

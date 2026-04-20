@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Data artifacts (large files — do not commit)
+data/subset/*.jsonl
+data/candidates/*.jsonl
+data/judgments/*.jsonl
+
+# Output artifacts
+outputs/logs/
+outputs/metrics/
+outputs/plots/
+
+# Environment
+.env
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Model weights
+*.pt
+*.bin
+*.safetensors
+
+# Slurm logs
+slurm/*.out
+slurm/*.err
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Wandb
+wandb/
+
+# Jupyter
+.ipynb_checkpoints/
