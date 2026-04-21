@@ -56,7 +56,7 @@ def load_model_and_tokenizer(config: dict):
         model_name,
         quantization_config=quantization_config,
         device_map="auto",
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
     )
     model.eval()
 

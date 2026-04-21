@@ -26,7 +26,7 @@ generation_configs:
 batch_size: 4
 
 # Quantization for inference (4-bit via bitsandbytes)
-load_in_4bit: true
+load_in_4bit: false
 
 # Input/output paths (relative to project root)
 subset_path: "data/subset/subset_200.jsonl"
