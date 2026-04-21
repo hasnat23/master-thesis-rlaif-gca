@@ -9,6 +9,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --time=02:00:00
 #SBATCH --mail-type=END,FAIL
+#SBATCH --exclude=gpu0001
 
 # ============================================================
 # MOGON Candidate Generation — Full 200 samples
@@ -44,6 +45,8 @@ cd "$SLURM_SUBMIT_DIR" || exit 1
 echo "Working directory: $(pwd)"
 echo "Python: $(which python)"
 echo ""
+
+export PYTHONUNBUFFERED=1
 
 # Generate all 200 candidate pairs
 echo "--- Generating 200 candidate pairs ---"

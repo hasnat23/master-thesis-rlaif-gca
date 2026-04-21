@@ -52,13 +52,21 @@ def load_model_and_tokenizer(config: dict):
             bnb_4bit_quant_type="nf4",
         )
 
+    import os
+    print(f"CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES', 'NOT SET')}", flush=True)
+    print(f"torch.cuda.is_available(): {torch.cuda.is_available()}", flush=True)
+    if torch.cuda.is_available():
+        print(f"torch.cuda.device_count(): {torch.cuda.device_count()}", flush=True)
+        print(f"torch.cuda.get_device_name(0): {torch.cuda.get_device_name(0)}", flush=True)
+
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         quantization_config=quantization_config,
-        device_map="auto",
+        device_map={"": "cuda:0"},
         dtype=torch.bfloat16,
     )
     model.eval()
+    print(f"Model loaded on {next(model.parameters()).device}", flush=True)
 
     return model, tokenizer
 
@@ -126,7 +134,7 @@ def generate_candidate_pairs(
         ref = sample.get("reference_summary", "")
         sample_id = sample.get("sample_id", f"sample_{i:05d}")
 
-        print(f"  [{i+1}/{len(samples)}] Generating candidates for {sample_id}...")
+        print(f"  [{i+1}/{len(samples)}] Generating candidates for {sample_id}...", flush=True)
 
         summary_a = generate_single(
             model, tokenizer, article, gen_configs[0],
@@ -157,7 +165,7 @@ def generate_and_cache(config: dict) -> str:
 
     subset_path = config.get("subset_path", "data/subset/subset_200.jsonl")
     samples = load_jsonl(subset_path)
-    print(f"Loaded {len(samples)} samples from {subset_path}")
+    print(f"Loaded {len(samples)} samples from {subset_path}", flush=True)
 
     pairs = generate_candidate_pairs(model, tokenizer, samples, config)
 
