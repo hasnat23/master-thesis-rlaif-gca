@@ -11,11 +11,15 @@ build/
 data/subset/*.jsonl
 data/candidates/*.jsonl
 data/judgments/*.jsonl
+data/preferences/*.jsonl
 
 # Output artifacts
 outputs/logs/
 outputs/metrics/
 outputs/plots/
+
+# Downloaded model weights (use models/ dir for local copies; commit only configs)
+models/
 
 # Environment
 .env

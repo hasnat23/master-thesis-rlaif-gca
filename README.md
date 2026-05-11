@@ -16,7 +16,7 @@ The base model, candidate pool, training objective (DPO), and compute budget are
 
 - **Dataset:** CNN/DailyMail (200-sample compute-controlled subset)
 - **Base model:** Mistral-7B-Instruct-v0.3 (instruction-tuned 7B, Apache 2.0)
-- **Judge:** GPT-4o with confidence gating, A/B order randomization, evidence-grounded rationales
+- **Judge:** `CogComp/bart-faithful-summary-detector` — a fixed, deterministic BART-based faithfulness classifier (no OpenAI API, no generative LLM calls)
 - **Fine-tuning:** QLoRA + DPO (offline preference optimisation via TRL)
 - **Primary metrics:** ROUGE-1/2/L, BERTScore F1, SummaC (NLI-based), QAFactEval
 - **Diagnostic evaluator:** FineSurE (fine-grained sentence/key-fact level analysis)
@@ -54,10 +54,9 @@ $$\text{score} = \bar{s} \cdot \left(\frac{\min(s)}{\bar{s}}\right)^\alpha, \qua
 - Penalises summaries with inconsistent sentence quality (one bad sentence drags the aggregate down)
 - `tie_margin = 0.05` for winner determination; ambiguous pairs are discarded
 
-**Reliability controls on the judge:**
-- A/B position swap — inconsistent pairs are filtered or flagged for audit
-- Confidence gating (≥ 0.7) — low-confidence labels discarded
-- Evidence-grounded rationales — non-evidential outputs discarded
+**Reliability of the reward-model judge:**
+- Fixed, deterministic sequence-classifier — no prompt sensitivity or hallucinated rationales
+- Margin threshold (`tie_margin = 0.05`) — pairs where A and B scores differ by less than 5 pp are marked `no_preference` and excluded from DPO
 - Human audit: 100 pairs stratified across confidence / disagreement strata; Cohen's Kappa reported
 
 ---
@@ -70,7 +69,7 @@ $$\text{score} = \bar{s} \cdot \left(\frac{\min(s)}{\bar{s}}\right)^\alpha, \qua
 | Dataset | CNN/DailyMail — 200-sample subset (fixed seed) |
 | Base model | Mistral-7B-Instruct-v0.3 |
 | Fine-tuning | QLoRA + DPO (offline; TRL) |
-| Judge | GPT-4o (fixed prompt; bias mitigations applied) |
+| Judge | `CogComp/bart-faithful-summary-detector` (fixed factuality classifier, no LLM API) |
 | Main variable | Feedback granularity: holistic A/B vs sentence-level + GCA |
 | Alignment ablation | Semantic similarity (primary) vs index-based |
 | Optional extension | MoDPO with objective-tagged sentence labels |
@@ -124,10 +123,16 @@ python scripts/01_prepare_subset.py --config configs/subset.yaml
 # 2. (Requires GPU + model) Generate candidates
 python scripts/02_generate_candidates.py --config configs/generation.yaml
 
-# 3. Test judge prompts in mock mode
-python scripts/03_run_judge_test.py --config configs/judging.yaml --n 5
+# 3. Build reward-model preferences (holistic + GCA)
+python src/judging/build_reward_preferences.py \
+    --candidates data/candidates/candidates_200.jsonl \
+    --output-dir data/preferences \
+    --mode both
 
-# 4. Evaluate baseline metrics
+# 4. Analyse preference construction results
+python src/analysis/analyze_reward_preferences.py
+
+# 5. Evaluate baseline metrics
 python scripts/04_evaluate_baseline.py --candidates data/candidates/candidates_200.jsonl
 
 # 5. Generate plots
@@ -154,6 +159,9 @@ source $(conda info --base)/etc/profile.d/conda.sh && conda activate thesis_env
 sbatch slurm/smoke_test.sh
 sbatch slurm/generate_candidates.sh
 
+# Build reward-model preferences (holistic + GCA) on A100
+sbatch slurm/build_reward_preferences.sh
+
 # Monitor
 squeue -u muhhas01
 ```
@@ -165,8 +173,9 @@ squeue -u muhhas01
 - **Controlled experiment:** Only feedback granularity varies — model, data, and DPO recipe are identical across conditions
 - **Config-driven:** All parameters in YAML files, overridable via CLI `--override key=value`
 - **Reproducible:** Seeded randomness, SHA256-based sample IDs, run metadata JSON per execution
-- **No reward model:** GCA converts sentence judgments directly into DPO preference pairs
-- **Reliability-first:** Judge treated as a fallible measurement device with explicit quality controls and human audit
+- **Fixed reward/factuality model judge:** Preferences are derived from `CogComp/bart-faithful-summary-detector`, a deterministic sequence classifier — no OpenAI API, no generative LLM calls. This satisfies the professor's requirement for a testable, reproducible judge.
+- **Margin-gated preferences:** Pairs where the score difference is below `tie_margin=0.05` are marked `no_preference` and excluded from DPO training, avoiding forced noisy labels.
+- **Compatibility with accepted proposal:** The core thesis comparison is unchanged — holistic AI feedback vs granular AI feedback via GCA. Only the source of the feedback signal has shifted from a generative LLM to a fixed factuality classifier.
 
 ---
 
@@ -178,7 +187,7 @@ squeue -u muhhas01
 | Dataset | CNN/DailyMail |
 | Frameworks | Hugging Face Transformers 5.x, TRL, PEFT, BitsAndBytes, PyTorch 2.4 |
 | Infrastructure | MOGON NHR (A100-SXM4-40GB, Slurm, partition `a100dl`) |
-| Judge | GPT-4o (OpenAI API) |
+| Judge | `CogComp/bart-faithful-summary-detector` (fixed reward/factuality model) |
 | Alignment objective | DPO + QLoRA |
 | Factuality metrics | SummaC, QAFactEval, FineSurE |
 | Similarity metrics | ROUGE-1/2/L, BERTScore F1 |

@@ -1,21 +1,17 @@
-# AI judge configuration for preference elicitation
+# Reward/factuality judge configuration for preference elicitation
+# NOTE: GPT-4o has been replaced by a fixed deterministic reward model.
+# The build_reward_preferences.py script accepts --model-name via CLI and
+# does NOT read this config file. Values here are for documentation only.
 
-# Judge model (used for both holistic and sentence-level judging)
-judge_model: "gpt-4o"
-temperature: 0.0
-max_tokens: 1024
+# Judge model (deterministic sequence-classification, no LLM API)
+judge_model: "CogComp/bart-faithful-summary-detector"
 
-# Reliability controls (from proposal)
-confidence_threshold: 0.7       # Filter judgments below this confidence
-swap_check: true                # Run each pair twice with A/B order swapped
-require_evidence_rationale: true  # Judge must cite article evidence
-
-# Rate limiting (tenacity retry settings)
-max_retries: 5
-retry_wait_min: 2    # seconds
-retry_wait_max: 60   # seconds
+# Preference construction settings
+tie_margin: 0.05               # min score difference to produce a preference
+gca_alpha: 0.5                 # exponent in GCA aggregation formula
+mode: "both"                   # holistic | gca | both
 
 # Input/output paths (relative to project root)
 candidates_path: "data/candidates/candidates_200.jsonl"
-output_dir_holistic: "data/judgments/holistic"
-output_dir_sentence: "data/judgments/sentence_level"
+output_dir_holistic: "data/preferences"
+output_dir_gca: "data/preferences"
