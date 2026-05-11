@@ -42,11 +42,9 @@ The base model, candidate pool, training objective (DPO), and compute budget are
 
 ---
 
----
-
 ## GCA: Granular Credit Assignment
 
-GCA is an aggregation layer that converts sentence-level A/B judgments into a single summary-level preference pair usable by DPO — no separate reward model required.
+GCA is an aggregation layer that converts sentence-level factuality scores into a single summary-level preference pair usable by DPO.
 
 $$\text{score} = \bar{s} \cdot \left(\frac{\min(s)}{\bar{s}}\right)^\alpha, \quad \alpha = 0.5$$
 
@@ -58,6 +56,26 @@ $$\text{score} = \bar{s} \cdot \left(\frac{\min(s)}{\bar{s}}\right)^\alpha, \qua
 - Fixed, deterministic sequence-classifier — no prompt sensitivity or hallucinated rationales
 - Margin threshold (`tie_margin = 0.05`) — pairs where A and B scores differ by less than 5 pp are marked `no_preference` and excluded from DPO
 - Human audit: 100 pairs stratified across confidence / disagreement strata; Cohen's Kappa reported
+
+## Why Sentence-Level Segmentation?
+
+Full-summary scoring is the holistic baseline and provides one factuality score per summary. It is useful, but it can hide where factual errors occur when a long summary mixes correct and incorrect claims.
+
+Sentence-level segmentation makes each local claim independently scoreable against the source article. This enables the pipeline to localise weak factual segments, reduce credit-assignment ambiguity, and create granular supervision that can differ from holistic scoring when one summary has a few critical unsupported sentences.
+
+## What GCA Does
+
+GCA takes sentence-level factuality scores and aggregates them into a single summary-level comparison score for A vs B.
+
+In this repository, GCA combines local sentence scores using a mean-and-consistency rule:
+
+$$
+	ext{score} = \bar{s} \cdot \left(\frac{\min(s)}{\bar{s}}\right)^\alpha
+$$
+
+where $\bar{s}$ is the mean sentence score, $\min(s)$ is the weakest sentence score, and $\alpha=0.5$. The minimum term penalises summaries that contain one very weak factual sentence even when their average is moderate.
+
+The final preference decision is still margin-gated (`tie_margin = 0.05`): if the difference between A and B is below the margin, the pair is marked `no_preference` and excluded from DPO.
 
 ---
 

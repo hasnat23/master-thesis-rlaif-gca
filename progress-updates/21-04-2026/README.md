@@ -38,7 +38,7 @@ All Phase 1–2 code implemented and committed to `origin/main`:
 | `src/data/schema.py` | Dataclass hierarchy: `SubsetSample → CandidatePair → Judgment → PreferencePair` |
 | `src/data/subset.py` | Deterministic 200-sample selection from CNN/DailyMail with SHA256 IDs |
 | `src/generation/candidates.py` | Model loading (bfloat16), left-padding fix, two-temperature generation (T=0.7, T=1.0), batched inference |
-| `src/judging/holistic.py` | Holistic A/B GPT-4o judging with evidence-grounded rationales and confidence |
+| `src/judging/reward_model_judge.py` | Deterministic reward/factuality judge (`CogComp/bart-faithful-summary-detector`) |
 | `src/judging/sentence_level.py` | Per-sentence pair judging with alignment |
 | `src/judging/gca.py` | GCA aggregation: `score = mean × (min/mean)^α`, α=0.5 |
 | `src/judging/reliability.py` | Confidence gating (≥0.7), A/B swap consistency, rationale validation |
@@ -171,8 +171,8 @@ $$\text{score} = \bar{s} \cdot \left(\frac{\min(s)}{\bar{s}}\right)^\alpha, \qua
 |------|--------|---------|
 | ⏳ | Await job 1068994 → `candidates_200.jsonl` | Running |
 | ⏳ | Compute ROUGE/BERTScore/SummaC baseline (`scripts/04_evaluate_baseline.py`) | Needs candidates |
-| ⏳ | Design holistic + sentence-level GPT-4o judge prompts | OpenAI API key needed on MOGON |
-| ⏳ | Run 20-pair judge test (`scripts/03_run_judge_test.py`) | OpenAI API key |
+| ⏳ | Build holistic + GCA preferences with fixed reward model (`src/judging/build_reward_preferences.py`) | Needs candidates |
+| ⏳ | Run reward-model smoke test (3–5 samples), then full 200-sample run on MOGON | Slurm runtime |
 | ⏳ | Human audit: 100 pairs (Cohen's Kappa, judge vs human agreement) | Post-judging |
 | ⏳ | Phase 4: DPO fine-tuning on both preference datasets | Post-judging |
 
@@ -182,7 +182,7 @@ $$\text{score} = \bar{s} \cdot \left(\frac{\min(s)}{\bar{s}}\right)^\alpha, \qua
 
 | Issue | Status | Mitigation |
 |-------|--------|-----------|
-| OpenAI API key on MOGON | Not yet set | Needed for Phase 3; not blocking current generation |
+| Reward model availability on MOGON HF proxy | Needs validation | Mirror model locally on MOGON if proxy miss occurs |
 | transformers 5.x + bitsandbytes | ✅ Fixed | bfloat16, no 4-bit quantisation |
 | rsync path bug | ✅ Fixed | `--relative` flag verified |
 | Sentence alignment noise | To be quantified | Ablation: semantic vs index-based alignment (RQ2) |

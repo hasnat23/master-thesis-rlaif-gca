@@ -26,8 +26,10 @@
 
 ## Phase 2: AI Judging Pipeline (Completed)
 
+Note: Entries below describe the March 2026 prototype state. The current thesis implementation uses a fixed reward/factuality model as the main judge.
+
 ### Tasks Completed
-- [x] Implemented holistic (document-level) AI judging with GPT-4o
+- [x] Implemented holistic (document-level) AI judging (prototype initially used GPT-4o)
 - [x] Implemented sentence-level AI judging pipeline
 - [x] Generated preference pairs for CNN/DailyMail samples
 - [x] Validated judging quality and consistency
@@ -35,7 +37,7 @@
 ### Notes
 - Holistic judging: single preference score per summary
 - Sentence-level judging: per-sentence scores aggregated via GCA
-- GPT-4o used as the AI judge for both pipelines
+- Prototype used GPT-4o at that stage; current main pipeline uses a fixed reward/factuality model (`CogComp/bart-faithful-summary-detector`) and margin-gated `no_preference` handling
 
 ---
 
