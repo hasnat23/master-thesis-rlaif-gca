@@ -47,6 +47,11 @@ echo "Python: $(which python)"
 echo ""
 
 export PYTHONUNBUFFERED=1
+export HF_ENDPOINT=http://10.81.2.171:8090
+export HF_HUB_DOWNLOAD_TIMEOUT=120
+export HF_HUB_DISABLE_TELEMETRY=1
+
+echo "HF_ENDPOINT: $HF_ENDPOINT"
 
 # Generate all 200 candidate pairs
 echo "--- Generating 200 candidate pairs ---"

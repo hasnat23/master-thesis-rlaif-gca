@@ -9,6 +9,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --time=00:30:00
 #SBATCH --mail-type=END,FAIL
+#SBATCH --exclude=gpu0001
 
 # ============================================================
 # MOGON Smoke Test — 5 samples
@@ -47,6 +48,12 @@ cd "$SLURM_SUBMIT_DIR" || exit 1
 echo "Working directory: $(pwd)"
 echo "Python: $(which python)"
 echo ""
+
+export HF_ENDPOINT=http://10.81.2.171:8090
+export HF_HUB_DOWNLOAD_TIMEOUT=120
+export HF_HUB_DISABLE_TELEMETRY=1
+
+echo "HF_ENDPOINT: $HF_ENDPOINT"
 
 # Step 1: Prepare a tiny subset (5 samples) if not already done
 echo "--- Step 1: Prepare 5-sample subset ---"
