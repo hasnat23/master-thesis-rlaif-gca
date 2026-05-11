@@ -3,8 +3,11 @@
 # The build_reward_preferences.py script accepts --model-name via CLI and
 # does NOT read this config file. Values here are for documentation only.
 
-# Judge model (deterministic sequence-classification, no LLM API)
-judge_model: "CogComp/bart-faithful-summary-detector"
+# Judge model (deterministic factuality metric, no LLM API)
+judge_backend: "alignscore"
+judge_model: "yzha/AlignScore"
+alignscore_backbone: "roberta-base"
+alignscore_checkpoint: "AlignScore-base.ckpt"
 
 # Preference construction settings
 tie_margin: 0.05               # min score difference to produce a preference

@@ -20,9 +20,9 @@
 #     data/preferences/holistic_reward_preferences_200.jsonl
 #     data/preferences/gca_reward_preferences_200.jsonl
 #
-# Model:  CogComp/bart-faithful-summary-detector (~400 MB)
+# Model:  AlignScore-base (`yzha/AlignScore`, RoBERTa-base backbone)
 # Input:  data/candidates/candidates_200.jsonl
-# Est.    ~10–20 min on A100 (model is small; GPU gives ~10x speedup)
+# Est.    a few minutes on A100 once checkpoint/backbone are available
 #
 # Submit: sbatch slurm/build_reward_preferences.sh
 # ============================================================
@@ -58,7 +58,10 @@ echo "--- Building reward-model preferences (holistic + GCA) ---"
 python src/judging/build_reward_preferences.py \
     --candidates data/candidates/candidates_200.jsonl \
     --output-dir data/preferences \
-    --model-name models/bart-faithful-summary-detector \
+    --judge-backend alignscore \
+    --model-name yzha/AlignScore \
+    --alignscore-backbone roberta-base \
+    --alignscore-filename AlignScore-base.ckpt \
     --margin 0.05 \
     --max-samples 200 \
     --mode both \

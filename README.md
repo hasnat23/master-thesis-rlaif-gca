@@ -16,7 +16,7 @@ The base model, candidate pool, training objective (DPO), and compute budget are
 
 - **Dataset:** CNN/DailyMail (200-sample compute-controlled subset)
 - **Base model:** Mistral-7B-Instruct-v0.3 (instruction-tuned 7B, Apache 2.0)
-- **Judge:** `CogComp/bart-faithful-summary-detector` — a fixed, deterministic BART-based faithfulness classifier (no OpenAI API, no generative LLM calls)
+- **Judge:** `yzha/AlignScore` — a fixed factual-consistency metric used as the primary automatic judge (no OpenAI API, no generative LLM calls). `CogComp/bart-faithful-summary-detector` remains available as a fallback baseline.
 - **Fine-tuning:** QLoRA + DPO (offline preference optimisation via TRL)
 - **Primary metrics:** ROUGE-1/2/L, BERTScore F1, SummaC (NLI-based), QAFactEval
 - **Diagnostic evaluator:** FineSurE (fine-grained sentence/key-fact level analysis)
@@ -87,7 +87,7 @@ The final preference decision is still margin-gated (`tie_margin = 0.05`): if th
 | Dataset | CNN/DailyMail — 200-sample subset (fixed seed) |
 | Base model | Mistral-7B-Instruct-v0.3 |
 | Fine-tuning | QLoRA + DPO (offline; TRL) |
-| Judge | `CogComp/bart-faithful-summary-detector` (fixed factuality classifier, no LLM API) |
+| Judge | `yzha/AlignScore` (primary fixed factuality metric; BART-faithful detector retained as fallback) |
 | Main variable | Feedback granularity: holistic A/B vs sentence-level + GCA |
 | Alignment ablation | Semantic similarity (primary) vs index-based |
 | Optional extension | MoDPO with objective-tagged sentence labels |
@@ -191,7 +191,7 @@ squeue -u muhhas01
 - **Controlled experiment:** Only feedback granularity varies — model, data, and DPO recipe are identical across conditions
 - **Config-driven:** All parameters in YAML files, overridable via CLI `--override key=value`
 - **Reproducible:** Seeded randomness, SHA256-based sample IDs, run metadata JSON per execution
-- **Fixed reward/factuality model judge:** Preferences are derived from `CogComp/bart-faithful-summary-detector`, a deterministic sequence classifier — no OpenAI API, no generative LLM calls. This satisfies the professor's requirement for a testable, reproducible judge.
+- **Fixed reward/factuality model judge:** Preferences are now derived from `yzha/AlignScore` as the primary judge. It is deterministic, testable, and avoids any OpenAI / generative LLM dependency. `CogComp/bart-faithful-summary-detector` is retained only as a fallback baseline.
 - **Margin-gated preferences:** Pairs where the score difference is below `tie_margin=0.05` are marked `no_preference` and excluded from DPO training, avoiding forced noisy labels.
 - **Compatibility with accepted proposal:** The core thesis comparison is unchanged — holistic AI feedback vs granular AI feedback via GCA. Only the source of the feedback signal has shifted from a generative LLM to a fixed factuality classifier.
 
@@ -205,7 +205,7 @@ squeue -u muhhas01
 | Dataset | CNN/DailyMail |
 | Frameworks | Hugging Face Transformers 5.x, TRL, PEFT, BitsAndBytes, PyTorch 2.4 |
 | Infrastructure | MOGON NHR (A100-SXM4-40GB, Slurm, partition `a100dl`) |
-| Judge | `CogComp/bart-faithful-summary-detector` (fixed reward/factuality model) |
+| Judge | `yzha/AlignScore` (primary fixed reward/factuality model) |
 | Alignment objective | DPO + QLoRA |
 | Factuality metrics | SummaC, QAFactEval, FineSurE |
 | Similarity metrics | ROUGE-1/2/L, BERTScore F1 |

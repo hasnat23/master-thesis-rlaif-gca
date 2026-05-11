@@ -2,7 +2,9 @@
 """
 Build reward-model preference pairs from candidate summaries.
 
-Judge: CogComp/bart-faithful-summary-detector (deterministic, offline, no API calls).
+Primary judge: AlignScore (deterministic factual-consistency metric).
+Fallback judge: sequence-classification model such as
+CogComp/bart-faithful-summary-detector.
 
 Two modes:
   holistic  — Score full summaries A and B; compare with margin.
@@ -108,7 +110,7 @@ def judge_holistic_pair(pair: dict, judge: RewardModelJudge, margin: float) -> d
         "chosen": chosen,
         "rejected": rejected,
         "judge_method": "holistic",
-        "judge_model": judge.model_name,
+        "judge_model": judge.judge_name,
         "margin": margin,
         "label_a": result_a["label"],
         "label_b": result_b["label"],
@@ -198,7 +200,7 @@ def judge_gca_pair(
         "chosen": chosen,
         "rejected": rejected,
         "judge_method": "gca",
-        "judge_model": judge.model_name,
+        "judge_model": judge.judge_name,
         "margin": margin,
         "alpha": alpha,
         "sentence_details_a": sent_detail(sentences_a, results_a),
@@ -315,8 +317,41 @@ def main() -> None:
     )
     parser.add_argument(
         "--model-name",
-        default="CogComp/bart-faithful-summary-detector",
-        help="HuggingFace model ID for the factuality judge.",
+        default="yzha/AlignScore",
+        help="Judge model identifier. For AlignScore, use the checkpoint repo ID; for the fallback classifier, use a Hugging Face model ID or local path.",
+    )
+    parser.add_argument(
+        "--judge-backend",
+        choices=["auto", "alignscore", "sequence_classification"],
+        default="alignscore",
+        help="Judge backend. AlignScore is the primary thesis judge; sequence_classification keeps the BART-style fallback.",
+    )
+    parser.add_argument(
+        "--alignscore-backbone",
+        default="roberta-base",
+        help="Backbone model used by AlignScore.",
+    )
+    parser.add_argument(
+        "--alignscore-ckpt",
+        default=None,
+        help="Optional local path to an AlignScore .ckpt file. If omitted, the checkpoint is downloaded from --model-name / --alignscore-filename.",
+    )
+    parser.add_argument(
+        "--alignscore-filename",
+        default="AlignScore-base.ckpt",
+        help="Checkpoint filename inside the AlignScore repo when auto-downloading.",
+    )
+    parser.add_argument(
+        "--alignscore-evaluation-mode",
+        choices=["nli_sp", "nli", "bin_sp", "bin"],
+        default="nli_sp",
+        help="AlignScore evaluation mode.",
+    )
+    parser.add_argument(
+        "--alignscore-batch-size",
+        type=int,
+        default=8,
+        help="AlignScore inference batch size.",
     )
     parser.add_argument(
         "--margin",
@@ -366,12 +401,21 @@ def main() -> None:
         "Loaded %d candidate pairs from %s", len(pairs), candidates_path
     )
     logger.info(
-        "Config: model=%s  margin=%.3f  alpha=%.2f  mode=%s  device=%s",
-        args.model_name, args.margin, args.alpha, args.mode,
+        "Config: backend=%s  model=%s  margin=%.3f  alpha=%.2f  mode=%s  device=%s",
+        args.judge_backend, args.model_name, args.margin, args.alpha, args.mode,
         args.device or "auto",
     )
 
-    judge = RewardModelJudge(model_name=args.model_name, device=args.device)
+    judge = RewardModelJudge(
+        model_name=args.model_name,
+        device=args.device,
+        backend=args.judge_backend,
+        alignscore_backbone=args.alignscore_backbone,
+        alignscore_ckpt=args.alignscore_ckpt,
+        alignscore_filename=args.alignscore_filename,
+        alignscore_evaluation_mode=args.alignscore_evaluation_mode,
+        alignscore_batch_size=args.alignscore_batch_size,
+    )
 
     artifacts = run_pipeline(
         pairs=pairs,
