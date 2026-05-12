@@ -26,7 +26,7 @@ import torch
 logger = logging.getLogger(__name__)
 
 _DEFAULT_ALIGNSCORE_REPO = "yzha/AlignScore"
-_DEFAULT_ALIGNSCORE_BACKBONE = "roberta-base"
+_DEFAULT_ALIGNSCORE_BACKBONE = "FacebookAI/roberta-base"
 _DEFAULT_ALIGNSCORE_FILENAME = "AlignScore-base.ckpt"
 _DEFAULT_ALIGNSCORE_EVAL_MODE = "nli_sp"
 

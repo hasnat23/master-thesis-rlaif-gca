@@ -60,7 +60,7 @@ python src/judging/build_reward_preferences.py \
     --output-dir data/preferences \
     --judge-backend alignscore \
     --model-name yzha/AlignScore \
-    --alignscore-backbone roberta-base \
+    --alignscore-backbone FacebookAI/roberta-base \
     --alignscore-filename AlignScore-base.ckpt \
     --margin 0.05 \
     --max-samples 200 \

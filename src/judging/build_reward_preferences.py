@@ -328,7 +328,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--alignscore-backbone",
-        default="roberta-base",
+        default="FacebookAI/roberta-base",
         help="Backbone model used by AlignScore.",
     )
     parser.add_argument(

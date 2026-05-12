@@ -6,7 +6,7 @@
 # Judge model (deterministic factuality metric, no LLM API)
 judge_backend: "alignscore"
 judge_model: "yzha/AlignScore"
-alignscore_backbone: "roberta-base"
+alignscore_backbone: "FacebookAI/roberta-base"
 alignscore_checkpoint: "AlignScore-base.ckpt"
 
 # Preference construction settings
