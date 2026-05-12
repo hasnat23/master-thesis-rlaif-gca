@@ -1,4 +1,4 @@
 method,total,pref_A,pref_B,total_preferences,no_preference,usable_pct,mean_score_a,mean_score_b
-holistic,200,36,26,62,138,31.0,0.3053,0.3021
-gca,200,8,9,17,183,8.5,0.2823,0.284
-agreement,200,149,—,51,—,74.5,—,—
+holistic,200,109,45,154,46,77.0,0.7324,0.653
+gca,200,97,60,157,43,78.5,0.4066,0.3337
+agreement,200,121,—,79,—,60.5,—,—

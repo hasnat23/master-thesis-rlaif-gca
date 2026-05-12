@@ -120,8 +120,8 @@ def build_report(holistic: list[dict], gca: list[dict]) -> str:
 
     ln("# Reward-Model Preference Construction — Results Report")
     ln()
-    ln("**Judge:** `CogComp/bart-faithful-summary-detector`")
-    ln("**Method:** Deterministic sequence-classification model — no OpenAI/GPT calls.")
+    ln("**Judge:** `yzha/AlignScore` (AlignScore-base, RoBERTa backbone)")
+    ln("**Method:** AlignScore NLI-based faithfulness scorer (`nli_sp` mode) — no OpenAI/GPT calls.")
     ln()
 
     # ------------------------------------------------------------------
