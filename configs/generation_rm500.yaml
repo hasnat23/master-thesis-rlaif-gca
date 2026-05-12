@@ -1,0 +1,26 @@
+# Candidate generation config for reward model training set (500 samples)
+
+model_name: "models/Mistral-7B-Instruct-v0.3"
+
+max_input_length: 1024
+max_new_tokens: 256
+padding_side: "left"
+
+candidates_per_article: 2
+generation_configs:
+  - name: "low_temp"
+    temperature: 0.7
+    top_p: 0.9
+    do_sample: true
+  - name: "high_temp"
+    temperature: 1.0
+    top_p: 0.95
+    do_sample: true
+
+batch_size: 4
+
+load_in_4bit: false
+
+subset_path: "data/subset/subset_rm500.jsonl"
+output_dir: "data/candidates"
+output_filename: "candidates_rm500.jsonl"

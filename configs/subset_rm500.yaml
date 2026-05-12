@@ -1,0 +1,20 @@
+# CNN/DailyMail subset for reward model training (500 samples)
+#
+# Uses seed=100 (different from DPO subset seed=42) to ensure no overlap
+# between the RM training set and the DPO comparison experiment set.
+# Both pull from the test split (11,490 rows), but distinct random draws.
+
+n_samples: 500
+
+seed: 100
+
+split: "test"
+
+# On MOGON: points to the full cached CNN/DM test split
+local_dataset_path: "data/cnn_dailymail_500"
+
+max_article_chars: 8000
+max_summary_chars: 2000
+
+output_dir: "data/subset"
+output_filename: "subset_rm500.jsonl"

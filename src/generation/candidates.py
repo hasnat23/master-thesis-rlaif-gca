@@ -160,20 +160,40 @@ def generate_candidate_pairs(
 
 
 def generate_and_cache(config: dict) -> str:
-    """Full pipeline: load model, generate pairs, cache to disk. Returns output path."""
-    model, tokenizer = load_model_and_tokenizer(config)
+    """Full pipeline: load model, generate pairs, cache to disk. Returns output path.
 
-    subset_path = config.get("subset_path", "data/subset/subset_200.jsonl")
-    samples = load_jsonl(subset_path)
-    print(f"Loaded {len(samples)} samples from {subset_path}", flush=True)
-
-    pairs = generate_candidate_pairs(model, tokenizer, samples, config)
-
+    Supports resuming interrupted runs: if the output file already exists, samples
+    whose IDs are already present are skipped and new results are appended.
+    """
     output_dir = config.get("output_dir", "data/candidates")
     output_filename = config.get("output_filename", "candidates_200.jsonl")
     output_path = str(Path(output_dir) / output_filename)
 
-    count = save_jsonl(pairs, output_path)
+    subset_path = config.get("subset_path", "data/subset/subset_200.jsonl")
+    all_samples = load_jsonl(subset_path)
+    print(f"Loaded {len(all_samples)} samples from {subset_path}", flush=True)
+
+    # Resume: skip already-generated sample_ids
+    done_ids: set[str] = set()
+    existing_pairs: list[CandidatePair] = []
+    if Path(output_path).exists():
+        existing_pairs = load_jsonl(output_path)
+        done_ids = {p.get("sample_id") for p in existing_pairs if p.get("sample_id")}
+        print(f"Resuming: {len(done_ids)} already done, "
+              f"{len(all_samples) - len(done_ids)} remaining", flush=True)
+
+    remaining = [s for s in all_samples if s.get("sample_id") not in done_ids]
+
+    if not remaining:
+        print("All samples already generated. Nothing to do.", flush=True)
+        return output_path
+
+    model, tokenizer = load_model_and_tokenizer(config)
+    new_pairs = generate_candidate_pairs(model, tokenizer, remaining, config)
+
+    all_pairs = existing_pairs + [vars(p) if hasattr(p, "__dict__") else p for p in new_pairs]
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    count = save_jsonl(new_pairs if not existing_pairs else all_pairs, output_path)
     print(f"Cached {count} candidate pairs to {output_path}")
 
     return output_path
