@@ -15,7 +15,7 @@
 
 ## Summary
 
-The AlignScore judging pipeline is fully validated and has produced the first real preference dataset (200 samples). Based on the professor's feedback to explore the IRL direction, a **Bradley-Terry reward model training pipeline** has been designed and implemented this week. A 500-sample candidate generation job is currently running on MOGON to produce the training data for that reward model.
+The AlignScore judging pipeline is fully validated and has produced the first real preference dataset (200 samples). Based on Lingxiao's suggestion to explore the IRL direction, a **Bradley-Terry reward model training pipeline** has been designed and implemented this week. A 500-sample candidate generation job is currently running on MOGON to produce the training data for that reward model.
 
 ---
 
