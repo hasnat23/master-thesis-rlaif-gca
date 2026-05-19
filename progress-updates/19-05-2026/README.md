@@ -1,6 +1,5 @@
 # Progress Update — 19 May 2026
 
-**Period:** 12 May – 19 May 2026  
 **Meeting date:** 19 May 2026  
 **Student:** Muhammad Hasnat  
 **Supervisors:** Dr. Zeyd Boukhers, Prof. Dr. Frank Hopfgartner | **Mentor:** Lingxiao Kong
@@ -62,7 +61,7 @@ This is exactly the thesis argument: fine-tuning on holistic preferences risks r
 
 ### 2. Bradley-Terry Reward Model — Full Pipeline Implemented ✅
 
-Following the professor's suggestion to explore the IRL framing, a complete reward model training pipeline has been implemented (`src/reward_model/`).
+Following Lingxiao's suggestion to explore the IRL framing, a complete reward model training pipeline has been implemented (`src/reward_model/`).
 
 **Architecture**
 
@@ -88,7 +87,7 @@ Given the small dataset size (~380 usable pairs from 500 samples), **5-fold cros
 - `rm_holistic` — trained on holistic preference pairs
 - `rm_gca` — trained on GCA preference pairs
 
-The comparison between their pairwise validation accuracies will directly answer whether the GCA signal is more learnable / more consistent from the reward model's perspective — the IRL framing the professor suggested.
+The comparison between their pairwise validation accuracies will directly answer whether the GCA signal is more learnable / more consistent from the reward model's perspective — the IRL framing Lingxiao suggested.
 
 **Code committed:** `src/reward_model/train.py`, `src/reward_model/run_training.py`, `slurm/train_reward_models.sh` (commit `02131d4`).
 
