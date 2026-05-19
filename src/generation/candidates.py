@@ -62,10 +62,10 @@ def load_model_and_tokenizer(config: dict):
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         quantization_config=quantization_config,
-        device_map={"": "cuda:0"},
-        dtype=torch.bfloat16,
+        torch_dtype=torch.bfloat16,
         local_files_only=True,
     )
+    model = model.to("cuda:0")
     model.eval()
     print(f"Model loaded on {next(model.parameters()).device}", flush=True)
 
