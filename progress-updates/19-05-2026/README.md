@@ -63,6 +63,26 @@ This is exactly the thesis argument: fine-tuning on holistic preferences risks r
 
 Following Lingxiao's suggestion to explore the IRL framing, a complete reward model training pipeline has been implemented (`src/reward_model/`).
 
+**What is the Bradley-Terry model?**
+
+Consider ranking the quality of summaries generated for a news article. A naive approach is to score each summary directly (e.g., with AlignScore) and sort by absolute value. But absolute scores vary across articles — a score of 0.75 on a dense wire report is not the same as 0.75 on a short blog post. Two summaries may be indistinguishable by absolute score yet one is clearly better when placed side-by-side.
+
+A model-based alternative is to learn from *pairwise comparisons* instead. Let $\beta_i \in \mathbb{R}$ represent the latent "quality strength" of summary $i$. The Bradley-Terry model treats each comparison as an independent Bernoulli outcome where summary $i$ is preferred over summary $j$ with probability $p_{ij}$, and the log-odds of that preference equals the difference of the two strengths:
+
+$$\log \frac{p_{ij}}{1 - p_{ij}} = \beta_i - \beta_j$$
+
+Solving for $p_{ij}$ directly:
+
+$$p_{ij} = \frac{e^{\beta_i}}{e^{\beta_i} + e^{\beta_j}} = \sigma(\beta_i - \beta_j)$$
+
+This is structurally identical to logistic regression on the score difference: only the *relative* strength matters, not the absolute values. (The model is invariant to a global constant shift — adding a constant $c$ to every $\beta_i$ leaves all $p_{ij}$ unchanged, a fact that surfaces as an identifiability issue for NBA power ratings and is resolved in the same way, by fixing one reference point.)
+
+In our reward model $\beta_i = r_\theta(\text{article},\, \text{summary}_i)$ is the scalar output of a neural network with parameters $\theta$. Training maximises the log-likelihood of the pairwise preferences produced by AlignScore — equivalently, minimising the **Bradley-Terry loss**:
+
+$$\mathcal{L}_{\text{BT}} = -\log \sigma\!\bigl(r_\theta(x,\, y_w) - r_\theta(x,\, y_l)\bigr)$$
+
+where $y_w$ (chosen) is the summary AlignScore preferred and $y_l$ (rejected) is the one it ranked lower for article $x$. This is the same loss used to train reward models in InstructGPT and Llama-2-chat, grounding the IRL framing in established RLHF practice.
+
 **Architecture**
 
 - Backbone: `microsoft/deberta-v3-base` (encoder-only, strong NLI / faithfulness capabilities)
