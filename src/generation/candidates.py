@@ -35,7 +35,7 @@ def load_model_and_tokenizer(config: dict):
     model_name = config["model_name"]
     print(f"Loading model: {model_name}")
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
 
     # Fix tokenizer padding (known issue from progress updates)
     if tokenizer.pad_token is None:
