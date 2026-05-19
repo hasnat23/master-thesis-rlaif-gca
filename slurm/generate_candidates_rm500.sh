@@ -49,6 +49,7 @@ export PYTHONUNBUFFERED=1
 export HF_ENDPOINT=http://10.81.2.171:8090
 export HF_HUB_DOWNLOAD_TIMEOUT=120
 export HF_HUB_DISABLE_TELEMETRY=1
+export TRANSFORMERS_OFFLINE=1
 
 # Step 1: Prepare 500-sample subset (CPU, fast)
 echo "--- Preparing 500-sample subset (seed=100) ---"

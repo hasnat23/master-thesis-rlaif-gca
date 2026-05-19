@@ -35,7 +35,7 @@ def load_model_and_tokenizer(config: dict):
     model_name = config["model_name"]
     print(f"Loading model: {model_name}")
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False, local_files_only=True)
 
     # Fix tokenizer padding (known issue from progress updates)
     if tokenizer.pad_token is None:
@@ -64,6 +64,7 @@ def load_model_and_tokenizer(config: dict):
         quantization_config=quantization_config,
         device_map={"": "cuda:0"},
         dtype=torch.bfloat16,
+        local_files_only=True,
     )
     model.eval()
     print(f"Model loaded on {next(model.parameters()).device}", flush=True)
