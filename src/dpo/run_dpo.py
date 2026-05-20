@@ -202,8 +202,6 @@ def main():
         gradient_accumulation_steps=args.grad_accum,
         learning_rate=args.lr,
         beta=args.beta,
-        max_length=args.max_length,
-        max_prompt_length=args.max_prompt_length,
         bf16=True,
         gradient_checkpointing=True,
         logging_steps=10,
@@ -224,6 +222,8 @@ def main():
         train_dataset=dataset,
         processing_class=tokenizer,
         peft_config=lora_config,
+        max_length=args.max_length,
+        max_prompt_length=args.max_prompt_length,
     )
 
     logger.info(f"Training for {args.epochs} epoch(s) …")
