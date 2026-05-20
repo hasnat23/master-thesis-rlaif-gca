@@ -135,6 +135,12 @@ def _alignscore_batch(
     device: str = "cuda",
 ) -> list[float]:
     """Compute AlignScore for a list of (context, claim) pairs."""
+    # transformers ≥ 5.0 removed AdamW; patch it back so alignscore can import.
+    import transformers as _tf
+    if not hasattr(_tf, "AdamW"):
+        import torch.optim as _optim
+        _tf.AdamW = _optim.AdamW
+
     from alignscore import AlignScore
 
     scorer = AlignScore(
@@ -160,7 +166,7 @@ def main():
     parser.add_argument("--holistic-adapter",  type=str, default="outputs/dpo/holistic/adapter")
     parser.add_argument("--gca-adapter",       type=str, default="outputs/dpo/gca/adapter")
     parser.add_argument("--alignscore-ckpt",   type=str, default="models/alignscore/AlignScore-base.ckpt")
-    parser.add_argument("--alignscore-backbone", type=str, default="FacebookAI/roberta-base")
+    parser.add_argument("--alignscore-backbone", type=str, default="models/roberta-base")
     parser.add_argument("--output-dir",        type=str, default="outputs/eval")
     parser.add_argument("--n-test",            type=int, default=50,
                         help="Number of articles to evaluate (sampled from candidates)")
