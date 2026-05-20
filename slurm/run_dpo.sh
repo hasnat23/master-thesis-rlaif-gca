@@ -57,7 +57,6 @@ python src/dpo/run_dpo.py \
     --lr 5e-7 \
     --beta 0.1 \
     --max-length 1024 \
-    --max-prompt-length 768 \
     --lora-r 16 \
     --lora-alpha 32 \
     --seed 42
@@ -75,7 +74,6 @@ python src/dpo/run_dpo.py \
     --lr 5e-7 \
     --beta 0.1 \
     --max-length 1024 \
-    --max-prompt-length 768 \
     --lora-r 16 \
     --lora-alpha 32 \
     --seed 42

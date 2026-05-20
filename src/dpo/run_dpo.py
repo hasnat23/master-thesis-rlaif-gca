@@ -111,7 +111,6 @@ def main():
                         help="KL penalty coefficient for DPO")
     parser.add_argument("--max-length",   type=int,   default=1024,
                         help="Max total tokens (prompt + completion)")
-    parser.add_argument("--max-prompt-length", type=int, default=768)
     parser.add_argument("--lora-r",       type=int,   default=16)
     parser.add_argument("--lora-alpha",   type=int,   default=32)
     parser.add_argument("--lora-dropout", type=float, default=0.05)
@@ -133,15 +132,22 @@ def main():
     # ------------------------------------------------------------------
     # Imports (deferred so CLI --help works without GPU)
     # ------------------------------------------------------------------
-    from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-    from peft import LoraConfig, get_peft_model, TaskType
+    from transformers import AutoTokenizer
+    from peft import LoraConfig, TaskType
     from trl import DPOTrainer, DPOConfig
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    logger.info(f"Device: {device}")
-    if device == "cuda":
-        logger.info(f"GPU: {torch.cuda.get_device_name(0)}, "
-                    f"{torch.cuda.get_device_properties(0).total_memory // (1024**2)} MiB")
+    # ------------------------------------------------------------------
+    # Force CUDA context before DPOConfig.__post_init__ calls set_device
+    # (transformers 5.x initialises the device during TrainingArguments.__post_init__;
+    # if no CUDA context exists yet, torch.cuda.set_device() raises
+    # cudaErrorDevicesUnavailable on some HPC nodes)
+    # ------------------------------------------------------------------
+    logger.info("Initialising CUDA …")
+    if not torch.cuda.is_available():
+        raise RuntimeError("No CUDA GPU detected. DPO fine-tuning requires a GPU.")
+    torch.cuda.init()
+    logger.info(f"GPU: {torch.cuda.get_device_name(0)}, "
+                f"{torch.cuda.get_device_properties(0).total_memory // (1024**2)} MiB")
 
     # ------------------------------------------------------------------
     # Tokenizer
@@ -163,21 +169,6 @@ def main():
     logger.info(f"  {len(records)} pairs loaded")
     dataset = _build_hf_dataset(records, tokenizer)
     logger.info(f"  Dataset size: {len(dataset)}")
-
-    # ------------------------------------------------------------------
-    # Model — load in bf16, no device_map (single GPU)
-    # ------------------------------------------------------------------
-    logger.info("Loading base model …")
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_path,
-        local_files_only=True,
-        dtype=torch.bfloat16,
-    )
-    model.config.use_cache = False  # required for gradient checkpointing
-
-    # Reference model: same base, frozen. DPOTrainer handles this internally
-    # when peft_config is passed (it creates its own frozen copy via adapter disable).
-    # We pass the base model once; TRL creates ref by disabling adapters.
 
     # ------------------------------------------------------------------
     # LoRA config
@@ -210,20 +201,24 @@ def main():
         remove_unused_columns=False,
         report_to="none",
         dataloader_num_workers=2,
+        max_length=args.max_length,
+        model_init_kwargs={
+            "dtype": torch.bfloat16,
+            "local_files_only": True,
+        },
     )
 
     # ------------------------------------------------------------------
-    # Trainer
+    # Trainer — pass model as a string path so TRL loads it with
+    # device_map="auto" internally (recommended TRL 1.0.0 pattern).
     # ------------------------------------------------------------------
     logger.info("Initialising DPOTrainer …")
     trainer = DPOTrainer(
-        model=model,
+        model=args.model_path,
         args=training_args,
         train_dataset=dataset,
         processing_class=tokenizer,
         peft_config=lora_config,
-        max_length=args.max_length,
-        max_prompt_length=args.max_prompt_length,
     )
 
     logger.info(f"Training for {args.epochs} epoch(s) …")
@@ -251,6 +246,7 @@ def main():
         "effective_batch": args.batch_size * args.grad_accum,
         "lr":            args.lr,
         "beta":          args.beta,
+        "max_length":    args.max_length,
         "lora_r":        args.lora_r,
         "lora_alpha":    args.lora_alpha,
         "train_loss":    train_result.training_loss,
