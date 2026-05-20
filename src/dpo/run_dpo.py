@@ -53,7 +53,11 @@ def _build_hf_dataset(records: list[dict], tokenizer):
     from datasets import Dataset
 
     rows = []
+    skipped = 0
     for r in records:
+        if not r.get("chosen") or not r.get("rejected"):
+            skipped += 1
+            continue
         article = r["article"].strip()
         prompt_text = (
             f"Summarize the following news article in 2-3 sentences, "
@@ -77,6 +81,8 @@ def _build_hf_dataset(records: list[dict], tokenizer):
             "rejected": rejected_text,
         })
 
+    if skipped:
+        print(f"  WARNING: skipped {skipped} records with null chosen/rejected fields")
     return Dataset.from_list(rows)
 
 
@@ -165,9 +171,9 @@ def main():
     model = AutoModelForCausalLM.from_pretrained(
         args.model_path,
         local_files_only=True,
-        torch_dtype=torch.bfloat16,
-        use_cache=False,          # required when using gradient checkpointing
-    ).to(device)
+        dtype=torch.bfloat16,
+    )
+    model.config.use_cache = False  # required for gradient checkpointing
 
     # Reference model: same base, frozen. DPOTrainer handles this internally
     # when peft_config is passed (it creates its own frozen copy via adapter disable).
