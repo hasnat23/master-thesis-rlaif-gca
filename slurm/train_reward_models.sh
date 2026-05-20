@@ -15,7 +15,8 @@
 # MOGON Bradley-Terry Reward Model Training
 #
 # Trains two RMs (holistic condition + GCA condition) on the
-# 500-sample preference pairs using DeBERTa-v3-base backbone.
+# 500-sample preference pairs using RoBERTa-base backbone (microsoft/deberta-v3-base
+# is not whitelisted on the MOGON HF proxy; FacebookAI/roberta-base is already cached).
 #
 # Input:  data/preferences_rm500/holistic_reward_preferences_rm500.jsonl
 #         data/preferences_rm500/gca_reward_preferences_rm500.jsonl
@@ -39,6 +40,8 @@ echo ""
 export HF_ENDPOINT=http://10.81.2.171:8090
 export HF_HUB_DOWNLOAD_TIMEOUT=120
 export HF_HUB_DISABLE_TELEMETRY=1
+export TRANSFORMERS_OFFLINE=1
+export HF_HUB_OFFLINE=1
 echo "HF_ENDPOINT: $HF_ENDPOINT"
 
 module load lang/Anaconda3/2024.06-1
@@ -66,7 +69,7 @@ python src/reward_model/run_training.py \
     --holistic "$HOLISTIC" \
     --gca      "$GCA" \
     --output-dir outputs/reward_models \
-    --backbone microsoft/deberta-v3-base \
+    --backbone FacebookAI/roberta-base \
     --epochs 5 \
     --batch-size 8 \
     --lr 2e-5 \
