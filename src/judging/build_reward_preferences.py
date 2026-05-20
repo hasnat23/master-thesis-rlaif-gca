@@ -220,13 +220,14 @@ def run_pipeline(
     margin: float,
     alpha: float,
     logger,
+    suffix: str = "200",
 ) -> dict[str, str]:
     """Run holistic and/or GCA judging and write output files. Returns artifact paths."""
     artifacts: dict[str, str] = {}
 
     # ---- Holistic --------------------------------------------------------
     if mode in ("holistic", "both"):
-        out_path = output_dir / "holistic_reward_preferences_200.jsonl"
+        out_path = output_dir / f"holistic_reward_preferences_{suffix}.jsonl"
         logger.info("=== Holistic judging  →  %s ===", out_path)
 
         records: list[dict] = []
@@ -256,7 +257,7 @@ def run_pipeline(
 
     # ---- GCA -------------------------------------------------------------
     if mode in ("gca", "both"):
-        out_path = output_dir / "gca_reward_preferences_200.jsonl"
+        out_path = output_dir / f"gca_reward_preferences_{suffix}.jsonl"
         logger.info("=== GCA judging  →  %s ===", out_path)
 
         records = []
@@ -417,6 +418,10 @@ def main() -> None:
         alignscore_batch_size=args.alignscore_batch_size,
     )
 
+    # Derive suffix from candidates filename: candidates_rm500.jsonl -> "rm500"
+    candidates_stem = candidates_path.stem  # e.g. "candidates_rm500"
+    suffix = candidates_stem.replace("candidates_", "", 1) if candidates_stem.startswith("candidates_") else candidates_stem
+
     artifacts = run_pipeline(
         pairs=pairs,
         judge=judge,
@@ -425,6 +430,7 @@ def main() -> None:
         margin=args.margin,
         alpha=args.alpha,
         logger=logger,
+        suffix=suffix,
     )
 
     save_run_metadata(
