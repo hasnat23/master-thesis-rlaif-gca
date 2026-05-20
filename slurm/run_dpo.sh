@@ -19,6 +19,7 @@
 #SBATCH --error=%x_%j.err
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=muhhas01@students.uni-mainz.de
+#SBATCH --exclude=gpu0001
 
 set -euo pipefail
 
