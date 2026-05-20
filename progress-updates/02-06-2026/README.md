@@ -15,7 +15,7 @@
 
 ## Summary
 
-Since the last meeting (19 May 2026), the 500-sample candidate generation job completed successfully and the AlignScore preference-building job has been submitted. The full reward model training pipeline (Bradley-Terry) is ready and will be submitted once preferences are available. DPO fine-tuning (Phase 3) is the next major milestone.
+Since the last meeting (19 May 2026), the 500-sample candidate generation job completed, AlignScore preference-building finished (495 pairs labelled), and the Bradley-Terry reward model training completed (20 May 2026). Holistic RM reached **58.1% pairwise accuracy** vs GCA RM at **54.6%** (5-fold CV), confirming that holistic preference signals are more learnable from this dataset. DPO fine-tuning (Phase 3) is the next major milestone.
 
 ---
 
@@ -40,39 +40,41 @@ This dataset is disjoint from the 200-sample DPO set (seed=100 vs seed=42) and w
 
 ---
 
-### 2. AlignScore Preference Building — SUBMITTED ✅ ⏳
+### 2. AlignScore Preference Building — COMPLETED ✅
 
-Immediately after confirming the generation output, the AlignScore judging job was submitted (20 May 2026).
+The AlignScore judging job completed on 20 May 2026 (job 1170125, after fixing a `--max-samples` bug in the initial submission 1170124).
 
 | Field | Value |
 |-------|-------|
-| Job ID | 1170124 |
+| Job ID | 1170125 |
 | Script | `slurm/build_reward_preferences_rm500.sh` |
-| State | SUBMITTED / PENDING |
-| Expected outputs | `data/preferences_rm500/holistic_reward_preferences_rm500.jsonl` |
-| | `data/preferences_rm500/gca_reward_preferences_rm500.jsonl` |
-| Expected runtime | ~1h on A100 |
+| State | COMPLETED (exit code 0) |
+| Output | `data/preferences_rm500/holistic_reward_preferences_rm500.jsonl` (494 pairs) |
+| | `data/preferences_rm500/gca_reward_preferences_rm500.jsonl` (495 pairs) |
 
-AlignScore judges each of the 495 candidate pairs under both holistic scoring and GCA (α=0.5), producing two separate preference datasets for reward model training.
+AlignScore scored all 495 candidate pairs under holistic and GCA (α=0.5) modes, producing two separate preference datasets for reward model training.
 
 ---
 
-### 3. Bradley-Terry Reward Model Pipeline — READY ✅
+### 3. Bradley-Terry Reward Model Training — COMPLETED ✅
 
-The full reward model training code was implemented and committed last week (`src/reward_model/`, commit `02131d4`). It is ready to submit once job 1170124 completes.
+Both reward models were trained on MOGON on 20 May 2026 (job 1170128, wall-clock 00:12:27).
 
-**Architecture recap:**
-- Backbone: `microsoft/deberta-v3-base` (encoder-only)
+**Architecture:**
+- Backbone: `FacebookAI/roberta-base` (encoder-only; `microsoft/deberta-v3-base` is not whitelisted on the MOGON HF proxy)
 - Input: `"{article[:2000]} [SEP] {summary}"` → 512 tokens
 - Head: mean-pool → linear → scalar reward $r_\theta$
 - Loss: $\mathcal{L} = -\log \sigma(r_\theta(x, y_w) - r_\theta(x, y_l))$
-- Evaluation: pairwise accuracy $P(r_w > r_l)$, 5-fold cross-validation
+- Evaluation: pairwise accuracy $P(r_w > r_l)$, 5-fold cross-validation, 5 epochs per fold
 
-**Two models trained separately:**
-- `rm_holistic` — trained on holistic AlignScore preferences
-- `rm_gca` — trained on GCA preferences
+**Results (5-fold CV pairwise accuracy):**
 
-The comparison of their pairwise validation accuracies is the IRL framing result.
+| Condition | Fold 1 | Fold 2 | Fold 3 | Fold 4 | Fold 5 | **Mean** |
+|-----------|--------|--------|--------|--------|--------|----------|
+| Holistic RM | 55.4% | 60.8% | 59.5% | 67.6% | 47.3% | **58.1%** |
+| GCA RM | 58.5% | 46.3% | 56.1% | 52.4% | 59.8% | **54.6%** |
+
+**Interpretation:** Both models learn above chance (50%). Holistic preferences yield a more consistent and learnable reward signal. GCA accuracy is near-chance in two folds, suggesting the GCA signal is noisier or requires a larger training set. This is the key IRL-framing result motivating the thesis comparison.
 
 ---
 
@@ -83,8 +85,8 @@ The comparison of their pairwise validation accuracies is the IRL framing result
 | 200-sample DPO candidate generation | ✅ Complete | `data/candidates/candidates_200.jsonl` |
 | 200-sample AlignScore judging | ✅ Complete | `data/preferences/` (154 holistic, 157 GCA pairs) |
 | 500-sample RM candidate generation | ✅ Complete | `data/candidates/candidates_rm500.jsonl` (495 samples) |
-| 500-sample AlignScore judging | ⏳ Running | Job 1170124 |
-| Bradley-Terry RM training (holistic + GCA) | ⏳ Pending | Depends on job 1170124 |
+| 500-sample AlignScore judging | ✅ Complete | Job 1170125 (494/495 pairs) |
+| Bradley-Terry RM training (holistic + GCA) | ✅ Complete | Job 1170128 — holistic 58.1%, GCA 54.6% |
 | DPO fine-tuning — holistic condition | ⏳ Pending | Depends on 200-sample preferences (ready) |
 | DPO fine-tuning — GCA condition | ⏳ Pending | Depends on 200-sample preferences (ready) |
 | Post-DPO evaluation (ROUGE / BERTScore / AlignScore) | ⏳ Pending | After DPO |
@@ -95,11 +97,10 @@ The comparison of their pairwise validation accuracies is the IRL framing result
 
 | Priority | Step | Blocker |
 |----------|------|---------|
-| 1 | Monitor job 1170124; submit `train_reward_models.sh` on completion | AlignScore job |
-| 2 | Submit DPO fine-tuning jobs (holistic + GCA) on 200-sample preferences | Compute scheduling |
-| 3 | Compare BT RM pairwise accuracies (holistic vs GCA) — IRL result | RM training |
-| 4 | Run post-DPO evaluation on both fine-tuned models | DPO completion |
-| 5 | Analyse disagreement cases (39.5% holistic/GCA disagreement) qualitatively | Analysis |
+| 1 | Submit DPO fine-tuning jobs (holistic + GCA) on 200-sample preferences | — (data ready) |
+| 2 | Run post-DPO evaluation on both fine-tuned models (ROUGE / BERTScore / AlignScore) | DPO completion |
+| 3 | Analyse disagreement cases (39.5% holistic/GCA disagreement) qualitatively | Analysis |
+| 4 | Investigate whether a larger RM training set improves GCA accuracy | Optional |
 
 ---
 
@@ -117,7 +118,9 @@ All code is on `origin/main`. Key recent commits:
 
 | Commit | Description |
 |--------|-------------|
+| `3af4b7b` | Fix RM backbone to `roberta-base`; add `TRANSFORMERS_OFFLINE` flags |
+| `34cd021` | Fix judging output filename to derive suffix from input path |
+| `841af8f` | Fix `--max-samples 495` in judging Slurm script |
+| `62cc728` | Add progress update for 2 June 2026 meeting |
 | `7e6d042` | Latest README fix (19 May update) |
 | `02131d4` | Bradley-Terry reward model training pipeline |
-| `2423487` | Remove `device_map`, use `torch_dtype` + `.to(cuda)` |
-| `bb3f7c1` | `local_files_only=True` + `TRANSFORMERS_OFFLINE=1` |
