@@ -60,6 +60,7 @@ python src/judging/build_reward_preferences.py \
     --alignscore-backbone FacebookAI/roberta-base \
     --alignscore-filename AlignScore-base.ckpt \
     --margin 0.05 \
+    --max-samples 495 \
     --mode both \
     --alpha 0.5
 
