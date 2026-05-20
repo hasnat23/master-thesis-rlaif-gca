@@ -142,10 +142,36 @@ def main():
     # if no CUDA context exists yet, torch.cuda.set_device() raises
     # cudaErrorDevicesUnavailable on some HPC nodes)
     # ------------------------------------------------------------------
+    import os, time
+
     logger.info("Initialising CUDA …")
     if not torch.cuda.is_available():
         raise RuntimeError("No CUDA GPU detected. DPO fine-tuning requires a GPU.")
-    torch.cuda.init()
+
+    # Log environment so we can diagnose device-visibility issues
+    logger.info(f"  CUDA_VISIBLE_DEVICES : {os.environ.get('CUDA_VISIBLE_DEVICES', 'NOT SET')}")
+    logger.info(f"  LOCAL_RANK           : {os.environ.get('LOCAL_RANK', 'NOT SET')}")
+    logger.info(f"  SLURM_STEP_GPUS      : {os.environ.get('SLURM_STEP_GPUS', 'NOT SET')}")
+    logger.info(f"  torch.cuda.device_count: {torch.cuda.device_count()}")
+
+    # torch.cuda.init() only checks the driver; it does NOT create a CUDA context.
+    # DPOConfig.__post_init__ (via TrainingArguments._setup_devices) calls
+    # torch.cuda.set_device() which IS the first real context-creation call and
+    # fails with cudaErrorDevicesUnavailable if the context hasn't been established.
+    # Fix: allocate a small tensor on CUDA to force context creation FIRST.
+    for attempt in range(1, 4):
+        try:
+            _probe = torch.zeros(1, device="cuda")
+            del _probe
+            logger.info(f"  CUDA context created OK (attempt {attempt})")
+            break
+        except Exception as e:
+            logger.warning(f"  CUDA context attempt {attempt}/3 failed: {e}")
+            if attempt < 3:
+                time.sleep(10)
+            else:
+                raise RuntimeError(f"Cannot initialize CUDA context after 3 attempts: {e}") from e
+
     logger.info(f"GPU: {torch.cuda.get_device_name(0)}, "
                 f"{torch.cuda.get_device_properties(0).total_memory // (1024**2)} MiB")
 
