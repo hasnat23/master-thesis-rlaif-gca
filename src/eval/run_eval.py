@@ -263,10 +263,14 @@ def main():
         }
 
     def _bertscore(preds, refs):
+        # Use the local roberta-base checkpoint (already on cluster at models/roberta-base/).
+        # num_layers=9 is the bert_score default for roberta-base and must be set
+        # explicitly when passing a local path (not looked up from the internal table).
+        local_rb = str(Path(args.model_path).parent / "roberta-base")
         P, R, F1 = bs_lib.score(
             preds, refs,
-            model_type="roberta-large",
-            lang="en",
+            model_type=local_rb,
+            num_layers=9,
             verbose=False,
         )
         return {
