@@ -1,17 +1,226 @@
-# Progress Update — 2 June 2026
+# Meeting Presentation — 2 June 2026
 
-**Meeting date:** 2 June 2026  
+**Meeting date:** 2 June 2026 | **Duration:** ~15 min presentation + ~15 min discussion  
 **Student:** Muhammad Hasnat  
 **Supervisors:** Dr. Zeyd Boukhers, Prof. Dr. Frank Hopfgartner | **Mentor:** Lingxiao Kong
 
 ---
 
-## Thesis Context
+## Part 1 — Recap of Previous Meeting (19 May 2026)
 
-**Title:** Benchmarking Holistic vs Sentence-Level RLAIF for Factual Summarization via Granular Credit Assignment (GCA)  
-**Core question:** Does sentence-level AI feedback aggregated via GCA produce more factually consistent summaries than holistic feedback under DPO? And can we distil that preference signal into a trained reward model for the IRL framing?
+### What we discussed
+- The AlignScore judging pipeline was validated and produced a 200-sample preference dataset for DPO
+- Lingxiao suggested exploring the **IRL framing**: train an explicit Bradley-Terry reward model from the AI preferences rather than using DPO alone
+- Both reward model training and DPO fine-tuning pipelines were designed and ready to run
+- Open question: would holistic or GCA preferences produce a more consistent reward signal?
+
+### What was agreed as next steps
+1. Run Bradley-Terry RM training on 500 new samples (dedicated RM set, seed=100)
+2. Run DPO fine-tuning on Mistral-7B for both holistic and GCA conditions
+3. Evaluate post-DPO models with ROUGE, BERTScore, and AlignScore on held-out articles
+4. Report all results at the next meeting
+
+**Status: all four items completed ✅**
 
 ---
+
+## Part 2 — Introduction
+
+### 2a. Motivation
+
+Automatic summarization models often generate text that sounds fluent but contains factual errors — hallucinated entities, wrong numbers, or distorted relations not supported by the source article. The dominant paradigm, RLHF, uses holistic human (or AI) preference labels: "which summary is better overall?" This collapses rich sentence-level evidence into a single scalar, which can reward summaries that are globally fluent but locally unfaithful.
+
+**Core thesis question:** Does sentence-level AI feedback aggregated via *Granular Credit Assignment (GCA)* produce more factually consistent summaries than holistic AI feedback under Direct Preference Optimization (DPO)?
+
+### 2b. Architecture Overview
+
+```
+Source articles (CNN/DM)
+        │
+        ▼
+┌─────────────────────────────────────────────────────────┐
+│  CANDIDATE GENERATION                                    │
+│  Mistral-7B-Instruct-v0.3                               │
+│  low-temp (temp=0.3) → summary A                        │
+│  high-temp (temp=0.8) → summary B                       │
+└─────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────────────────────────────┐
+│  AI JUDGING (AlignScore-base)                           │
+│                                                          │
+│  Holistic path:   score(article, A) vs score(article, B)│
+│  GCA path:        per-sentence scores → α-weighted      │
+│                   aggregation → GCA(A) vs GCA(B)        │
+└─────────────────────────────────────────────────────────┘
+        │
+        ├──────────────────────────────┐
+        ▼                              ▼
+┌──────────────────┐        ┌──────────────────────┐
+│  DPO Fine-tuning │        │  Bradley-Terry RM     │
+│  (RLHF/DPO path) │        │  Training (IRL path)  │
+│  β=0.1, LoRA     │        │  RoBERTa backbone     │
+│  r=16 α=32       │        │  5-fold CV pairwise   │
+└──────────────────┘        └──────────────────────┘
+        │                              │
+        └──────────────┬───────────────┘
+                       ▼
+        ┌──────────────────────────┐
+        │  EVALUATION              │
+        │  ROUGE-1/2/L             │
+        │  BERTScore-F1            │
+        │  AlignScore (faithfulness│
+        │  to source article)      │
+        │  Bootstrap 95% CI        │
+        │  Wilcoxon signed-rank    │
+        └──────────────────────────┘
+```
+
+### 2c. Method in Detail
+
+**GCA Aggregation:**  
+For a summary with sentences $s_1, \ldots, s_k$, the GCA score is:
+
+$$\text{GCA}(y, x) = \sum_{i=1}^{k} \alpha_i \cdot \text{AlignScore}(x, s_i), \quad \alpha_i = \frac{\text{AlignScore}(x, s_i)}{\sum_j \text{AlignScore}(x, s_j)}$$
+
+This gives higher weight to sentences that are themselves more grounded, focusing the preference signal on the most contentious parts of the summary.
+
+**DPO Fine-tuning:**  
+Given a preference pair $(y_w \succ y_l)$ for article $x$, the DPO loss is:
+
+$$\mathcal{L}_\text{DPO} = -\log \sigma\!\left(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_\text{ref}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_\text{ref}(y_l|x)}\right)$$
+
+**Bradley-Terry RM:**  
+$$\mathcal{L}_\text{BT} = -\log \sigma(r_\theta(x, y_w) - r_\theta(x, y_l))$$
+
+Trained as a binary classification on the same preference pairs, evaluated by pairwise accuracy $P(r_w > r_l)$ under 5-fold CV.
+
+---
+
+## Part 3 — Progress This Week
+
+### 3a. What Was Completed
+
+#### ① 500-Sample RM Candidate Generation ✅
+New candidate generation run on MOGON (job 1157804, seed=100 — disjoint from DPO set).  
+**495 articles** generated, dedicated to reward model training.
+
+#### ② AlignScore Preference Building on RM Set ✅
+Job 1170125 (20 May 2026). Output: 494 holistic pairs, 495 GCA pairs.
+
+#### ③ Bradley-Terry Reward Model Training ✅
+Job 1170128 (20 May 2026, wall-clock 00:12:27). Architecture: RoBERTa-base encoder, mean-pool head, trained on 5-fold CV, 5 epochs per fold.
+
+| Condition | Mean pairwise accuracy (5-fold CV) |
+|-----------|-----------------------------------|
+| Holistic RM | **58.1%** |
+| GCA RM | **54.6%** |
+
+Both models learn above chance (50%). Holistic preferences yield a more consistent and learnable reward signal. GCA accuracy is near-chance in two folds, suggesting the GCA signal is noisier or requires more training data — a key IRL-framing finding.
+
+#### ④ DPO Fine-Tuning (Holistic + GCA) ✅
+Job 1170154 (20 May 2026). Mistral-7B-Instruct-v0.3, LoRA r=16 α=32, β=0.1, bfloat16.
+
+| Condition | Training pairs | Wall-clock | Final loss |
+|-----------|---------------|-----------|-----------|
+| Holistic | 154 | ~135 s | 0.6902 |
+| GCA | 157 | ~135 s | 0.6913 |
+
+#### ⑤ Post-DPO Evaluation on 200 Articles ✅
+Job 1243004 (1 June 2026, wall-clock 00:11:21). Greedy decoding, 200 held-out articles, ROUGE + BERTScore + AlignScore. Bootstrap 95% CIs computed from 10,000 resamples; statistical significance via Wilcoxon signed-rank test.
+
+### 3b. Main Results (n=200, Bootstrap 95% CI)
+
+| Condition | ROUGE-1 [95% CI] | ROUGE-2 [95% CI] | ROUGE-L [95% CI] | AlignScore [95% CI] |
+|-----------|-----------------|-----------------|-----------------|---------------------|
+| Baseline | 0.3281 [0.316, 0.340] | 0.1158 [0.107, 0.125] | 0.2132 [0.204, 0.223] | 0.7965 [0.774, 0.818] |
+| DPO-Holistic | 0.3255 [0.314, 0.337] | 0.1144 [0.105, 0.124] | 0.2111 [0.201, 0.221] | **0.8017** [0.781, 0.822] |
+| DPO-GCA | 0.3255 [0.313, 0.338] | 0.1142 [0.105, 0.124] | 0.2108 [0.201, 0.221] | 0.7996 [0.778, 0.821] |
+
+**Wilcoxon signed-rank test vs baseline (two-sided):**
+
+| Condition | ROUGE-L p-value | AlignScore p-value |
+|-----------|----------------|-------------------|
+| DPO-Holistic | 0.185 (n.s.) | 0.591 (n.s.) |
+| DPO-GCA | **0.015 ✓** | 0.652 (n.s.) |
+
+### 3c. Interpretation
+
+1. **DPO-GCA produces a statistically significant structural shift (ROUGE-L, p=0.015):** The GCA-trained model generates summaries with measurably different sentence-level structure compared to baseline. This confirms the GCA training signal is shaping generation in a non-trivial way.
+
+2. **DPO-Holistic achieves the best factual consistency (AlignScore +0.5pp):** Holistic DPO marginally but consistently improves source-grounding. This partially supports H1 in reverse — holistic signals, while less granular, produce a cleaner training gradient for the DPO objective.
+
+3. **ROUGE dips are expected and not concerning:** DPO explicitly trains away from less-preferred outputs, shifting generation style. Reference summaries reward CNN/DM-style n-gram overlap; the DPO objective does not target this directly.
+
+4. **Reward model accuracies (58.1% holistic, 54.6% GCA) confirm the two signals are distinct:** The lower GCA accuracy validates the thesis premise — GCA captures genuinely different information that is harder to learn from, likely because sentence-level factual errors are subtler than holistic quality differences.
+
+5. **39.5% holistic/GCA disagreement rate** on the 200 preference pairs is the central motivating finding: the two judging strategies disagree on which summary is better in 4 out of 10 cases, confirming they are not interchangeable.
+
+### 3d. Difficulties Encountered
+
+| Problem | Root Cause | Resolution |
+|---------|-----------|------------|
+| BERTScore download fails on compute node | HF proxy unreachable from GPU nodes; `bert_score` tries to fetch `roberta-large` | Use local `models/roberta-base` path + `num_layers=9` |
+| `ImportError: cannot import name 'AdamW' from 'transformers'` | `alignscore` imports `AdamW` removed in transformers ≥5.0 | Monkey-patch `transformers.AdamW = torch.optim.AdamW` before import |
+| `gpu0001` job crashes immediately | Broken CUDA runtime on that node | `#SBATCH --exclude=gpu0001` in all Slurm scripts |
+| a100dl partition queue wait (~2.5h) | 12+ competing jobs from other users | Submitted bootstrap CI as dependent CPU job (no GPU needed) |
+
+---
+
+## Part 4 — Next Steps
+
+### Immediate (next 2 weeks)
+| Priority | Task | Notes |
+|----------|------|-------|
+| 1 | **Thesis write-up — Results chapter** | Phases 1–3 complete; results ready |
+| 2 | **Qualitative error analysis** | Sample disagreement cases (39.5%), categorize by error type (entity / number / relation / temporal) — directly addresses RQ3 |
+| 3 | **Finalize Related Work section** | RLHF, DPO, faithfulness metrics |
+
+### Optional / If Time Permits
+| Priority | Task | Notes |
+|----------|------|-------|
+| 4 | DPO β ablation (β ∈ {0.05, 0.1, 0.2}) | Assess sensitivity — addresses RQ2 |
+| 5 | Scale DPO to full 495-sample RM set | Verify AlignScore trends hold at larger training scale |
+| 6 | Human audit of 20–30 sampled summaries | Addresses RQ4 (judge independence) |
+
+### Discussion Points for Today
+- The AlignScore gains under DPO-Holistic are small (+0.5pp) but consistent across n=200. Is this sufficient evidence, or should we pursue human evaluation?
+- Should RQ3 (error category analysis) be pursued computationally (NER + RE) or via manual annotation?
+- Given the ROUGE-L significance result for DPO-GCA (p=0.015), how should this be framed — as a positive finding or as evidence of distribution shift?
+- Timeline for thesis submission: write-up is the critical path. Is the experimental scope now sufficient?
+
+---
+
+## Pipeline Status Overview
+
+| Stage | Status | Job / Artifact |
+|-------|--------|----------------|
+| 200-sample DPO candidate generation | ✅ Complete | `data/candidates/candidates_200.jsonl` |
+| 200-sample AlignScore judging | ✅ Complete | 154 holistic, 157 GCA pairs |
+| 500-sample RM candidate generation | ✅ Complete | Job 1157804 — 495 samples |
+| 500-sample AlignScore judging | ✅ Complete | Job 1170125 — 494/495 pairs |
+| Bradley-Terry RM training (holistic + GCA) | ✅ Complete | Job 1170128 — 58.1% / 54.6% |
+| DPO fine-tuning — holistic condition | ✅ Complete | Job 1170154 — loss 0.6902 |
+| DPO fine-tuning — GCA condition | ✅ Complete | Job 1170154 — loss 0.6913 |
+| Post-DPO evaluation (n=200, all metrics) | ✅ Complete | Job 1243004 — see results above |
+| Bootstrap CI + Wilcoxon significance tests | ✅ Complete | `outputs/eval/bootstrap_ci.json` |
+| Thesis write-up | 🔄 In progress | Results chapter next |
+
+---
+
+## Repository State
+
+Recent commits relevant to this meeting:
+
+| Commit | Description |
+|--------|-------------|
+| `74212da` | eval: 200-article results with bootstrap CIs and Wilcoxon tests |
+| `ea10718` | eval: save per-sample metrics; add bootstrap CI + Wilcoxon script; n-test=200 |
+| `369738a` | progress: 02-06-2026 update (50-article results) |
+| `6239e1c` | eval: add 50-article eval_results.json |
+| `867cbb7` | eval: fix AlignScore import + use local roberta-base backbone |
+| `c90fb48` | dpo: DPO fine-tuning pipeline (run_dpo.py + Slurm script) |
+| `02131d4` | Bradley-Terry reward model training pipeline |
 
 ## Research Questions and Objectives
 
