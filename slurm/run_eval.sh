@@ -16,7 +16,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
 #SBATCH --gres=gpu:1
-#SBATCH --time=02:00:00
+#SBATCH --time=03:00:00
 #SBATCH --output=%x_%j.out
 #SBATCH --error=%x_%j.err
 #SBATCH --mail-type=END,FAIL
@@ -56,7 +56,7 @@ python src/eval/run_eval.py \
     --gca-adapter outputs/dpo/gca/adapter \
     --alignscore-ckpt models/alignscore/AlignScore-base.ckpt \
     --output-dir outputs/eval \
-    --n-test 50 \
+    --n-test 200 \
     --max-new-tokens 120 \
     --gen-batch-size 4 \
     --seed 42

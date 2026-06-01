@@ -168,7 +168,7 @@ def main():
     parser.add_argument("--alignscore-ckpt",   type=str, default="models/alignscore/AlignScore-base.ckpt")
     parser.add_argument("--alignscore-backbone", type=str, default="models/roberta-base")
     parser.add_argument("--output-dir",        type=str, default="outputs/eval")
-    parser.add_argument("--n-test",            type=int, default=50,
+    parser.add_argument("--n-test",            type=int, default=200,
                         help="Number of articles to evaluate (sampled from candidates)")
     parser.add_argument("--max-new-tokens",    type=int, default=120)
     parser.add_argument("--gen-batch-size",    type=int, default=4)
@@ -266,6 +266,9 @@ def main():
             "rouge1": sum(r1) / len(r1),
             "rouge2": sum(r2) / len(r2),
             "rougeL": sum(rl) / len(rl),
+            "rouge1_per_sample": r1,
+            "rouge2_per_sample": r2,
+            "rougeL_per_sample": rl,
         }
 
     def _bertscore(preds, refs):
@@ -283,6 +286,7 @@ def main():
             "bertscore_p": P.mean().item(),
             "bertscore_r": R.mean().item(),
             "bertscore_f1": F1.mean().item(),
+            "bertscore_f1_per_sample": F1.tolist(),
         }
 
     metrics: dict[str, dict] = {}
@@ -320,16 +324,18 @@ def main():
     # ------------------------------------------------------------------
     # Save metrics
     # ------------------------------------------------------------------
-    # Per-condition summary (without per-sample arrays for clean printing)
+    # Summary metrics (scalar only) for clean printing; full results include per-sample arrays
+    PER_SAMPLE_KEYS = {"rouge1_per_sample", "rouge2_per_sample", "rougeL_per_sample",
+                       "bertscore_f1_per_sample", "alignscore_per_sample"}
     summary_metrics = {}
     for cond, m in metrics.items():
-        summary_metrics[cond] = {k: v for k, v in m.items() if k != "alignscore_per_sample"}
+        summary_metrics[cond] = {k: v for k, v in m.items() if k not in PER_SAMPLE_KEYS}
 
     results = {
         "run_id":       run_id,
         "n_test":       len(records),
         "model_path":   args.model_path,
-        "conditions":   summary_metrics,
+        "conditions":   metrics,   # full: includes per-sample arrays for bootstrap CI
     }
     results_path = output_dir / "eval_results.json"
     with open(results_path, "w") as f:
