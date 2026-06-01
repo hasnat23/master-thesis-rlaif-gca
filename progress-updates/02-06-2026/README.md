@@ -13,6 +13,31 @@
 
 ---
 
+## Research Questions and Objectives
+
+The overarching objective is to determine whether more granular AI supervision improves factual reliability in news summarization under a controlled, offline preference-learning setup.
+
+### RQ1
+Does sentence-level AI feedback aggregated via GCA produce more factually consistent summaries than holistic AI feedback when used for DPO fine-tuning?
+
+### RQ2
+How sensitive are the observed effects to alignment strategy (index-based vs semantic alignment) and to judge reliability controls such as confidence gating and A/B order randomization?
+
+### RQ3
+What categories of factual errors are most affected by sentence-level supervision (entities, numbers, relations, temporal claims)?
+
+### RQ4
+Do gains persist under human auditing and (optionally) a second judge, or are they judge-specific artifacts?
+
+### Hypotheses
+
+- **H1:** Sentence-level aggregated preferences reduce factual inconsistency more than holistic preferences because they localize the supervision signal on long outputs.
+- **H2:** Better alignment and reliability controls reduce label noise and training variance; if alignment noise is too high, it can mask the benefits of GCA.
+- **H3:** Improvements are largest for localized errors (entity and relation mistakes) rather than global attributes such as style.
+- **H4:** If improvements reflect genuine factuality gains, they remain visible under at least one independent evaluator (automatic metrics and/or human audit).
+
+---
+
 ## Summary
 
 Since the last meeting (19 May 2026), the full RLAIF pipeline has been completed end-to-end. The 500-sample candidate generation and AlignScore preference-building finished, Bradley-Terry reward model training completed (holistic 58.1% / GCA 54.6% pairwise accuracy, 5-fold CV), DPO fine-tuning on Mistral-7B-Instruct-v0.3 completed for both holistic and GCA conditions, and the post-DPO evaluation pipeline ran successfully on 50 held-out articles. **DPO-GCA achieves the best ROUGE and BERTScore; DPO-holistic achieves the best AlignScore factual consistency (+1.0pp over baseline).**
