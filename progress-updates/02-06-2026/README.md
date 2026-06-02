@@ -34,66 +34,61 @@ Automatic summarization models often generate text that sounds fluent but contai
 
 ### 2b. Architecture Overview
 
-```
-Source articles (CNN/DM)
-        │
-        ▼
-┌─────────────────────────────────────────────────────────┐
-│  CANDIDATE GENERATION                                    │
-│  Mistral-7B-Instruct-v0.3                               │
-│  low-temp (temp=0.3) → summary A                        │
-│  high-temp (temp=0.8) → summary B                       │
-└─────────────────────────────────────────────────────────┘
-        │
-        ▼
-┌─────────────────────────────────────────────────────────┐
-│  AI JUDGING (AlignScore-base)                           │
-│                                                          │
-│  Holistic path:   score(article, A) vs score(article, B)│
-│  GCA path:        per-sentence scores → α-weighted      │
-│                   aggregation → GCA(A) vs GCA(B)        │
-└─────────────────────────────────────────────────────────┘
-        │
-        ├──────────────────────────────┐
-        ▼                              ▼
-┌──────────────────┐        ┌──────────────────────┐
-│  DPO Fine-tuning │        │  Bradley-Terry RM     │
-│  (RLHF/DPO path) │        │  Training (IRL path)  │
-│  β=0.1, LoRA     │        │  RoBERTa backbone     │
-│  r=16 α=32       │        │  5-fold CV pairwise   │
-└──────────────────┘        └──────────────────────┘
-        │                              │
-        └──────────────┬───────────────┘
-                       ▼
-        ┌──────────────────────────┐
-        │  EVALUATION              │
-        │  ROUGE-1/2/L             │
-        │  BERTScore-F1            │
-        │  AlignScore (faithfulness│
-        │  to source article)      │
-        │  Bootstrap 95% CI        │
-        │  Wilcoxon signed-rank    │
-        └──────────────────────────┘
+```mermaid
+flowchart TD
+    A[Data Loader<br/>Input: CNN/DailyMail articles<br/>Output: dataset samples] --> B[Candidate Summary Pool<br/>Input: article + base policy model<br/>Output: candidate summaries A and B]
+    B --> C[Candidate Pairing<br/>Input: candidate pool<br/>Output: summary pairs A,B]
+
+    C --> H1[Holistic full-summary scoring<br/>Input: article + full summaries A,B<br/>Judge: AlignScore / fixed reward model<br/>Output: score_A_full, score_B_full]
+    H1 --> H2[Build holistic preference pairs<br/>Output: P_hol<br/>chosen/rejected or no_preference]
+
+    C --> G1[Sentence segmentation<br/>Input: summaries A,B<br/>Output: sentence lists SA, SB]
+    G1 --> G2[Sentence-level factuality scoring<br/>Input: article + each sentence<br/>Judge: AlignScore / fixed reward model<br/>Output: local sentence scores]
+    G2 --> G3[GCA aggregation<br/>Input: local sentence scores<br/>Output: GCA_A, GCA_B]
+    G3 --> G4[Build GCA preference pairs<br/>Output: P_gca<br/>chosen/rejected or no_preference]
+
+    H2 --> R1[Bradley-Terry reward model training<br/>Output: RM-Holistic]
+    G4 --> R2[Bradley-Terry reward model training<br/>Output: RM-GCA]
+
+    H2 --> D1[DPO fine-tuning<br/>Output: DPO-Holistic adapter]
+    G4 --> D2[DPO fine-tuning<br/>Output: DPO-GCA adapter]
+
+    D1 --> E[Evaluation<br/>Metrics: AlignScore, ROUGE, BERTScore]
+    D2 --> E
+    R1 --> E
+    R2 --> E
 ```
 
 ### 2c. Method in Detail
 
-**GCA Aggregation:**  
-For a summary with sentences $s_1, \ldots, s_k$, the GCA score is:
+The pipeline has two parallel preference-construction branches fed from the same candidate pool, and two parallel training paths from each branch.
+
+**Shared setup:**
+- **Data Loader:** CNN/DailyMail articles fed as context for all downstream steps.
+- **Candidate Summary Pool:** Mistral-7B-Instruct-v0.3 generates two summaries per article — summary A (low temperature, temp=0.3, deterministic) and summary B (high temperature, temp=0.8, more diverse).
+- **Candidate Pairing:** Each (A, B) pair becomes the input to both judging branches.
+
+**Branch A — Holistic Preferences ($P_\text{hol}$):**  
+AlignScore scores each full summary against the source article. A margin threshold determines the preference label:
+
+$$P_\text{hol}(x, A, B) = \begin{cases} A \succ B & \text{if } s_A - s_B > \delta \\ B \succ A & \text{if } s_B - s_A > \delta \\ \text{no\_pref} & \text{otherwise} \end{cases}$$
+
+**Branch B — GCA Preferences ($P_\text{gca}$):**  
+Each summary is sentence-segmented, then AlignScore scores every sentence against the article independently. The GCA aggregation weights each sentence by its own factuality score:
 
 $$\text{GCA}(y, x) = \sum_{i=1}^{k} \alpha_i \cdot \text{AlignScore}(x, s_i), \quad \alpha_i = \frac{\text{AlignScore}(x, s_i)}{\sum_j \text{AlignScore}(x, s_j)}$$
 
-This gives higher weight to sentences that are themselves more grounded, focusing the preference signal on the most contentious parts of the summary.
+The same margin rule then produces $P_\text{gca}$.
 
-**DPO Fine-tuning:**  
-Given a preference pair $(y_w \succ y_l)$ for article $x$, the DPO loss is:
+**Training paths (from each preference set):**
 
+*DPO fine-tuning* — Given a preference pair $(y_w \succ y_l)$:
 $$\mathcal{L}_\text{DPO} = -\log \sigma\!\left(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_\text{ref}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_\text{ref}(y_l|x)}\right)$$
 
-**Bradley-Terry RM:**  
+*Bradley-Terry reward model* — RoBERTa-base encoder with mean-pool scalar head:
 $$\mathcal{L}_\text{BT} = -\log \sigma(r_\theta(x, y_w) - r_\theta(x, y_l))$$
 
-Trained as a binary classification on the same preference pairs, evaluated by pairwise accuracy $P(r_w > r_l)$ under 5-fold CV.
+**Evaluation:** Baseline, DPO-Holistic, and DPO-GCA models are compared on 200 held-out articles using ROUGE-1/2/L, BERTScore-F1, and AlignScore (faithfulness to source), with bootstrap 95% CIs and Wilcoxon signed-rank tests for significance.
 
 ---
 
