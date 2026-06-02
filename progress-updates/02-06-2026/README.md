@@ -68,17 +68,21 @@ The pipeline has two parallel preference-construction branches fed from the same
 - **Candidate Summary Pool:** Mistral-7B-Instruct-v0.3 generates two summaries per article — summary A (low temperature, temp=0.3, deterministic) and summary B (high temperature, temp=0.8, more diverse).
 - **Candidate Pairing:** Each (A, B) pair becomes the input to both judging branches.
 
-**Branch A — Holistic Preferences ($P_\text{hol}$):**  
+**Branch A — Holistic Preferences (P_hol):**  
 AlignScore scores each full summary against the source article. A margin threshold determines the preference label:
 
-$$P_\text{hol}(x, A, B) = \begin{cases} A \succ B & \text{if } s_A - s_B > \delta \\ B \succ A & \text{if } s_B - s_A > \delta \\ \text{no\_pref} & \text{otherwise} \end{cases}$$
+| Condition | Label |
+|-----------|-------|
+| $s_A - s_B > \delta$ | A chosen, B rejected |
+| $s_B - s_A > \delta$ | B chosen, A rejected |
+| otherwise | no_preference (excluded) |
 
 **Branch B — GCA Preferences ($P_\text{gca}$):**  
 Each summary is sentence-segmented, then AlignScore scores every sentence against the article independently. The GCA aggregation weights each sentence by its own factuality score:
 
 $$\text{GCA}(y, x) = \sum_{i=1}^{k} \alpha_i \cdot \text{AlignScore}(x, s_i), \quad \alpha_i = \frac{\text{AlignScore}(x, s_i)}{\sum_j \text{AlignScore}(x, s_j)}$$
 
-The same margin rule then produces $P_\text{gca}$.
+The same margin rule then produces P_gca.
 
 **Training paths (from each preference set):**
 
