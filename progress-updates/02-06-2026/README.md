@@ -1,6 +1,6 @@
 # Meeting Presentation — 2 June 2026
 
-**Meeting date:** 2 June 2026 | **Duration:** ~15 min presentation + ~15 min discussion  
+**Meeting date:** 2 June 2026  
 **Student:** Muhammad Hasnat  
 **Supervisors:** Dr. Zeyd Boukhers, Prof. Dr. Frank Hopfgartner | **Mentor:** Lingxiao Kong
 
