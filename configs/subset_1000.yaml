@@ -10,7 +10,7 @@ seed: 200
 
 split: "test"
 
-local_dataset_path: "data/cnn_dailymail_500"
+local_dataset_path: "data/cnn_dailymail_test_full"
 
 max_article_chars: 8000
 max_summary_chars: 2000
