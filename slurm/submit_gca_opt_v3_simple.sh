@@ -59,7 +59,7 @@ python src/judging/build_reward_preferences.py \
     --judge-backend alignscore \
     --model-name yzha/AlignScore \
     --alignscore-backbone FacebookAI/roberta-base \
-    --alignscore-filename AlignScore-base.ckpt \
+    --alignscore-ckpt /home/muhhas01/thesis/models/alignscore/AlignScore-base.ckpt \
     --margin 0 \
     --max-samples 1000 \
     --mode both \
