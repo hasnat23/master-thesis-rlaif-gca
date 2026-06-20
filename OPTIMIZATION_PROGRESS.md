@@ -121,6 +121,26 @@ ssh mogon "cd /fshpc/muhhas01/thesis_git && tail -100 logs/gca_opt_validate_*.lo
 - Improved accuracy differential with Holistic, potentially flipping the sign
 - Estimated improvement: 2-5% absolute accuracy gain for GCA
 
----
+## Status as of Jun 20, 2026, 18:00 UTC
 
-**Status as of Jun 20, 2026, 17:45 UTC**: All optimizations deployed. MOGON validation job running.
+**ACTIVE JOB: 1335975** (gca-opt-v3-simple) - RUNNING on MOGON
+
+Current phase: Regenerating preferences with alpha=0.0 and retraining RM models
+
+Expected timeline:
+- Preference generation: 15-30 minutes
+- RM training (5-fold CV): 3-5 hours  
+- Total: 3.5-5.5 hours from submission time
+
+Job should complete around **21:30-23:30 UTC tonight**
+
+### Monitoring Commands
+
+```bash
+# Quick status check
+bash check_optimization_status.sh
+
+# Direct MOGON checks
+ssh mogon "squeue -j 1335975"
+ssh mogon "tail -50 /fshpc/muhhas01/thesis_git/logs/gca_opt_v3_*.log"
+```
