@@ -62,19 +62,8 @@ echo "Input: $WC candidate pairs"
 
 mkdir -p data/preferences_1000
 
-# Apply AdamW patch required for alignscore with transformers>=5.0
-cat > /tmp/alignscore_patch.py << 'PY'
-import transformers as _tf
-import torch.optim as _optim
-if not hasattr(_tf, "AdamW"):
-    _tf.AdamW = _optim.AdamW
-PY
-
 echo "--- Building preferences (holistic + GCA, margin=0) ---"
-python -c "
-import sys
-exec(open('/tmp/alignscore_patch.py').read())
-" && \
+# Note: AdamW patch for alignscore is applied in src/judging/reward_model_judge.py
 python src/judging/build_reward_preferences.py \
     --candidates data/candidates/candidates_1000.jsonl \
     --output-dir data/preferences_1000 \
@@ -92,8 +81,8 @@ echo "--- Step check: decision distribution ---"
 python3 -c "
 import json
 from collections import Counter
-for tag, path in [('holistic', 'data/preferences_1000/holistic_preferences_1000.jsonl'),
-                   ('gca',      'data/preferences_1000/gca_preferences_1000.jsonl')]:
+for tag, path in [('holistic', 'data/preferences_1000/holistic_reward_preferences_1000.jsonl'),
+                   ('gca',      'data/preferences_1000/gca_reward_preferences_1000.jsonl')]:
     try:
         rows = [json.loads(l) for l in open(path)]
         c = Counter(r['decision'] for r in rows)

@@ -49,8 +49,8 @@ cd "$SLURM_SUBMIT_DIR" || exit 1
 
 export PYTHONUNBUFFERED=1
 
-HOLISTIC="data/preferences_1000/holistic_preferences_1000.jsonl"
-GCA="data/preferences_1000/gca_preferences_1000.jsonl"
+HOLISTIC="data/preferences_1000/holistic_reward_preferences_1000.jsonl"
+GCA="data/preferences_1000/gca_reward_preferences_1000.jsonl"
 
 if [[ ! -f "$HOLISTIC" || ! -f "$GCA" ]]; then
     echo "ERROR: preference files not found. Run build_preferences_1000.sh first."

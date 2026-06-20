@@ -22,6 +22,11 @@ from pathlib import Path
 from typing import Optional
 
 import torch
+import transformers as _transformers
+
+# transformers>=5.0 removed AdamW; alignscore still expects it at import time
+if not hasattr(_transformers, "AdamW"):
+    _transformers.AdamW = torch.optim.AdamW
 
 logger = logging.getLogger(__name__)
 
