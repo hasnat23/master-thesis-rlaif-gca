@@ -11,17 +11,19 @@
 
 set -e
 
-cd ~/thesis
+# Use the cloned git repository
+WORK_DIR="/fshpc/muhhas01/thesis_git"
+cd "$WORK_DIR"
 
 echo "Node: $(hostname)"
-echo "GPU: $(nvidia-smi --query-gpu=index,name --format=csv,noheader)"
+echo "Working directory: $WORK_DIR"
 echo "Time: $(date)"
 echo ""
 
-# Load environment
-module load cuda/12.0
+# Load environment (allow failure for missing modules)
+module load cuda 2>/dev/null || true
 source ~/.bashrc
-conda activate thesis
+conda activate thesis 2>/dev/null || true
 
 # Run validation pipeline
 bash slurm/validate_gca_optimization.sh
