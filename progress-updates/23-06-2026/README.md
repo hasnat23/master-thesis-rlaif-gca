@@ -131,26 +131,47 @@ The low-temperature summary (A) is consistently more factually consistent than t
 
 | Job | Description | Status |
 |-----|-------------|--------|
-| gen_1000 | Generate 1000 candidate pairs (est. 5-6h) | Submitted |
-| prefs_1000 | Build preferences with margin=0 (est. 15-20 min) | Queued (dependency) |
-| train_rm_1000 | Train RM-Holistic and RM-GCA (est. 30-60 min) | Queued (dependency) |
+| gen_1000 | Generate 1000 candidate pairs | Completed (Job 1335630) |
+| prefs_1000 | Build preferences with margin=0 | Completed (Job 1335889) |
+| train_rm_1000 | Train RM-Holistic and RM-GCA (5-fold CV) | Completed (Job 1335894) |
 
-Jobs are submitted as a dependency chain — each starts automatically after the previous one completes.
+Jobs were executed as a dependency chain. During execution, filename-suffix and AlignScore runtime issues were fixed, rerun, and validated.
 
-### Expected results
+### Final RM results (n=1000, margin=0)
 
-Based on the pattern from the existing 500-sample run (holistic 58.1%, GCA 54.6%):
-- With 1000 samples and no margin filtering, both accuracies should improve.
-- The key question is whether GCA accuracy closes the gap with holistic at larger scale, or whether the signal remains noisier.
+| Condition | Fold Accuracies | Mean Val Accuracy |
+|-----------|------------------|-------------------|
+| Holistic RM | 0.555, 0.600, 0.600, 0.500, 0.605 | **0.572** |
+| GCA RM | 0.535, 0.615, 0.600, 0.540, 0.510 | **0.560** |
+
+**Interpretation:**
+- Holistic remains better than GCA at n=1000, but the gap is small (0.012 absolute).
+- Both models are above random (0.50), indicating both preference sets carry learnable signal.
+- With all pairs included (`margin=0`), GCA remains slightly noisier but still competitive.
+
+### Scaling snapshot (available completed RM runs)
+
+| Run setting | Holistic mean acc | GCA mean acc | Gap (H - GCA) |
+|------------|-------------------|--------------|----------------|
+| Previous RM run (reported on 19 May 2026) | 0.581 | 0.546 | 0.035 |
+| New 1000-sample run (20 June 2026) | 0.572 | 0.560 | 0.012 |
+
+Observation: at larger scale, GCA narrows the gap to holistic (0.035 -> 0.012), although holistic is still slightly better.
+
+### Result vs expectation
+
+- Expected: both RM conditions should remain above random and GCA may close the gap with scale.
+- Observed: both conditions are above random; GCA is close but still below holistic at n=1000.
+- Conclusion: scaling helped stability, but did not eliminate the holistic advantage.
 
 ---
 
 ## 5. Next Steps
 
-**Immediate (pending job results):**
-1. Collect results from train_rm_1000 job
-2. Compare RM-Holistic vs RM-GCA per-fold accuracy at n=200, n=500, n=1000 (scaling analysis)
-3. Start disagreement-case analysis on the pairs where holistic and GCA disagree
+**Immediate (now):**
+1. Finalize scaling plot/table using completed RM runs (current: previous RM run + new n=1000 run)
+2. Run disagreement-case analysis on pairs where holistic and GCA preferences differ
+3. Prepare figures/tables for the results section (fold-accuracy bars + scaling curve)
 
 **Once results are in:**
 1. If GCA accuracy improves significantly — explore better GCA aggregation (e.g., min-based penalty for lowest-faithfulness sentence)
