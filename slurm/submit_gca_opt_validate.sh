@@ -2,7 +2,7 @@
 #SBATCH --job-name=gca-opt-validate
 #SBATCH --output=logs/gca_opt_validate_%A.log
 #SBATCH --error=logs/gca_opt_validate_%A.err
-#SBATCH --partition=gpu
+#SBATCH --partition=a100dl
 #SBATCH --gres=gpu:1
 #SBATCH --mem=64G
 #SBATCH --time=10:00:00
