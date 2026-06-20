@@ -17,8 +17,8 @@
 # Prof. feedback (02-06-2026): remove DPO, focus purely on RM
 # comparison. Also use all pairs (no margin filtering).
 #
-# Input:  data/preferences_1000/holistic_preferences_1000.jsonl
-#         data/preferences_1000/gca_preferences_1000.jsonl
+# Input:  data/preferences_1000/holistic_reward_preferences_1000.jsonl
+#         data/preferences_1000/gca_reward_preferences_1000.jsonl
 # Output: outputs/reward_models_1000/{holistic,gca}/
 #         outputs/reward_models_1000/rm_training_summary.json
 #

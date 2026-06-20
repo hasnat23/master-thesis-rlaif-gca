@@ -67,6 +67,7 @@ echo "--- Building preferences (holistic + GCA, margin=0) ---"
 python src/judging/build_reward_preferences.py \
     --candidates data/candidates/candidates_1000.jsonl \
     --output-dir data/preferences_1000 \
+    --output-suffix 1000 \
     --judge-backend alignscore \
     --model-name yzha/AlignScore \
     --alignscore-backbone FacebookAI/roberta-base \

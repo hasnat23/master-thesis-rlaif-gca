@@ -317,6 +317,11 @@ def main() -> None:
         help="Directory for preference output files.",
     )
     parser.add_argument(
+        "--output-suffix",
+        default=None,
+        help="Optional explicit filename suffix for outputs (e.g., 1000, rm500). If omitted, derives from --candidates.",
+    )
+    parser.add_argument(
         "--model-name",
         default="yzha/AlignScore",
         help="Judge model identifier. For AlignScore, use the checkpoint repo ID; for the fallback classifier, use a Hugging Face model ID or local path.",
@@ -418,9 +423,14 @@ def main() -> None:
         alignscore_batch_size=args.alignscore_batch_size,
     )
 
-    # Derive suffix from candidates filename: candidates_rm500.jsonl -> "rm500"
+    # Prefer explicit suffix; otherwise derive from candidates filename.
+    # Example: candidates_rm500.jsonl -> "rm500"
     candidates_stem = candidates_path.stem  # e.g. "candidates_rm500"
-    suffix = candidates_stem.replace("candidates_", "", 1) if candidates_stem.startswith("candidates_") else candidates_stem
+    suffix = args.output_suffix or (
+        candidates_stem.replace("candidates_", "", 1)
+        if candidates_stem.startswith("candidates_")
+        else candidates_stem
+    )
 
     artifacts = run_pipeline(
         pairs=pairs,
