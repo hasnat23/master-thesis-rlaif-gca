@@ -12,8 +12,10 @@
 WORK_DIR="/fshpc/muhhas01/thesis_git"
 cd "$WORK_DIR" || { echo "ERROR: Cannot cd to $WORK_DIR"; exit 1; }
 
-# Load Python 3.12 (system Python 3.6 doesn't have dataclasses)
-module load lang/Python/3.12.3-GCCcore-13.3.0
+# Load conda and activate thesis environment (has torch, transformers, etc.)
+module load lang/Anaconda3/2024.06-1
+eval "$(conda shell.bash hook)"
+conda activate thesis_env
 
 echo "=========================================="
 echo "GCA Optimization v3 (Simplified)"
