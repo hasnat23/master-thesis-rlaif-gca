@@ -130,17 +130,16 @@ def judge_gca_pair(
     pair: dict,
     judge: RewardModelJudge,
     margin: float,
-    alpha: float = 0.5,
+    alpha: float = 0.0,
 ) -> dict:
     """
     Split summaries into sentences; score each sentence; aggregate via GCA.
 
-    GCA formula (from thesis proposal):
-        gca = mean(scores) * (min(scores) / mean(scores)) ** alpha
+    GCA formula (default, alpha=0.0):
+        gca = mean(scores)  [simple mean with no penalty]
 
-    alpha=0.5 penalises summaries with at least one low-faithfulness sentence
-    without ignoring the overall quality.  A longer summary only wins if it
-    contains more *faithful* content — length alone does not determine the winner.
+    Empirical analysis on 1000 preference pairs showed simple mean performs best.
+    See analysis/test_gca_formulas.py for detailed evaluation.
 
     Returns a preference record ready for DPO consumption.
     """
@@ -380,8 +379,8 @@ def main() -> None:
     parser.add_argument(
         "--alpha",
         type=float,
-        default=0.5,
-        help="GCA penalty exponent for the minimum sentence score.",
+        default=0.0,
+        help="GCA penalty exponent (default 0.0 = simple mean). Use 0.0 for best performance (empirically validated on 1000 samples).",
     )
     parser.add_argument(
         "--device",

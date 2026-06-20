@@ -75,7 +75,7 @@ python src/judging/build_reward_preferences.py \
     --margin 0 \
     --max-samples 1000 \
     --mode both \
-    --alpha 0.5
+    --alpha 0.0
 
 echo ""
 echo "--- Step check: decision distribution ---"

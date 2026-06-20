@@ -65,7 +65,7 @@ python src/judging/build_reward_preferences.py \
     --margin 0.05 \
     --max-samples 200 \
     --mode both \
-    --alpha 0.5
+    --alpha 0.0
 
 echo ""
 
