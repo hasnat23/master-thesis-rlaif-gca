@@ -263,9 +263,23 @@ Outputs:
 - Preferences per mode: `~/thesis/data/preferences_1000_alpha0_mode_<mode>/`
 - RM results per mode: `~/thesis/outputs/mode_sweep_alpha0/mode_<mode>/`
 
+#### Mode-sweep status update (mixed outcome and recovery)
+
+Array `1336427` finished with mixed status:
+- Successful modes: `nli_sp`, `bin_sp`, `bin`
+- Failed mode: `nli` (task index 1)
+
+Failure root cause from logs (`mode_sweep_a0_1336427_1.out`):
+- Repeated `CUDA error: CUDA-capable device(s) is/are busy or unavailable`
+- This caused all records to be skipped for the `nli` task and no usable preferences for that mode.
+
+Recovery action taken:
+- Resubmitted only failed task as job array `1336454` with `--array=1 --exclude=gpu0001`
+- Recovery task is running on `gpu0002` to complete missing `nli` mode result.
+
 ### Immediate actionable next steps
 
 1. Wait for job array `1336398` to complete.
-2. Collect and rank mode-sweep results (`1336427`) by GCA mean accuracy and GCA-Holistic gap.
-3. If one mode is clearly better, run a direct confirmation repeat for that mode.
-4. Keep `alpha=0.0` as the best aggregation formula candidate, with scoring backend/mode as the current bottleneck.
+2. Wait for recovery job `1336454_1` (`nli` mode) to finish.
+3. Rank all 4 completed modes by GCA mean accuracy and GCA-Holistic gap.
+4. If one mode is clearly better, run a direct confirmation repeat for that mode.
