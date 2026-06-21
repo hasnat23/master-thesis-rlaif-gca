@@ -257,7 +257,7 @@ Since the hpsearch uplift was not reproducible, optimization is now moving to Al
 
 | Job ID | Name | Status | Scope |
 |--------|------|--------|-------|
-| 1336427 (array 0-3) | mode_sweep_a0 | Running | Modes: `nli_sp`, `nli`, `bin_sp`, `bin` with alpha=0.0 and full RM retraining |
+| 1336427 (array 0-3) | mode_sweep_a0 | Mixed | Modes: `nli_sp`, `nli`, `bin_sp`, `bin` with alpha=0.0 and full RM retraining |
 
 Outputs:
 - Preferences per mode: `~/thesis/data/preferences_1000_alpha0_mode_<mode>/`
@@ -275,11 +275,31 @@ Failure root cause from logs (`mode_sweep_a0_1336427_1.out`):
 
 Recovery action taken:
 - Resubmitted only failed task as job array `1336454` with `--array=1 --exclude=gpu0001`
-- Recovery task is running on `gpu0002` to complete missing `nli` mode result.
+- Recovery task completed successfully on `gpu0002` (`1336454_1`, ExitCode 0).
+
+#### Final mode-sweep results
+
+| Mode | Holistic mean acc | GCA mean acc | Gap (GCA - Holistic) |
+|------|-------------------|--------------|-----------------------|
+| `nli` | 0.523 | **0.583** | **+0.060** |
+| `bin` | 0.510 | 0.564 | +0.054 |
+| `bin_sp` | 0.554 | 0.562 | +0.008 |
+| `nli_sp` | 0.578 | 0.557 | -0.021 |
+
+Interpretation:
+- `nli` is the strongest backend mode so far for producing a GCA advantage.
+- It yields the largest observed mode-sweep gap in favor of GCA (`+0.060`).
+- Its GCA absolute accuracy (`0.583`) is slightly below the one-off hpsearch peak (`0.586`), but unlike the hpsearch result it now comes from a distinct judge-mode change rather than only a training hyperparameter change.
+- `nli_sp` remains unfavorable for the target because Holistic still outperforms GCA there.
+
+#### Confirmation rerun launched for best mode
+
+| Job ID | Name | Status | Purpose |
+|--------|------|--------|---------|
+| 1336456 (`array=1`) | mode_sweep_a0 | Running | Direct confirmation repeat of `mode_nli` on `gpu0002` |
 
 ### Immediate actionable next steps
 
-1. Wait for job array `1336398` to complete.
-2. Wait for recovery job `1336454_1` (`nli` mode) to finish.
-3. Rank all 4 completed modes by GCA mean accuracy and GCA-Holistic gap.
-4. If one mode is clearly better, run a direct confirmation repeat for that mode.
+1. Wait for confirmation job `1336456_1` to finish.
+2. If confirmation holds, promote `mode_nli` as the main positive result for the thesis update.
+3. If confirmation fails, treat backend mode as another high-variance factor and combine `mode_nli` with the best previously observed RM hyperparameters in a controlled follow-up.
