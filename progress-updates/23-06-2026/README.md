@@ -168,17 +168,51 @@ Observation: at larger scale, GCA narrows the gap to holistic (0.035 -> 0.012), 
 
 ## 5. Next Steps
 
-**Immediate (now):**
-1. Finalize scaling plot/table using completed RM runs (current: previous RM run + new n=1000 run)
-2. Run disagreement-case analysis on pairs where holistic and GCA preferences differ
-3. Prepare figures/tables for the results section (fold-accuracy bars + scaling curve)
+### Update — 21 June 2026 (alpha = 0.0 validation complete)
 
-**Once results are in:**
-1. If GCA accuracy improves significantly — explore better GCA aggregation (e.g., min-based penalty for lowest-faithfulness sentence)
-2. If gap remains — the thesis argument shifts to: GCA produces different, harder-to-learn preferences, which motivates future work on aggregation strategy
-3. Begin thesis write-up — introduction, related work, and method sections are not blocked on results
+After the 20 June run failures in `thesis_git` (environment/cache path issues), the same validation was rerun from the proven working `~/thesis` workspace.
 
-**Open questions for today:**
-- Should we also test a `margin=0.02` variant (partial filtering) as an ablation point between the original 0.05 and the new 0 setting?
-- Is it worth running a quick experiment where GCA aggregation uses `min(sentence scores)` instead of the current weighted sum, to more aggressively penalize low-faithfulness sentences?
-- Timeline: is the experimental scope now sufficient to start writing the results section even before the 1000-sample results are in?
+#### Jobs completed
+
+| Job ID | Name | Status | Notes |
+|--------|------|--------|-------|
+| 1336372 | prefs_alpha_0.0 | Completed (ExitCode 0) | Built 1000 holistic + 1000 GCA preferences with `alpha=0.0` |
+| 1336378 | train_rm_alpha_0.0 | Completed (ExitCode 0) | 5-fold Bradley-Terry RM training on alpha=0.0 preferences |
+
+#### Final RM results (alpha=0.0)
+
+| Condition | Fold Accuracies | Mean Val Accuracy |
+|-----------|------------------|-------------------|
+| Holistic RM | 0.530, 0.610, 0.640, 0.545, 0.605 | **0.586** |
+| GCA RM | 0.525, 0.575, 0.565, 0.555, 0.585 | **0.561** |
+
+#### Comparison vs baseline (alpha=0.5)
+
+| Metric | alpha=0.5 | alpha=0.0 | Delta |
+|--------|-----------|-----------|-------|
+| Holistic mean acc | 0.572 | 0.586 | **+0.014** |
+| GCA mean acc | 0.560 | 0.561 | **+0.001** |
+| Gap (Holistic - GCA) | 0.012 | 0.025 | **+0.013** (wider) |
+
+Interpretation:
+- `alpha=0.0` did **not** achieve the target `GCA > Holistic` in this full run.
+- GCA improved only marginally, while Holistic improved more.
+- The bottleneck appears to be beyond aggregation alone (training sensitivity / preference-signal quality).
+
+### Next optimization phase (already launched)
+
+To continue immediately after the alpha=0.0 validation result, a full hyperparameter search was launched on the new alpha=0.0 preference set.
+
+| Job ID | Name | Status | Scope |
+|--------|------|--------|-------|
+| 1336398 (array 0-8) | hp_rm_a0 | Running | 9 configs: LR `[1e-5, 2e-5, 5e-5]` x epochs `[3, 5, 7]` |
+
+Outputs are being written to:
+- `~/thesis/outputs/hpsearch_alpha_0.0/lr*_ep*/`
+
+### Immediate actionable next steps
+
+1. Wait for job array `1336398` to complete.
+2. Rank all 9 configs by GCA mean validation accuracy and by GCA-Holistic gap.
+3. Select best config and run one confirmation repeat (same seed and one alternate seed).
+4. If GCA still trails after hpsearch, move to judge-backend optimization (AlignScore mode/backend ensemble) as next dimension.
