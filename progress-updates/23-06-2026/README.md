@@ -210,9 +210,26 @@ To continue immediately after the alpha=0.0 validation result, a full hyperparam
 Outputs are being written to:
 - `~/thesis/outputs/hpsearch_alpha_0.0/lr*_ep*/`
 
+#### Hpsearch completion snapshot
+
+The array finished with a mixed outcome: 7 configs completed successfully and 2 failed early, but enough results were produced to identify a better GCA setting.
+
+| Config | Holistic mean acc | GCA mean acc | Gap (GCA - Holistic) |
+|--------|-------------------|--------------|-----------------------|
+| `lr1e-5_ep5` | 0.586 | 0.570 | -0.016 |
+| `lr1e-5_ep7` | 0.572 | **0.586** | **+0.014** |
+| `lr2e-5_ep5` | 0.593 | 0.580 | -0.013 |
+| `lr2e-5_ep7` | 0.602 | 0.574 | -0.028 |
+| `lr5e-5_ep3` | 0.548 | 0.527 | -0.021 |
+| `lr5e-5_ep5` | 0.554 | 0.539 | -0.015 |
+| `lr5e-5_ep7` | 0.549 | 0.539 | -0.010 |
+
+Best observed GCA result so far:
+- `lr1e-5_ep7` with GCA mean accuracy `0.586`, which is `+0.014` above Holistic for that run.
+
 ### Immediate actionable next steps
 
 1. Wait for job array `1336398` to complete.
-2. Rank all 9 configs by GCA mean validation accuracy and by GCA-Holistic gap.
-3. Select best config and run one confirmation repeat (same seed and one alternate seed).
-4. If GCA still trails after hpsearch, move to judge-backend optimization (AlignScore mode/backend ensemble) as next dimension.
+2. Run one confirmation repeat of `lr1e-5_ep7` to make sure the improvement is not a one-off.
+3. If the repeat holds up, package `lr1e-5_ep7` as the preferred alpha=0.0 training setup.
+4. If the repeat does not hold, move to judge-backend optimization (AlignScore mode/backend ensemble) as the next dimension.
