@@ -227,9 +227,45 @@ The array finished with a mixed outcome: 7 configs completed successfully and 2 
 Best observed GCA result so far:
 - `lr1e-5_ep7` with GCA mean accuracy `0.586`, which is `+0.014` above Holistic for that run.
 
+#### Confirmation rerun (stability check)
+
+A direct confirmation rerun of the best config (`lr1e-5_ep7`, same seed and setup) was completed:
+
+| Run | Holistic mean acc | GCA mean acc | Gap (GCA - Holistic) |
+|-----|-------------------|--------------|-----------------------|
+| Hpsearch best (`lr1e-5_ep7`) | 0.572 | **0.586** | **+0.014** |
+| Confirmation rerun (`confirm_lr1e-5_ep7`) | 0.577 | 0.560 | -0.017 |
+
+Interpretation:
+- The `lr1e-5_ep7` uplift did not reproduce on confirmation.
+- Current evidence suggests high variance in fold outcomes rather than a stable GCA win from that hyperparameter choice.
+- At this stage, there is no robustly confirmed `GCA > Holistic` configuration yet.
+
+#### Confirmation job details
+
+| Job ID | Name | Status | Runtime |
+|--------|------|--------|---------|
+| 1336415 | confirm_lr1e5ep7 | Completed (ExitCode 0) | 00:38:13 |
+
+Key outcome from `rm_training_summary.json`:
+- Confirmation mean accuracies: Holistic `0.577`, GCA `0.560` (GCA-Holistic = `-0.017`)
+- Therefore the previous `+0.014` hpsearch gap was not stable in a repeat run.
+
+### Next optimization phase launched (judge backend / mode)
+
+Since the hpsearch uplift was not reproducible, optimization is now moving to AlignScore backend mode exploration.
+
+| Job ID | Name | Status | Scope |
+|--------|------|--------|-------|
+| 1336427 (array 0-3) | mode_sweep_a0 | Running | Modes: `nli_sp`, `nli`, `bin_sp`, `bin` with alpha=0.0 and full RM retraining |
+
+Outputs:
+- Preferences per mode: `~/thesis/data/preferences_1000_alpha0_mode_<mode>/`
+- RM results per mode: `~/thesis/outputs/mode_sweep_alpha0/mode_<mode>/`
+
 ### Immediate actionable next steps
 
 1. Wait for job array `1336398` to complete.
-2. Run one confirmation repeat of `lr1e-5_ep7` to make sure the improvement is not a one-off.
-3. If the repeat holds up, package `lr1e-5_ep7` as the preferred alpha=0.0 training setup.
-4. If the repeat does not hold, move to judge-backend optimization (AlignScore mode/backend ensemble) as the next dimension.
+2. Collect and rank mode-sweep results (`1336427`) by GCA mean accuracy and GCA-Holistic gap.
+3. If one mode is clearly better, run a direct confirmation repeat for that mode.
+4. Keep `alpha=0.0` as the best aggregation formula candidate, with scoring backend/mode as the current bottleneck.
