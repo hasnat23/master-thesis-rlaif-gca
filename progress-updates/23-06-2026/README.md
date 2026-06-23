@@ -7,7 +7,7 @@
 
 ## 1. Recap of Previous Meeting (2 June 2026)
 
-The professor gave the following feedback on the pipeline:
+The last meeting included the following feedback on the pipeline:
 
 1. **Remove the margin-based preference construction steps** (steps 5A and 7B) — the margin threshold makes the experiment unnecessarily complex and discards ~22% of usable pairs.
 2. **Remove DPO fine-tuning** from the comparison — focus purely on the Bradley-Terry reward model comparison, which is the core IRL framing.
@@ -18,7 +18,7 @@ All four points are addressed in this update.
 
 ---
 
-## 2. Pipeline Changes (Based on Professor Feedback)
+## 2. Pipeline Changes (Based on Last Meeting Comments)
 
 ### What was removed
 
@@ -315,21 +315,16 @@ Interpretation:
 | **Combined both runs** | **+0.034** | **[+0.003, +0.064]** | **✓ Yes** | **Significant** |
 | Wilcoxon test (pooled) | — | p=0.084 | — | Borderline (not 0.05, close) |
 
-**Interpretation & Defensibility:**
-- **Individual run variance**: The original sweep showed a robust +5.4 pp GCA advantage; the confirmation showed +1.3 pp, demonstrating high run-to-run variance as seen in earlier hpsearch attempts.
-- **Combined statistical evidence**: Pooled across both runs (10 folds), GCA achieves a mean +3.4 pp advantage with a 95% CI of [+0.3 pp, +6.4 pp], **excluding zero** at the 0.05 level.
-- **Thesis claim defensibility**: You can now claim: *"GCA produces significantly higher pairwise accuracy than Holistic when using the NLI-based AlignScore backend mode (mean +3.4 pp, 95% CI: [0.3pp, 6.4pp])."*
-- **Caveats**: The Wilcoxon test p-value is 0.084 (slightly above 0.05), and the individual confirmation run CI includes zero, indicating substantial variance. A third independent seed would further strengthen the claim.
+**Results Summary:**
+- **Individual run variance**: The original sweep showed +5.4 pp GCA advantage; the confirmation showed +1.3 pp, indicating run-to-run variance.
+- **Combined statistical evidence**: Pooled across both runs (10 folds), GCA achieves a mean +3.4 pp advantage with a 95% CI of [+0.3 pp, +6.4 pp], excluding zero at the 0.05 level.
+- **Wilcoxon test**: p-value 0.084 (borderline). Individual confirmation run CI includes zero.
+- **Observation**: High variance suggests batch effects or fold sensitivity in the data.
 
-### Thesis-Ready Result & Next Steps
+### Next Steps
 
-**Status:** ✅ Defensible result achieved  
-**Claim:** GCA outperforms Holistic (via NLI-mode AlignScore) with statistical significance (α=0.05, two runs pooled).
+1. **Run 1-2 additional seeds** (different `seed=` values in preference building) to validate robustness of the `nli` mode advantage. Each seed takes ~30 min on MOGON. This will provide evidence of whether the pattern holds consistently across independent samples.
 
-**Options:**
-1. **Thesis finalization path**: Present the +3.4 pp GCA advantage with 95% CI [0.3 pp, 6.4 pp] as the core result. Acknowledge the high variance with a brief note on the need for larger validation sets in future work.
-2. **Confidence-building path** (recommended): Run 1-2 additional seeds (different `seed=` values) to confirm robustness. Each seed takes ~30 min on A100. This strengthens the thesis argument from "statistically significant on pooled runs" to "robust across multiple independent validations."
-
-**Action decision point:**
-- If thesis defense is soon → finalize with current result + statistical CI.
-- If 1-2 weeks remain → run 2 more seeds for stronger claim; expect total time ~1 hour on MOGON.
+2. **Decision point for direction**: Based on the results from step 1, decide with the supervising team whether:
+   - The current evidence is sufficient for the thesis statement, or
+   - Additional experiment iterations are needed (e.g., exploring other AlignScore modes or judge configurations).
