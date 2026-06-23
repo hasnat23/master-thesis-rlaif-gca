@@ -292,14 +292,30 @@ Interpretation:
 - Its GCA absolute accuracy (`0.583`) is slightly below the one-off hpsearch peak (`0.586`), but unlike the hpsearch result it now comes from a distinct judge-mode change rather than only a training hyperparameter change.
 - `nli_sp` remains unfavorable for the target because Holistic still outperforms GCA there.
 
-#### Confirmation rerun launched for best mode
+#### Confirmation rerun completed for best mode
 
 | Job ID | Name | Status | Purpose |
 |--------|------|--------|---------|
-| 1336456 (`array=1`) | mode_sweep_a0 | Running | Direct confirmation repeat of `mode_nli` on `gpu0002` |
+| 1336456 (`array=1`) | mode_sweep_a0 | Completed (ExitCode 0) | Direct confirmation repeat of `mode_nli` on `gpu0002` |
+
+**Confirmation result (run_id: 20260621_205337):**
+
+| Condition | Holistic | GCA | Gap (GCA - Holistic) |
+|-----------|----------|-----|----------------------|
+| Original sweep | 0.523 | 0.583 | **+0.060** |
+| Confirmation rerun | 0.543 | 0.556 | **+0.013** |
+| Mean (both runs) | 0.533 | 0.570 | **+0.037** |
+
+**Interpretation:**
+- Direction is consistent across both runs: GCA > Holistic in both cases.
+- Magnitude is highly variable: `+0.060` in the sweep run, `+0.013` in the confirmation.
+- This mirrors the hpsearch experience (one-off best did not reproduce), but crucially the direction does not reverse as it did there.
+- The average gap of `+0.037` across two runs suggests a real GCA advantage in `nli` mode, but with significant run-to-run variance (±0.024).
 
 ### Immediate actionable next steps
 
-1. Wait for confirmation job `1336456_1` to finish.
-2. If confirmation holds, promote `mode_nli` as the main positive result for the thesis update.
-3. If confirmation fails, treat backend mode as another high-variance factor and combine `mode_nli` with the best previously observed RM hyperparameters in a controlled follow-up.
+1. Compute bootstrap confidence intervals (95%) on both `nli` runs to quantify the uncertainty in the GCA-Holistic gap.
+2. Decide on thesis claim based on CI coverage:
+   - If the interval excludes zero → "GCA significantly outperforms Holistic in nli mode"
+   - If the interval includes zero → "GCA is competitive with Holistic; margin is not robustly significant"
+3. Consider running 1-2 additional seeds if the CI is inconclusive and a stronger claim is needed.
