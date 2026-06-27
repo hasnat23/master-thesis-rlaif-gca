@@ -114,9 +114,9 @@ Additional test:
 
 ---
 
-## 5. Continuation Work Launched for 30 June
+## 5. Continuation Work (Completed)
 
-To continue the planned robustness check, additional independent seed validations for `mode_nli` were launched.
+To continue the planned robustness check, additional independent seed validations for `mode_nli` were launched and completed.
 
 ### New remote script added on MOGON workspace
 - Script path (remote): `~/thesis/slurm/mode_nli_seed_confirm.sh`
@@ -125,35 +125,58 @@ To continue the planned robustness check, additional independent seed validation
   - Preferences: `data/preferences_1000_alpha0_mode_nli_seed<SEED>/`
   - RM summaries: `outputs/mode_sweep_alpha0/mode_nli_seed<SEED>/rm_training_summary.json`
 
-### New jobs submitted (current status)
+### Seed validation jobs (final status)
 
 | Job ID | Name | Seed | Status |
 |--------|------|------|--------|
-| 1337534 | mode_nli_seed | 7 | RUNNING |
-| 1337535 | mode_nli_seed | 100 | RUNNING |
+| 1337534 | mode_nli_seed | 7 | COMPLETED (ExitCode 0, 00:30:54) |
+| 1337535 | mode_nli_seed | 100 | COMPLETED (ExitCode 0, 00:30:54) |
 
 Submission notes:
 - Both jobs were submitted with `--exclude=gpu0001` to avoid the prior CUDA-availability issue.
-- Current node assignment: `gpu0002`.
+- Both completed on `gpu0002`.
 
-### Live execution health check (latest)
+### New results from additional seeds
 
-- Both jobs are currently running without CUDA/device errors.
-- Holistic judging completed successfully for both jobs (`1000/1000` processed, `0` ties).
-- GCA judging is actively progressing for both jobs (log checkpoints observed beyond `450/1000`).
-- Current stage indicates normal pipeline flow before RM training starts.
+| Run | Holistic mean acc | GCA mean acc | Gap (GCA - Holistic) |
+|-----|-------------------|--------------|----------------------|
+| `mode_nli_seed7` | 0.556 | 0.546 | -0.010 |
+| `mode_nli_seed100` | 0.510 | 0.561 | +0.051 |
+
+Observation:
+- Seed-specific variance remains visible: one seed favors Holistic (`seed7`), one favors GCA (`seed100`).
+- This confirms that single-run conclusions are unstable without pooled analysis.
+
+### Four-run combined summary (`mode_nli` family)
+
+Combined runs:
+1. Original `mode_nli` sweep
+2. `mode_nli` confirmation rerun
+3. `mode_nli_seed7`
+4. `mode_nli_seed100`
+
+| Aggregate | Holistic mean | GCA mean | Gap (GCA - Holistic) |
+|-----------|----------------|----------|-----------------------|
+| Pooled over 20 folds | 0.533 | 0.561 | +0.028 |
+
+Statistical summary (20 folds):
+- Bootstrap 95% CI for gap: `[+0.006, +0.050]`
+- Wilcoxon signed-rank: `p=0.0251`
+
+Interpretation:
+- After adding two extra seed runs, the pooled result remains in favor of GCA for `mode_nli`.
+- Effect size is smaller than early two-run estimate but remains positive and statistically supported in pooled analysis.
 
 ---
 
 ## 6. Immediate Next Steps
 
-1. Wait for jobs `1337534` and `1337535` to finish.
-2. Extract metrics from:
-   - `outputs/mode_sweep_alpha0/mode_nli_seed7/rm_training_summary.json`
-   - `outputs/mode_sweep_alpha0/mode_nli_seed100/rm_training_summary.json`
-3. Combine with prior two `mode_nli` runs to form a four-run summary.
-4. Recompute pooled CI and paired significance tests with the expanded set.
-5. Decide final reporting direction after reviewing four-run stability.
+1. Keep `mode_nli` as the current best backend direction for GCA-focused comparisons.
+2. Prepare the thesis reporting table with both views:
+   - Per-run results (to show variance)
+   - Pooled four-run result (to show central tendency and significance)
+3. Optionally run one additional seed to test whether pooled gap remains near +2 to +3 pp.
+4. Freeze experiment configuration for write-up (same candidate set, same margin, same training hyperparameters) to avoid moving-target comparisons.
 
 ---
 
@@ -168,4 +191,4 @@ Key output roots:
 - HP search: `~/thesis/outputs/hpsearch_alpha_0.0/`
 - Mode sweep: `~/thesis/outputs/mode_sweep_alpha0/`
 
-This 30-06 update file is focused on continuity and active execution state. It will be extended after seed jobs `1337534` and `1337535` complete.
+This 30-06 update file now includes the completed four-run robustness summary for `mode_nli`.
