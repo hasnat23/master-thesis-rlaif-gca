@@ -175,8 +175,29 @@ Interpretation:
 2. Prepare the thesis reporting table with both views:
    - Per-run results (to show variance)
    - Pooled four-run result (to show central tendency and significance)
-3. Optionally run one additional seed to test whether pooled gap remains near +2 to +3 pp.
+3. Additional seed run launched to test pooled-gap stability:
+   - Job `1337590`
+   - Seed `314`
+   - Status: `RUNNING`
+   - Node: `gpu0002`
 4. Freeze experiment configuration for write-up (same candidate set, same margin, same training hyperparameters) to avoid moving-target comparisons.
+
+---
+
+## 8. Short Summary (Reusable)
+
+`mode_nli` remains the strongest backend mode for GCA in the current campaign.
+
+Across four completed runs (20 folds total), pooled results are:
+- Holistic mean: `0.533`
+- GCA mean: `0.561`
+- Gap (GCA - Holistic): `+0.028`
+- Bootstrap 95% CI: `[+0.006, +0.050]`
+- Wilcoxon p-value: `0.0251`
+
+Interpretation:
+- The pooled effect is positive for GCA, with visible run-to-run variance.
+- One additional validation seed (`1337590`, seed `314`) is now running to further test robustness before final lock-in for write-up.
 
 ---
 
