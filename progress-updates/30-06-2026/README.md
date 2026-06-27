@@ -136,6 +136,13 @@ Submission notes:
 - Both jobs were submitted with `--exclude=gpu0001` to avoid the prior CUDA-availability issue.
 - Current node assignment: `gpu0002`.
 
+### Live execution health check (latest)
+
+- Both jobs are currently running without CUDA/device errors.
+- Holistic judging completed successfully for both jobs (`1000/1000` processed, `0` ties).
+- GCA judging is actively progressing for both jobs (log checkpoints observed beyond `450/1000`).
+- Current stage indicates normal pipeline flow before RM training starts.
+
 ---
 
 ## 6. Immediate Next Steps
