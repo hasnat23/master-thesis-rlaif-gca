@@ -181,6 +181,69 @@ Interpretation:
 3. Freeze experiment configuration for write-up (same candidate set, same margin, same training hyperparameters) to avoid moving-target comparisons.
 4. If needed for final confidence, run one last independent seed and check whether pooled gap remains in the +2 to +3 pp range.
 
+### Sixth seed validation launched
+
+| Job ID | Name | Seed | Status |
+|--------|------|------|--------|
+| 1338194 | mode_nli_seed | 2026 | RUNNING (on `gpu0002`) |
+
+Submission notes:
+- Same configuration as previous seed runs.
+- Submitted with `--exclude=gpu0001`.
+- Output will appear at `~/thesis/outputs/mode_sweep_alpha0/mode_nli_seed2026/rm_training_summary.json`.
+
+---
+
+## 7. Thesis-Ready Reporting Table (`mode_nli` Family)
+
+### Per-run view (shows variance)
+
+| Run | Seed | Holistic | GCA | Gap (GCA - Holistic) |
+|-----|------|----------|-----|----------------------|
+| Original sweep | 42 | 0.523 | 0.583 | +0.060 |
+| Confirmation | 42 | 0.543 | 0.556 | +0.013 |
+| Seed validation 1 | 7 | 0.556 | 0.546 | -0.010 |
+| Seed validation 2 | 100 | 0.510 | 0.561 | +0.051 |
+| Seed validation 3 | 314 | 0.520 | 0.552 | +0.032 |
+
+### Pooled view (central tendency)
+
+| Aggregate | Holistic mean | GCA mean | Gap | 95% CI | Wilcoxon p |
+|-----------|---------------|----------|-----|--------|------------|
+| Pooled (5 runs, 25 folds) | 0.530 | 0.560 | +0.029 | [+0.009, +0.048] | 0.0123 |
+
+### Key claim (defensible statement)
+
+> Across five independent validation runs of the `mode_nli` configuration (25 cross-validation folds total), the GCA-based reward model achieves a mean pairwise accuracy advantage of +2.9 percentage points over the holistic baseline (Holistic: 0.530, GCA: 0.560). The advantage is statistically supported with a 95% bootstrap confidence interval of [+0.009, +0.048] and Wilcoxon signed-rank test p = 0.0123.
+
+---
+
+## 8. Frozen Experiment Configuration (Locked for Write-Up)
+
+The following configuration is now frozen to ensure all reported results are comparable:
+
+| Parameter | Value |
+|-----------|-------|
+| Dataset | CNN/DailyMail test split |
+| Sample size | 1000 articles |
+| Article subset seed | 200 |
+| Margin | 0 (all pairs used) |
+| GCA alpha | 0.0 |
+| Judge backend | AlignScore (`yzha/AlignScore`) |
+| AlignScore mode | `nli` |
+| AlignScore checkpoint | `AlignScore-base.ckpt` |
+| AlignScore backbone | `FacebookAI/roberta-base` |
+| RM backbone | `FacebookAI/roberta-base` |
+| RM epochs | 5 |
+| RM learning rate | 2e-5 |
+| RM batch size | 8 |
+| RM max sequence length | 512 |
+| RM max article chars | 2000 |
+| RM k-fold | 5 |
+| RM training seed | varied across runs (42, 42, 7, 100, 314, 2026) |
+
+Any deviation from this configuration in future runs must be documented as a separate experiment, not a replacement for the current set.
+
 ---
 
 ## 8. Short Summary (Reusable)
