@@ -131,6 +131,7 @@ To continue the planned robustness check, additional independent seed validation
 |--------|------|------|--------|
 | 1337534 | mode_nli_seed | 7 | COMPLETED (ExitCode 0, 00:30:54) |
 | 1337535 | mode_nli_seed | 100 | COMPLETED (ExitCode 0, 00:30:54) |
+| 1337590 | mode_nli_seed | 314 | COMPLETED (ExitCode 0, 00:30:52) |
 
 Submission notes:
 - Both jobs were submitted with `--exclude=gpu0001` to avoid the prior CUDA-availability issue.
@@ -142,26 +143,28 @@ Submission notes:
 |-----|-------------------|--------------|----------------------|
 | `mode_nli_seed7` | 0.556 | 0.546 | -0.010 |
 | `mode_nli_seed100` | 0.510 | 0.561 | +0.051 |
+| `mode_nli_seed314` | 0.520 | 0.552 | +0.032 |
 
 Observation:
 - Seed-specific variance remains visible: one seed favors Holistic (`seed7`), one favors GCA (`seed100`).
 - This confirms that single-run conclusions are unstable without pooled analysis.
 
-### Four-run combined summary (`mode_nli` family)
+### Five-run combined summary (`mode_nli` family)
 
 Combined runs:
 1. Original `mode_nli` sweep
 2. `mode_nli` confirmation rerun
 3. `mode_nli_seed7`
 4. `mode_nli_seed100`
+5. `mode_nli_seed314`
 
 | Aggregate | Holistic mean | GCA mean | Gap (GCA - Holistic) |
 |-----------|----------------|----------|-----------------------|
-| Pooled over 20 folds | 0.533 | 0.561 | +0.028 |
+| Pooled over 25 folds | 0.530 | 0.560 | +0.029 |
 
-Statistical summary (20 folds):
-- Bootstrap 95% CI for gap: `[+0.006, +0.050]`
-- Wilcoxon signed-rank: `p=0.0251`
+Statistical summary (25 folds):
+- Bootstrap 95% CI for gap: `[+0.009, +0.048]`
+- Wilcoxon signed-rank: `p=0.0123`
 
 Interpretation:
 - After adding two extra seed runs, the pooled result remains in favor of GCA for `mode_nli`.
@@ -174,13 +177,9 @@ Interpretation:
 1. Keep `mode_nli` as the current best backend direction for GCA-focused comparisons.
 2. Prepare the thesis reporting table with both views:
    - Per-run results (to show variance)
-   - Pooled four-run result (to show central tendency and significance)
-3. Additional seed run launched to test pooled-gap stability:
-   - Job `1337590`
-   - Seed `314`
-   - Status: `RUNNING`
-   - Node: `gpu0002`
-4. Freeze experiment configuration for write-up (same candidate set, same margin, same training hyperparameters) to avoid moving-target comparisons.
+   - Pooled five-run result (to show central tendency and significance)
+3. Freeze experiment configuration for write-up (same candidate set, same margin, same training hyperparameters) to avoid moving-target comparisons.
+4. If needed for final confidence, run one last independent seed and check whether pooled gap remains in the +2 to +3 pp range.
 
 ---
 
@@ -188,16 +187,16 @@ Interpretation:
 
 `mode_nli` remains the strongest backend mode for GCA in the current campaign.
 
-Across four completed runs (20 folds total), pooled results are:
-- Holistic mean: `0.533`
-- GCA mean: `0.561`
-- Gap (GCA - Holistic): `+0.028`
-- Bootstrap 95% CI: `[+0.006, +0.050]`
-- Wilcoxon p-value: `0.0251`
+Across five completed runs (25 folds total), pooled results are:
+- Holistic mean: `0.530`
+- GCA mean: `0.560`
+- Gap (GCA - Holistic): `+0.029`
+- Bootstrap 95% CI: `[+0.009, +0.048]`
+- Wilcoxon p-value: `0.0123`
 
 Interpretation:
 - The pooled effect is positive for GCA, with visible run-to-run variance.
-- One additional validation seed (`1337590`, seed `314`) is now running to further test robustness before final lock-in for write-up.
+- The additional validation seed (`1337590`, seed `314`) completed and kept the pooled result in favor of GCA.
 
 ---
 
@@ -212,4 +211,4 @@ Key output roots:
 - HP search: `~/thesis/outputs/hpsearch_alpha_0.0/`
 - Mode sweep: `~/thesis/outputs/mode_sweep_alpha0/`
 
-This 30-06 update file now includes the completed four-run robustness summary for `mode_nli`.
+This 30-06 update file now includes the completed five-run robustness summary for `mode_nli`.
