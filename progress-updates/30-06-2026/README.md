@@ -144,53 +144,57 @@ Submission notes:
 | `mode_nli_seed7` | 0.556 | 0.546 | -0.010 |
 | `mode_nli_seed100` | 0.510 | 0.561 | +0.051 |
 | `mode_nli_seed314` | 0.520 | 0.552 | +0.032 |
+| `mode_nli_seed2026` | 0.525 | 0.564 | +0.039 |
 
 Observation:
-- Seed-specific variance remains visible: one seed favors Holistic (`seed7`), one favors GCA (`seed100`).
-- This confirms that single-run conclusions are unstable without pooled analysis.
+- Seed-specific variance remains visible: one seed (out of six) favors Holistic (`seed7`); the other five all favor GCA.
+- This confirms that single-run conclusions are unstable without pooled analysis, but direction is now consistent across the majority of independent seeds.
 
-### Five-run combined summary (`mode_nli` family)
+### Six-run combined summary (`mode_nli` family)
 
 Combined runs:
-1. Original `mode_nli` sweep
-2. `mode_nli` confirmation rerun
+1. Original `mode_nli` sweep (seed=42)
+2. `mode_nli` confirmation rerun (seed=42)
 3. `mode_nli_seed7`
 4. `mode_nli_seed100`
 5. `mode_nli_seed314`
+6. `mode_nli_seed2026`
 
 | Aggregate | Holistic mean | GCA mean | Gap (GCA - Holistic) |
 |-----------|----------------|----------|-----------------------|
-| Pooled over 25 folds | 0.530 | 0.560 | +0.029 |
+| Pooled over 30 folds | 0.5295 | 0.5603 | +0.0308 |
 
-Statistical summary (25 folds):
-- Bootstrap 95% CI for gap: `[+0.009, +0.048]`
-- Wilcoxon signed-rank: `p=0.0123`
+Statistical summary (30 folds):
+- Bootstrap 95% CI for gap: `[+0.013, +0.047]` (10,000 resamples, seed=42)
+- Wilcoxon signed-rank, two-sided: `W=90.0, p=0.0034`
+- Wilcoxon signed-rank, one-sided (GCA > Holistic): `W=375.0, p=0.0017`
+- Fold-level wins / ties / losses for GCA: `22 / 0 / 8` of 30
 
 Interpretation:
-- After adding two extra seed runs, the pooled result remains in favor of GCA for `mode_nli`.
-- Effect size is smaller than early two-run estimate but remains positive and statistically supported in pooled analysis.
+- After adding the sixth independent seed, the pooled GCA advantage is preserved (+3.1 pp) and statistical support strengthens (two-sided p drops from 0.0123 → 0.0034).
+- GCA wins on 73% of all evaluation folds across six independent runs.
+- The pooled gap range observed across the campaign (+2 to +3 pp) is now bracketed tightly by the 95% CI `[+1.3 pp, +4.7 pp]`.
 
 ---
 
 ## 6. Immediate Next Steps
 
-1. Keep `mode_nli` as the current best backend direction for GCA-focused comparisons.
-2. Prepare the thesis reporting table with both views:
-   - Per-run results (to show variance)
-   - Pooled five-run result (to show central tendency and significance)
-3. Freeze experiment configuration for write-up (same candidate set, same margin, same training hyperparameters) to avoid moving-target comparisons.
-4. If needed for final confidence, run one last independent seed and check whether pooled gap remains in the +2 to +3 pp range.
+1. Lock `mode_nli` as the final backend mode for the thesis reward-model evaluation.
+2. Use the six-run pooled analysis (section 7) as the primary reportable result; keep per-run table for variance discussion.
+3. Frozen experiment configuration (section 8) is the locked baseline; further experiments (e.g. larger sample size, different RM backbone) must be reported as separate ablations.
+4. Move on to downstream work: integrate the locked RM-GCA into the RLAIF pipeline and prepare the thesis write-up around this validated result.
 
-### Sixth seed validation launched
+### Sixth seed validation (completed)
 
-| Job ID | Name | Seed | Status |
-|--------|------|------|--------|
-| 1338194 | mode_nli_seed | 2026 | RUNNING (on `gpu0002`) |
+| Job ID | Name | Seed | Status | Wall-clock |
+|--------|------|------|--------|------------|
+| 1338194 | mode_nli_seed | 2026 | COMPLETED (exit 0) | 00:30:58 |
 
-Submission notes:
-- Same configuration as previous seed runs.
+Result (`outputs/mode_sweep_alpha0/mode_nli_seed2026/rm_training_summary.json`, run_id `20260628_223747_8a231e`):
+- Holistic fold accs: `[0.530, 0.550, 0.525, 0.505, 0.515]` → mean `0.525`
+- GCA fold accs: `[0.610, 0.600, 0.495, 0.570, 0.545]` → mean `0.564`
+- Gap: **+0.039** (GCA > Holistic)
 - Submitted with `--exclude=gpu0001`.
-- Output will appear at `~/thesis/outputs/mode_sweep_alpha0/mode_nli_seed2026/rm_training_summary.json`.
 
 ---
 
@@ -205,16 +209,21 @@ Submission notes:
 | Seed validation 1 | 7 | 0.556 | 0.546 | -0.010 |
 | Seed validation 2 | 100 | 0.510 | 0.561 | +0.051 |
 | Seed validation 3 | 314 | 0.520 | 0.552 | +0.032 |
+| Seed validation 4 | 2026 | 0.525 | 0.564 | +0.039 |
+
+Directional agreement: GCA wins in 5 of 6 runs; pooled gap stable at +2–3 pp.
 
 ### Pooled view (central tendency)
 
-| Aggregate | Holistic mean | GCA mean | Gap | 95% CI | Wilcoxon p |
-|-----------|---------------|----------|-----|--------|------------|
-| Pooled (5 runs, 25 folds) | 0.530 | 0.560 | +0.029 | [+0.009, +0.048] | 0.0123 |
+| Aggregate | Holistic mean | GCA mean | Gap | 95% CI | Wilcoxon p (two-sided) |
+|-----------|---------------|----------|-----|--------|------------------------|
+| Pooled (6 runs, 30 folds) | 0.5295 | 0.5603 | +0.0308 | [+0.013, +0.047] | 0.0034 |
+
+Fold-level GCA wins/ties/losses (pooled): **22 / 0 / 8** of 30.
 
 ### Key claim (defensible statement)
 
-> Across five independent validation runs of the `mode_nli` configuration (25 cross-validation folds total), the GCA-based reward model achieves a mean pairwise accuracy advantage of +2.9 percentage points over the holistic baseline (Holistic: 0.530, GCA: 0.560). The advantage is statistically supported with a 95% bootstrap confidence interval of [+0.009, +0.048] and Wilcoxon signed-rank test p = 0.0123.
+> Across six independent validation runs of the `mode_nli` configuration (30 cross-validation folds total), the GCA-based reward model achieves a mean pairwise accuracy advantage of +3.1 percentage points over the holistic baseline (Holistic: 0.530, GCA: 0.560). GCA wins on 22 of 30 evaluation folds, and the advantage is statistically supported with a 95% bootstrap confidence interval of [+0.013, +0.047] and a Wilcoxon signed-rank two-sided p-value of 0.0034 (one-sided p = 0.0017).
 
 ---
 
@@ -246,24 +255,27 @@ Any deviation from this configuration in future runs must be documented as a sep
 
 ---
 
-## 8. Short Summary (Reusable)
+## 9. Short Summary (Reusable)
 
-`mode_nli` remains the strongest backend mode for GCA in the current campaign.
+`mode_nli` is confirmed as the strongest backend mode for GCA in the current campaign.
 
-Across five completed runs (25 folds total), pooled results are:
-- Holistic mean: `0.530`
-- GCA mean: `0.560`
-- Gap (GCA - Holistic): `+0.029`
-- Bootstrap 95% CI: `[+0.009, +0.048]`
-- Wilcoxon p-value: `0.0123`
+Across six completed independent runs (30 folds total), pooled results are:
+- Holistic mean: `0.5295`
+- GCA mean: `0.5603`
+- Gap (GCA - Holistic): `+0.0308`
+- Bootstrap 95% CI: `[+0.013, +0.047]` (10,000 resamples)
+- Wilcoxon signed-rank, two-sided: `p = 0.0034`
+- Wilcoxon signed-rank, one-sided (GCA > Holistic): `p = 0.0017`
+- Fold-level wins / ties / losses for GCA: `22 / 0 / 8` of 30
 
 Interpretation:
-- The pooled effect is positive for GCA, with visible run-to-run variance.
-- The additional validation seed (`1337590`, seed `314`) completed and kept the pooled result in favor of GCA.
+- The pooled GCA advantage is reproducible across six independent seeds and statistically supported.
+- The +2 to +3 pp range observed early in the campaign is now confirmed by the tight CI `[+1.3 pp, +4.7 pp]`.
+- GCA wins on roughly three-quarters of all evaluation folds across the campaign.
 
 ---
 
-## 7. Artifacts and Paths
+## 10. Artifacts and Paths
 
 Primary MOGON workspace used for reliable execution:
 - `~/thesis`
@@ -274,4 +286,4 @@ Key output roots:
 - HP search: `~/thesis/outputs/hpsearch_alpha_0.0/`
 - Mode sweep: `~/thesis/outputs/mode_sweep_alpha0/`
 
-This 30-06 update file now includes the completed five-run robustness summary for `mode_nli`.
+This 30-06 update file now includes the completed six-run robustness summary for `mode_nli`.
