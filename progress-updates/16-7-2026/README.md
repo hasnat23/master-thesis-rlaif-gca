@@ -12,7 +12,7 @@ The main experimental campaign is complete. This final update summarizes the com
 - Holistic full-summary scoring
 - Sentence-level GCA scoring with aggregation
 
-I kept the scorer, RM backbone, and training setup fixed across the campaign, so the main variable is the preference-construction strategy.
+The scorer, RM backbone, and training setup remain fixed across the campaign, so the main variable is the preference-construction strategy.
 
 ---
 
