@@ -13,7 +13,7 @@ The larger 5000-item rerun has now also completed. On this larger dataset, Holis
 
 The 10000-item extension has now completed as well. Candidate generation, preference construction, and RM training are all finished.
 
-My professor’s request was to repeat the experiment on a larger dataset, using **5000 or 10000 articles/candidates** instead of 1000. The 5000-item run is the first large-scale check, and the 10000-item run is the final larger follow-up.
+The larger-scale rerun targeted a bigger dataset, using **5000 or 10000 articles/candidates** instead of 1000. The 5000-item run is the first large-scale check, and the 10000-item run is the final larger follow-up.
 
 ---
 
