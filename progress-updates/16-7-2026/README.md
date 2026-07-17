@@ -1,94 +1,128 @@
-# Meeting Notes — 16 July 2026
+# Final Results Summary — 16 July 2026
 
 **Student:** Muhammad Hasnat  
 **Supervisors:** Dr. Zeyd Boukhers, Prof. Dr. Frank Hopfgartner | **Mentor:** Lingxiao Kong
 
 ---
 
-## 1. Current Status
+## 1. Final Outcome
 
-The `mode_nli` setting has already been validated on the 1000-sample setup across six independent seed runs. That result remains the strongest evidence so far: GCA is ahead of Holistic by **+3.08 percentage points** with a **95% bootstrap CI of [+1.3, +4.7]** and **Wilcoxon two-sided p = 0.0034**.
+The thesis experiments are complete. The evaluation compared Holistic vs GCA reward-model supervision under the same judge, the same RM backbone, and the same training setup, while varying only the preference-construction strategy and the dataset scale.
 
-The larger 5000-item rerun has now also completed. On this larger dataset, Holistic slightly outperformed GCA: **0.5788 vs 0.5746**, a gap of **-0.0042** in favor of Holistic.
+The results are mixed across scales:
+- On the 1000-sample setup, GCA is consistently better across six independent runs.
+- On the 5000-item rerun, Holistic is slightly better.
+- On the 10000-item rerun, GCA is slightly better again.
 
-The 10000-item extension has now completed as well. Candidate generation, preference construction, and RM training are all finished.
-
-The larger-scale rerun targeted a bigger dataset, using **5000 or 10000 articles/candidates** instead of 1000. The 5000-item run is the first large-scale check, and the 10000-item run is the final larger follow-up.
-
----
-
-## 2. What Is Different Now
-
-The goal is no longer only to confirm the 1000-sample result. The next experiment is to test whether the same GCA advantage still holds when the candidate pool is much larger.
-
-Planned scale-up conditions:
-- Keep the same judge: `yzha/AlignScore`
-- Keep the same RM backbone: `FacebookAI/roberta-base`
-- Keep the same RM training setup: `epochs=5`, `lr=2e-5`, `batch=8`, `kfold=5`
-- Keep the same GCA mode: `nli`
-- Increase the dataset size to **5000** first, then extend to **10000** if needed
-- Use the same nested subset seed (`200`) so the larger set remains comparable to the earlier 1000-sample run
+The final conclusion is that the GCA advantage is real in the validated 1000-sample campaign, but it is small and sensitive to dataset composition at larger scale.
 
 ---
 
-## 3. Why This Matters
+## 2. Experimental Setup
 
-The 1000-sample campaign showed that GCA can beat Holistic under controlled conditions, but the sample was still relatively small. A larger dataset is needed to check whether the advantage is stable when the number of candidate pairs increases substantially.
+The same experimental settings were kept fixed across the campaign:
 
-This is the next robustness step for the thesis, not a new method change.
+- Judge: `yzha/AlignScore`
+- Judge mode: `nli`
+- RM backbone: `FacebookAI/roberta-base`
+- RM training: `epochs=5`, `lr=2e-5`, `batch=8`, `kfold=5`
+- Nested subset seed: `200`
+- Dataset sizes tested: `1000`, `5000`, `10000`
 
----
+The comparison is between two preference-construction strategies:
 
-## 4. Preparation Done Today
-
-To support the larger rerun, I prepared scalable Slurm wrappers for the remote MOGON workspace so the same pipeline can be launched with a larger sample size.
-
-The scale-up workflow now covers:
-- candidate generation
-- preference construction
-- reward-model training
-
-The current focus is the 10000-item dataset. The 5000-item run is already complete and serves as the first large-scale check.
-
-Queued on MOGON:
-- `1411306` — generate the 5000-item candidate set, **completed**
-- `1411307` — build holistic/GCA preferences for the 5000-item set, **completed**
-- `1411308` — train the 5000-item Bradley-Terry reward models, **completed**
-- `1411412` — generate the 10000-item candidate set, **completed**
-- `1411413` — build holistic/GCA preferences for the 10000-item set, **completed**
-- `1411415` — train the 10000-item Bradley-Terry reward models, **completed**
-
-Final outputs:
-- Candidate set: `~/thesis/data/candidates/candidates_10000.jsonl`
-- Preference files: `~/thesis/data/preferences_10000/`
-- RM summary: `~/thesis/outputs/reward_models_10000/rm_training_summary.json`
-
-5k summary:
-- Holistic mean accuracy: `0.5788`
-- GCA mean accuracy: `0.5746`
-- Gap (GCA - Holistic): `-0.0042`
-
-Interpretation of the 5k result:
-- The 5k gap is very small, so the 1000-sample advantage was not strong enough to remain stable at this larger scale.
-- This suggests the GCA effect is sensitive to the exact dataset composition and is not yet a clearly robust gain at 5000 items.
-
-10k summary:
-- Holistic mean accuracy: `0.5827`
-- GCA mean accuracy: `0.5862`
-- Gap (GCA - Holistic): `+0.0035`
+- Holistic: full-summary AlignScore scoring
+- GCA: sentence-level AlignScore scoring with aggregation
 
 ---
 
-## 5. Immediate Next Step
+## 3. 1000-Sample Validation Campaign
 
-The 5000-item experiment is complete. The 10000-item extension is now also complete.
+The 1000-sample setup was tested across six independent seed runs and produced the clearest positive result for GCA.
 
-Staged on MOGON:
-- `1411412` — generate the 10000-item candidate set, **completed**
-- `1411413` — build holistic/GCA preferences for the 10000-item set, **completed**
-- `1411415` — train the 10000-item Bradley-Terry reward models, **completed**
+### Per-run results
 
-For the meeting tomorrow, the safe headline is:
-- 1000-sample, six-run campaign: GCA wins reproducibly.
-- 5000-sample rerun: Holistic is slightly better, so the larger dataset does **not** confirm the GCA advantage.
-- 10000-sample follow-up: GCA is again slightly better, so the larger-dataset result is now back in favor of GCA.
+| Run | Seed | Holistic | GCA | Gap (GCA - Holistic) |
+|-----|------|----------|-----|----------------------|
+| Original sweep | 42 | 0.523 | 0.583 | +0.060 |
+| Confirmation | 42 | 0.543 | 0.556 | +0.013 |
+| Seed validation 1 | 7 | 0.556 | 0.546 | -0.010 |
+| Seed validation 2 | 100 | 0.510 | 0.561 | +0.051 |
+| Seed validation 3 | 314 | 0.520 | 0.552 | +0.032 |
+| Seed validation 4 | 2026 | 0.525 | 0.564 | +0.039 |
+
+### Pooled result
+
+| Aggregate | Holistic mean | GCA mean | Gap | 95% CI | Wilcoxon p (two-sided) |
+|-----------|---------------|----------|-----|--------|------------------------|
+| Pooled (6 runs, 30 folds) | 0.5295 | 0.5603 | +0.0308 | [+0.013, +0.047] | 0.0034 |
+
+Additional summary:
+- GCA wins on 22 of 30 folds.
+- The pooled result is statistically significant and reproducible across seeds.
+
+---
+
+## 4. 5000-Item Rerun
+
+The 5000-item rerun did not preserve the 1000-sample GCA advantage.
+
+### Result
+
+| Holistic mean | GCA mean | Gap (GCA - Holistic) |
+|---------------|----------|----------------------|
+| 0.5788 | 0.5746 | -0.0042 |
+
+### Interpretation
+
+- The 5k gap is very small, so the earlier advantage was not strong enough to remain stable at this larger scale.
+- This suggests the effect is sensitive to the exact dataset composition and is not yet a clearly robust gain at 5000 items.
+
+---
+
+## 5. 10000-Item Rerun
+
+The 10000-item rerun moved back slightly in favor of GCA.
+
+### Result
+
+| Holistic mean | GCA mean | Gap (GCA - Holistic) |
+|---------------|----------|----------------------|
+| 0.5827 | 0.5862 | +0.0035 |
+
+### Interpretation
+
+- The 10k result is again positive for GCA, but the margin is very small.
+- The overall pattern shows that the effect is not monotonic with dataset size.
+- The most defensible conclusion is that GCA can help, but the gain is narrow and depends on the sample drawn.
+
+---
+
+## 6. Final Conclusion
+
+The campaign supports the following conclusion:
+
+1. GCA is the better method on the validated 1000-sample campaign.
+2. At larger scale, the advantage is not consistently large.
+3. The 5000- and 10000-item reruns show that the effect is small and sensitive to dataset composition.
+
+In short, the thesis demonstrates a reproducible GCA benefit on the controlled 1000-sample setup, but not a strong or uniform large-scale advantage.
+
+---
+
+## 7. Recorded Outputs
+
+Completed jobs on MOGON:
+
+- `1411306` — generate the 5000-item candidate set, completed
+- `1411307` — build holistic/GCA preferences for the 5000-item set, completed
+- `1411308` — train the 5000-item Bradley-Terry reward models, completed
+- `1411412` — generate the 10000-item candidate set, completed
+- `1411413` — build holistic/GCA preferences for the 10000-item set, completed
+- `1411415` — train the 10000-item Bradley-Terry reward models, completed
+
+Recorded outputs:
+
+- Candidate sets: `~/thesis/data/candidates/candidates_5000.jsonl`, `~/thesis/data/candidates/candidates_10000.jsonl`
+- Preference files: `~/thesis/data/preferences_5000/`, `~/thesis/data/preferences_10000/`
+- RM summaries: `~/thesis/outputs/reward_models_5000/rm_training_summary.json`, `~/thesis/outputs/reward_models_10000/rm_training_summary.json`
