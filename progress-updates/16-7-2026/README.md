@@ -1,49 +1,55 @@
-# Final Results Summary — 16 July 2026
+# Final Experimental Results Summary — 16 July 2026
 
 **Student:** Muhammad Hasnat  
 **Supervisors:** Dr. Zeyd Boukhers, Prof. Dr. Frank Hopfgartner | **Mentor:** Lingxiao Kong
 
 ---
 
-## 1. Final Outcome
+## 1. Purpose of This Final Update
 
-The thesis experiments are complete. I compared Holistic vs GCA reward-model supervision under one judge, one RM backbone, and one training setup, and I varied only the preference-construction strategy and the dataset scale.
+The main experimental campaign is complete. This final update summarizes the comparison between two preference-construction strategies for reward-model supervision:
 
-The results are mixed across scales:
-- On the 1000-sample setup, GCA is consistently better across six independent runs.
-- On the 5000-item rerun, Holistic is slightly better.
-- On the 10000-item rerun, GCA is slightly better again.
+- Holistic full-summary scoring
+- Sentence-level GCA scoring with aggregation
 
-The final conclusion shows a real GCA advantage in the validated 1000-sample campaign, but the gain stays small and depends on dataset composition at larger scale.
+I kept the scorer, RM backbone, and training setup fixed across the campaign, so the main variable is the preference-construction strategy.
 
 ---
 
-## 2. Experimental Setup
+## 2. Experimental Design
 
-I kept the same experimental settings across the campaign:
+| Item | Setting |
+|---|---|
+| Judge | `yzha/AlignScore` |
+| Judge mode | `nli` |
+| RM backbone | `FacebookAI/roberta-base` |
+| RM training | `epochs=5`, `lr=2e-5`, `batch=8`, `kfold=5` |
+| Nested subset seed | `200` |
+| Dataset sizes tested | `1000`, `5000`, `10000` |
 
-- Judge: `yzha/AlignScore`
-- Judge mode: `nli`
-- RM backbone: `FacebookAI/roberta-base`
-- RM training: `epochs=5`, `lr=2e-5`, `batch=8`, `kfold=5`
-- Nested subset seed: `200`
-- Dataset sizes tested: `1000`, `5000`, `10000`
+Definitions:
 
-The comparison is between two preference-construction strategies:
-
-- Holistic: full-summary AlignScore scoring
-- GCA: sentence-level AlignScore scoring with aggregation
+- Holistic = full-summary AlignScore-based preference construction
+- GCA = sentence-level AlignScore scoring followed by aggregation into a summary-level preference
 
 ---
 
-## 3. 1000-Sample Validation Campaign
+## 3. Main Results Across Scales
 
-I tested the 1000-sample setup across six independent seed runs, and it gave the clearest positive result for GCA.
+| Dataset size | Holistic mean | GCA mean | Gap (GCA - Holistic) | Interpretation |
+|---|---:|---:|---:|---|
+| 1000 | 0.5295 | 0.5603 | +0.0308 | GCA clearly better in validated campaign |
+| 5000 | 0.5788 | 0.5746 | -0.0042 | Holistic slightly better |
+| 10000 | 0.5827 | 0.5862 | +0.0035 | GCA slightly better |
 
-### Per-run results
+The 1000-sample setup gives the strongest evidence for GCA. The larger reruns show smaller effects, and the direction changes with scale. That pattern indicates that the gain is limited and not uniformly stable at larger sample sizes.
 
-| Run | Seed | Holistic | GCA | Gap (GCA - Holistic) |
-|-----|------|----------|-----|----------------------|
+---
+
+## 4. Validated 1000-Sample Campaign
+
+| Run | Seed | Holistic | GCA | Gap |
+|---|---:|---:|---:|---:|
 | Original sweep | 42 | 0.523 | 0.583 | +0.060 |
 | Confirmation | 42 | 0.543 | 0.556 | +0.013 |
 | Seed validation 1 | 7 | 0.556 | 0.546 | -0.010 |
@@ -51,69 +57,60 @@ I tested the 1000-sample setup across six independent seed runs, and it gave the
 | Seed validation 3 | 314 | 0.520 | 0.552 | +0.032 |
 | Seed validation 4 | 2026 | 0.525 | 0.564 | +0.039 |
 
-### Pooled result
+| Setting | Holistic mean | GCA mean | Gap | 95% CI | Wilcoxon p-value |
+|---|---:|---:|---:|---:|---:|
+| 6 runs / 30 folds | 0.5295 | 0.5603 | +0.0308 | [+0.013, +0.047] | 0.0034 |
 
-| Aggregate | Holistic mean | GCA mean | Gap | 95% CI | Wilcoxon p (two-sided) |
-|-----------|---------------|----------|-----|--------|------------------------|
-| Pooled (6 runs, 30 folds) | 0.5295 | 0.5603 | +0.0308 | [+0.013, +0.047] | 0.0034 |
-
-Additional summary:
 - GCA wins on 22 of 30 folds.
-- The pooled result is statistically significant and reproducible across seeds.
+- This is the strongest and most statistically supported result in the thesis.
 
 ---
 
-## 4. 5000-Item Rerun
+## 5. Robustness Checks at Larger Scale
 
-The 5000-item rerun removed the 1000-sample GCA advantage.
+### 5.1 5000-Item Rerun
 
-### Result
-
-| Holistic mean | GCA mean | Gap (GCA - Holistic) |
-|---------------|----------|----------------------|
+| Holistic mean | GCA mean | Gap |
+|---|---:|---:|
 | 0.5788 | 0.5746 | -0.0042 |
 
-### Interpretation
+- The 5000-item rerun does not confirm the 1000-sample GCA advantage.
+- The gap is very small.
+- The result suggests that the GCA effect depends on the sample and does not scale uniformly.
 
-- The 5k run serves as a robustness check rather than a confirmation run.
-- The gap stays at 0.42 percentage points, so this scale does not show a stable GCA advantage.
-- This result suggests that the effect depends on the sample and does not generalize strongly at 5000 items.
+### 5.2 10000-Item Rerun
 
----
-
-## 5. 10000-Item Rerun
-
-The 10000-item rerun moved slightly back in favor of GCA.
-
-### Result
-
-| Holistic mean | GCA mean | Gap (GCA - Holistic) |
-|---------------|----------|----------------------|
+| Holistic mean | GCA mean | Gap |
+|---|---:|---:|
 | 0.5827 | 0.5862 | +0.0035 |
 
-### Interpretation
-
-- The 10k result again favors GCA, but the margin stays very small.
-- The overall pattern shows that the effect does not grow monotonically with dataset size.
-- The most defensible conclusion says that GCA can help, but the gain stays narrow and depends on the sample drawn.
+- The 10000-item rerun moves slightly back in favor of GCA.
+- The margin is positive but small.
+- The effect does not grow monotonically with dataset size.
 
 ---
 
-## 6. Final Conclusion
+## 6. Final Interpretation
 
-The campaign supports this conclusion:
-
-1. GCA is the better method on the validated 1000-sample campaign.
-2. At larger scale, the advantage is not consistently large.
-3. The 5000- and 10000-item reruns show that the effect is small and sensitive to dataset composition.
-
-In short, the thesis shows a reproducible GCA benefit on the controlled 1000-sample setup, but not a strong or uniform large-scale advantage.
-
-The evidence combines a controlled method comparison, statistically supported results on the validated 1000-sample setting, and a robustness analysis at larger scale. The claim does not say that GCA always wins; it says that GCA delivers a measurable benefit under a controlled configuration and that the effect becomes small and dataset-dependent as the sample size increases.
+The experiments support a nuanced conclusion. GCA is not universally superior to holistic scoring. Under the controlled 1000-sample validation campaign, GCA produced a statistically significant and reproducible improvement in reward-model learnability. At larger scale, the effect became small and dataset-dependent. Sentence-level credit assignment can help, but its effectiveness depends on aggregation design and dataset composition.
 
 ---
 
-## 7. Recorded Outputs
+## 7. Novelty and Positioning
+
+This thesis does not claim to introduce a new factuality scorer. AlignScore serves as a fixed factuality judge. The contribution lies in the controlled comparison of two ways of converting the same factuality signal into reward-model supervision: holistic full-summary preference construction versus sentence-level GCA-based preference construction.
+
+The RM tests whether the constructed preferences are learnable. The main research object is the preference-construction strategy, not the scorer itself.
+
+---
+
+## 8. Decision: Closing Main Experiments
+
+Based on the completed 1000-sample validation campaign and the 5000/10000-item robustness checks, I consider the main experimentation phase complete. The remaining work should focus on thesis writing, theoretical grounding of GCA, related work, qualitative/error analysis, limitations, and final discussion.
+
+---
+
+## 9. Recorded Outputs
 
 Completed jobs on MOGON:
 
