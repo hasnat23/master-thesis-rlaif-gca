@@ -7,20 +7,20 @@
 
 ## 1. Final Outcome
 
-The thesis experiments are complete. The evaluation compared Holistic vs GCA reward-model supervision under the same judge, the same RM backbone, and the same training setup, while varying only the preference-construction strategy and the dataset scale.
+The thesis experiments are complete. I compared Holistic vs GCA reward-model supervision under one judge, one RM backbone, and one training setup, and I varied only the preference-construction strategy and the dataset scale.
 
 The results are mixed across scales:
 - On the 1000-sample setup, GCA is consistently better across six independent runs.
 - On the 5000-item rerun, Holistic is slightly better.
 - On the 10000-item rerun, GCA is slightly better again.
 
-The final conclusion is that the GCA advantage is real in the validated 1000-sample campaign, but it is small and sensitive to dataset composition at larger scale.
+The final conclusion shows a real GCA advantage in the validated 1000-sample campaign, but the gain stays small and depends on dataset composition at larger scale.
 
 ---
 
 ## 2. Experimental Setup
 
-The same experimental settings were kept fixed across the campaign:
+I kept the same experimental settings across the campaign:
 
 - Judge: `yzha/AlignScore`
 - Judge mode: `nli`
@@ -38,7 +38,7 @@ The comparison is between two preference-construction strategies:
 
 ## 3. 1000-Sample Validation Campaign
 
-The 1000-sample setup was tested across six independent seed runs and produced the clearest positive result for GCA.
+I tested the 1000-sample setup across six independent seed runs, and it gave the clearest positive result for GCA.
 
 ### Per-run results
 
@@ -65,7 +65,7 @@ Additional summary:
 
 ## 4. 5000-Item Rerun
 
-The 5000-item rerun did not preserve the 1000-sample GCA advantage.
+The 5000-item rerun removed the 1000-sample GCA advantage.
 
 ### Result
 
@@ -75,14 +75,14 @@ The 5000-item rerun did not preserve the 1000-sample GCA advantage.
 
 ### Interpretation
 
-- The 5k gap is very small, so the earlier advantage was not strong enough to remain stable at this larger scale.
-- This suggests the effect is sensitive to the exact dataset composition and is not yet a clearly robust gain at 5000 items.
+- The 5k gap stays very small, so the earlier advantage does not hold at this larger scale.
+- This result points to sensitivity to the exact dataset composition and no clearly robust gain at 5000 items.
 
 ---
 
 ## 5. 10000-Item Rerun
 
-The 10000-item rerun moved back slightly in favor of GCA.
+The 10000-item rerun moved slightly back in favor of GCA.
 
 ### Result
 
@@ -92,21 +92,23 @@ The 10000-item rerun moved back slightly in favor of GCA.
 
 ### Interpretation
 
-- The 10k result is again positive for GCA, but the margin is very small.
-- The overall pattern shows that the effect is not monotonic with dataset size.
-- The most defensible conclusion is that GCA can help, but the gain is narrow and depends on the sample drawn.
+- The 10k result again favors GCA, but the margin stays very small.
+- The overall pattern shows that the effect does not grow monotonically with dataset size.
+- The most defensible conclusion says that GCA can help, but the gain stays narrow and depends on the sample drawn.
 
 ---
 
 ## 6. Final Conclusion
 
-The campaign supports the following conclusion:
+The campaign supports this conclusion:
 
 1. GCA is the better method on the validated 1000-sample campaign.
 2. At larger scale, the advantage is not consistently large.
 3. The 5000- and 10000-item reruns show that the effect is small and sensitive to dataset composition.
 
 In short, the thesis demonstrates a reproducible GCA benefit on the controlled 1000-sample setup, but not a strong or uniform large-scale advantage.
+
+This gives a defensible thesis because it shows a controlled method comparison, statistically supported evidence on the validated 1000-sample setting, and a direct robustness analysis at larger scale. The thesis claim does not say that GCA always wins; it says that GCA delivers a measurable benefit under a controlled configuration and that the effect becomes small and dataset-dependent as the sample size increases.
 
 ---
 
