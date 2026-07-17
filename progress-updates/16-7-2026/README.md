@@ -75,8 +75,9 @@ The 5000-item rerun removed the 1000-sample GCA advantage.
 
 ### Interpretation
 
-- The 5k gap stays very small, so the earlier advantage does not hold at this larger scale.
-- This result points to sensitivity to the exact dataset composition and no clearly robust gain at 5000 items.
+- The 5k run serves as a robustness check rather than a confirmation run.
+- The gap stays at 0.42 percentage points, so this scale does not show a stable GCA advantage.
+- This result suggests that the effect depends on the sample and does not generalize strongly at 5000 items.
 
 ---
 
