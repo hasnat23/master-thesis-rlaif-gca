@@ -107,9 +107,9 @@ The campaign supports this conclusion:
 2. At larger scale, the advantage is not consistently large.
 3. The 5000- and 10000-item reruns show that the effect is small and sensitive to dataset composition.
 
-In short, the thesis demonstrates a reproducible GCA benefit on the controlled 1000-sample setup, but not a strong or uniform large-scale advantage.
+In short, the thesis shows a reproducible GCA benefit on the controlled 1000-sample setup, but not a strong or uniform large-scale advantage.
 
-This gives a defensible thesis because it shows a controlled method comparison, statistically supported evidence on the validated 1000-sample setting, and a direct robustness analysis at larger scale. The thesis claim does not say that GCA always wins; it says that GCA delivers a measurable benefit under a controlled configuration and that the effect becomes small and dataset-dependent as the sample size increases.
+The evidence combines a controlled method comparison, statistically supported results on the validated 1000-sample setting, and a robustness analysis at larger scale. The claim does not say that GCA always wins; it says that GCA delivers a measurable benefit under a controlled configuration and that the effect becomes small and dataset-dependent as the sample size increases.
 
 ---
 
