@@ -1,3 +1,5 @@
+> **⚠ Stale artefact (April 2026).** This report reflects the original 200-sample, `margin=0.05`, `alpha=0.5`, DPO-era preference-construction run. It predates the final Bradley-Terry reward-model comparison (locked config: `alpha=0.0`, `margin=0`, AlignScore `nli` mode, n=1,000/5,000/10,000). It is kept for historical reference only — do **not** cite these numbers as current results. See the top-level [README.md](../README.md#final-results) and `progress-updates/16-7-2026/README.md` for the canonical final results.
+
 # Reward-Model Preference Construction — Results Report
 
 **Judge:** `yzha/AlignScore` (AlignScore-base, RoBERTa backbone)

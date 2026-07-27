@@ -10,52 +10,57 @@
 
 ## Overview
 
-This thesis investigates a controlled question: for long news summaries, are **holistic A/B preferences** sufficient to improve factual reliability under DPO fine-tuning, or does supervision become more effective when the judge evaluates **aligned sentence pairs** whose local decisions are then aggregated into a summary-level preference via **Granular Credit Assignment (GCA)**?
+> **Status (as of 16 July 2026): main experimentation phase is closed.** The core empirical question has been answered via a Bradley-Terry reward-model comparison (see [Final Results](#final-results) below); remaining work is thesis write-up, theoretical framing, related work, and error analysis. Early-phase DPO fine-tuning experiments (Mar–May 2026) are preserved in `src/dpo/` and earlier `progress-updates/` entries but are **not** part of the final reported pipeline — DPO was dropped on 2 June 2026 in favour of a pure reward-model comparison, per supervisor feedback.
 
-The base model, candidate pool, training objective (DPO), and compute budget are held constant across conditions. The only manipulated factor is the granularity of AI-generated preference labels.
+This thesis investigates a controlled question: for long news summaries, are **holistic A/B preferences** sufficient to produce a learnable factual-reliability signal for reward-model training, or does supervision become more effective when the judge evaluates **aligned sentence pairs** whose local decisions are then aggregated into a summary-level preference via **Granular Credit Assignment (GCA)**?
 
-- **Dataset:** CNN/DailyMail (200-sample compute-controlled subset)
-- **Base model:** Mistral-7B-Instruct-v0.3 (instruction-tuned 7B, Apache 2.0)
-- **Judge:** `yzha/AlignScore` — a fixed factual-consistency metric used as the primary automatic judge (no OpenAI API, no generative LLM calls). `CogComp/bart-faithful-summary-detector` remains available as a fallback baseline.
-- **Fine-tuning:** QLoRA + DPO (offline preference optimisation via TRL)
-- **Primary metrics:** ROUGE-1/2/L, BERTScore F1, SummaC (NLI-based), QAFactEval
-- **Diagnostic evaluator:** FineSurE (fine-grained sentence/key-fact level analysis)
+The base candidate pool, judge, and reward-model training recipe are held constant across conditions. The only manipulated factor is the granularity of AI-generated preference labels used to construct the pairwise training data.
+
+- **Dataset:** CNN/DailyMail (final validated runs: 1,000 / 5,000 / 10,000-sample subsets)
+- **Candidate generation model:** Mistral-7B-Instruct-v0.3 (instruction-tuned 7B, Apache 2.0) — two-temperature sampling (T=0.7 / T=1.0)
+- **Judge:** `yzha/AlignScore`, `nli` mode — a fixed factual-consistency metric used as the primary automatic judge (no OpenAI API, no generative LLM calls). Locked as the final judge configuration.
+- **Reward model:** Bradley-Terry pairwise reward model, `FacebookAI/roberta-base` backbone, trained separately on holistic vs GCA preference sets, evaluated via 5-fold cross-validation pairwise accuracy
+- **Primary metric:** RM pairwise validation accuracy (Holistic vs GCA), with bootstrap 95% CIs and Wilcoxon significance tests
+- **Superseded/early-phase only:** ROUGE-1/2/L, BERTScore F1, SummaC, QAFactEval, FineSurE were used during the earlier DPO-based prototype (see `progress-updates/19-03-2026/` through `21-04-2026/`) but are not part of the final reward-model comparison
 
 ---
 
 ## Research Questions
 
-**RQ1:** Does sentence-level AI feedback aggregated via GCA produce more factually consistent summaries than holistic AI feedback when used for DPO fine-tuning?
+**RQ1:** Does sentence-level AI feedback aggregated via GCA produce a more learnable reward-model preference signal than holistic AI feedback, as measured by pairwise validation accuracy?
 
-**RQ2:** How sensitive are the observed effects to alignment strategy (index-based vs semantic alignment) and to judge reliability controls such as confidence gating and A/B order randomisation?
+**RQ2:** How sensitive are the observed effects to the AlignScore judge backend/mode and to dataset scale (1,000 / 5,000 / 10,000 samples)?
 
-**RQ3:** What categories of factual errors are most affected by sentence-level supervision (entities, numbers, relations, temporal claims)?
+**RQ3:** What categories of factual errors are most affected by sentence-level supervision (entities, numbers, relations, temporal claims)? *(qualitative/error-analysis work, planned for the write-up phase)*
 
-**RQ4:** Do gains persist under human auditing and (optionally) a second judge, or are they judge-specific artefacts?
+**RQ4:** Do gains persist across independent random seeds and larger sample sizes, or are they an artefact of one run?
 
 ### Hypotheses
 
-- **H1:** Sentence-level aggregated preferences reduce factual inconsistency more than holistic preferences because they localise the supervision signal on long outputs.
-- **H2:** Better alignment and reliability controls reduce label noise; if alignment noise is too high it can mask GCA benefits.
+- **H1:** Sentence-level aggregated preferences produce a more learnable reward-model signal than holistic preferences because they localise the supervision signal on long outputs.
+- **H2:** Judge backend/mode configuration (e.g. AlignScore `nli` vs `nli_sp`/`bin`) materially affects whether the GCA advantage appears.
 - **H3:** Improvements are largest for localised errors (entity/relation mistakes) rather than global attributes such as style.
-- **H4:** If improvements reflect genuine factuality gains they remain visible under at least one independent evaluator.
+- **H4:** If improvements reflect a genuine, generalisable signal, they should replicate across independent seeds — **confirmed at n=1,000** (6 seeds, +3.08pp, p=0.0034) but **not confirmed at larger scale** (n=5,000, n=10,000 — see [Final Results](#final-results)).
+
+**Status:** H1 and H4 are supported at n=1,000 but the effect is scale-dependent and does not hold uniformly at n=5,000/10,000. H3 is not yet evaluated (planned qualitative analysis). H2 is supported — the AlignScore `nli` mode was the key factor that produced the GCA advantage.
 
 ---
 
 ## GCA: Granular Credit Assignment
 
-GCA is an aggregation layer that converts sentence-level factuality scores into a single summary-level preference pair usable by DPO.
+GCA is an aggregation layer that converts sentence-level factuality scores into a single summary-level preference pair usable for reward-model training.
 
-$$\text{score} = \bar{s} \cdot \left(\frac{\min(s)}{\bar{s}}\right)^\alpha, \quad \alpha = 0.5$$
+**Final (locked) configuration:**
 
-- $\bar{s}$ = mean sentence score, $\min(s)$ = lowest sentence score
-- Penalises summaries with inconsistent sentence quality (one bad sentence drags the aggregate down)
-- `tie_margin = 0.05` for winner determination; ambiguous pairs are discarded
+$$\text{score} = \bar{s} \quad (\alpha = 0.0 \text{, simple mean})$$
 
-**Reliability of the reward-model judge:**
-- Fixed, deterministic sequence-classifier — no prompt sensitivity or hallucinated rationales
-- Margin threshold (`tie_margin = 0.05`) — pairs where A and B scores differ by less than 5 pp are marked `no_preference` and excluded from DPO
-- Human audit: 100 pairs stratified across confidence / disagreement strata; Cohen's Kappa reported
+- $\bar{s}$ = mean sentence score
+- No margin filter (`margin = 0`) — every scored pair is used, since AlignScore is continuous and exact ties are effectively impossible
+- This is the result of an optimisation campaign (see `OPTIMIZATION_CAMPAIGN.md`) that started from a penalty formula ($\alpha=0.5$, `tie_margin=0.05`) and found the simple mean gives the most learnable, least noisy signal
+
+**Reliability of the judge:**
+- Fixed, deterministic sequence-classifier (AlignScore, `nli` mode) — no prompt sensitivity or hallucinated rationales
+- No margin gating in the final pipeline; all pairs are used for reward-model training
 
 ## Why Sentence-Level Segmentation?
 
@@ -65,17 +70,7 @@ Sentence-level segmentation makes each local claim independently scoreable again
 
 ## What GCA Does
 
-GCA takes sentence-level factuality scores and aggregates them into a single summary-level comparison score for A vs B.
-
-In this repository, GCA combines local sentence scores using a mean-and-consistency rule:
-
-$$
-	ext{score} = \bar{s} \cdot \left(\frac{\min(s)}{\bar{s}}\right)^\alpha
-$$
-
-where $\bar{s}$ is the mean sentence score, $\min(s)$ is the weakest sentence score, and $\alpha=0.5$. The minimum term penalises summaries that contain one very weak factual sentence even when their average is moderate.
-
-The final preference decision is still margin-gated (`tie_margin = 0.05`): if the difference between A and B is below the margin, the pair is marked `no_preference` and excluded from DPO.
+GCA takes sentence-level factuality scores and aggregates them into a single summary-level comparison score for A vs B, which is then used to construct a chosen/rejected pair for Bradley-Terry reward-model training.
 
 ---
 
@@ -84,16 +79,35 @@ The final preference decision is still margin-gated (`tie_margin = 0.05`): if th
 | Factor | Value |
 |--------|-------|
 | Task | Single-document abstractive summarisation (news) |
-| Dataset | CNN/DailyMail — 200-sample subset (fixed seed) |
-| Base model | Mistral-7B-Instruct-v0.3 |
-| Fine-tuning | QLoRA + DPO (offline; TRL) |
-| Judge | `yzha/AlignScore` (primary fixed factuality metric; BART-faithful detector retained as fallback) |
+| Dataset | CNN/DailyMail — final validated runs at 1,000 / 5,000 / 10,000-sample subsets (nested subset seed 200) |
+| Candidate generation model | Mistral-7B-Instruct-v0.3, two-temperature sampling (T=0.7 / T=1.0) |
+| Judge | `yzha/AlignScore`, mode `nli` (locked final configuration) |
 | Main variable | Feedback granularity: holistic A/B vs sentence-level + GCA |
-| Alignment ablation | Semantic similarity (primary) vs index-based |
-| Optional extension | MoDPO with objective-tagged sentence labels |
-| Primary metrics | SummaC, QAFactEval, ROUGE-1/2/L, BERTScore F1 |
-| Diagnostic | FineSurE (sentence/fact-level analysis; not optimisation target) |
-| Stats | Paired bootstrap resampling (10,000), 95% CI, p < 0.05, effect sizes |
+| GCA alpha | 0.0 (simple mean; see optimisation campaign) |
+| Margin | 0 (no filtering; all pairs used) |
+| Reward model | Bradley-Terry, `FacebookAI/roberta-base` backbone, mean-pool + linear scalar head |
+| RM training | epochs=5, lr=2e-5, batch=8, max_length=512, 5-fold CV |
+| Primary metric | RM pairwise validation accuracy (Holistic vs GCA) |
+| Stats | Bootstrap resampling (10,000), 95% CI, Wilcoxon signed-rank test |
+| Superseded (early prototype only) | DPO+QLoRA fine-tuning, ROUGE-1/2/L, BERTScore F1, SummaC, QAFactEval, FineSurE |
+
+---
+
+## Final Results
+
+Reward models were trained on holistic vs GCA preference pairs and compared by 5-fold cross-validation pairwise accuracy, at three dataset scales:
+
+| Dataset size | Holistic mean acc | GCA mean acc | Gap (GCA − Holistic) |
+|---:|---:|---:|---:|
+| 1,000 (6 seeds / 30 folds, pooled) | 0.5295 | 0.5603 | **+0.0308** (95% CI [+0.013, +0.047], Wilcoxon p=0.0034) |
+| 5,000 | 0.5788 | 0.5746 | −0.0042 |
+| 10,000 | 0.5827 | 0.5862 | +0.0035 |
+
+**Interpretation:** at n=1,000 the GCA reward model shows a statistically significant, reproducible advantage over holistic (validated across 6 independent seeds). At larger scale (5,000 / 10,000) the effect shrinks and is no longer consistently in GCA's favour. The thesis claim is therefore that sentence-level credit assignment via GCA is a promising but scale/aggregation-sensitive way to construct reward-model preference data — not a universal improvement over holistic scoring.
+
+Full experimental history (formula optimisation, judge-mode sweep, seed validation, scale reruns) is in `progress-updates/23-06-2026/`, `progress-updates/30-06-2026/`, `progress-updates/16-7-2026/`, and `OPTIMIZATION_CAMPAIGN.md`.
+
+> **Note on `reports/reward_model_judging_results.md`:** that file is a stale artefact from the original 200-sample, margin=0.05, alpha=0.5, DPO-era preference-construction run (April 2026). It predates the final RM comparison above and should not be cited as the current result — see `progress-updates/16-7-2026/README.md` for the canonical final numbers.
 
 ---
 
@@ -113,14 +127,20 @@ The final preference decision is still margin-gated (`tie_margin = 0.05`): if th
 ├── src/                      # Core library
 │   ├── data/                 #   Schema (SubsetSample→CandidatePair→Judgment→PreferencePair), subset selection
 │   ├── generation/           #   Model loading, two-temperature candidate generation
-│   ├── judging/              #   Holistic, sentence-level, GCA aggregation, reliability controls
-│   ├── eval/                 #   ROUGE, BERTScore, SummaC, QAFactEval
+│   ├── judging/              #   Holistic, sentence-level, GCA aggregation, preference construction
+│   ├── reward_model/         #   Bradley-Terry RM training (train.py, run_training.py) — final comparison target
+│   ├── eval/                 #   ROUGE, BERTScore, SummaC, QAFactEval (early-prototype metrics only)
+│   ├── dpo/                  #   DPO fine-tuning (early prototype, dropped 2 June 2026 — kept for history)
 │   └── utils/                #   Config loader, run-metadata logging
 ├── slurm/                    # MOGON NHR job scripts
 │   ├── smoke_test.sh         #   5-sample validation (A100, ~1 min)
-│   ├── generate_candidates.sh #  Full 200-sample generation (A100, ~1–2h)
-│   └── judge_test.sh         #   20-pair judge test
-├── progress-updates/         # Biweekly meeting reports
+│   ├── generate_candidates.sh #  Candidate generation (A100)
+│   ├── build_reward_preferences.sh / build_reward_preferences_rm500.sh
+│   ├── train_reward_models.sh / train_rm_1000.sh / train_rm_scale.sh  #  Bradley-Terry RM training (holistic + GCA)
+│   ├── submit_gca_hpsearch.sh #  RM hyperparameter search
+│   └── mode_nli_seed_confirm.sh #  Seed-validation reruns for the locked `nli` judge mode
+├── analysis/                 # GCA formula optimisation & disagreement analysis scripts
+├── progress-updates/         # Biweekly meeting reports (chronological — see 16-7-2026/ for final results)
 ├── proposal/                 # Thesis proposal
 ├── data/                     # Generated data artifacts (gitignored)
 ├── outputs/                  # Metrics, plots, run metadata (gitignored)
@@ -135,26 +155,27 @@ The final preference decision is still margin-gated (`tie_margin = 0.05`): if th
 # Install dependencies
 pip install -r requirements.txt
 
-# 1. Prepare 200-sample subset
+# 1. Prepare an N-sample subset (seed configurable in configs/subset.yaml)
 python scripts/01_prepare_subset.py --config configs/subset.yaml
 
-# 2. (Requires GPU + model) Generate candidates
+# 2. (Requires GPU + model) Generate candidates (two temperatures)
 python scripts/02_generate_candidates.py --config configs/generation.yaml
 
-# 3. Build reward-model preferences (holistic + GCA)
+# 3. Build reward-model preferences (holistic + GCA), locked final config
 python src/judging/build_reward_preferences.py \
-    --candidates data/candidates/candidates_200.jsonl \
+    --candidates data/candidates/candidates_1000.jsonl \
     --output-dir data/preferences \
-    --mode both
+    --mode both \
+    --alpha 0.0 \
+    --margin 0 \
+    --alignscore-evaluation-mode nli
 
-# 4. Analyse preference construction results
-python src/analysis/analyze_reward_preferences.py
-
-# 5. Evaluate baseline metrics
-python scripts/04_evaluate_baseline.py --candidates data/candidates/candidates_200.jsonl
-
-# 5. Generate plots
-python scripts/05_plot_results.py --metrics outputs/metrics/baseline_metrics_*.json
+# 4. Train Bradley-Terry reward models (holistic + GCA), 5-fold CV
+python src/reward_model/run_training.py \
+    --holistic data/preferences/holistic_1000.jsonl \
+    --gca data/preferences/gca_1000.jsonl \
+    --output-dir outputs/reward_models_1000 \
+    --kfold 5 --epochs 5 --lr 2e-5 --batch-size 8
 ```
 
 ---
@@ -173,12 +194,15 @@ ssh mogon
 module load lang/Anaconda3/2024.06-1
 source $(conda info --base)/etc/profile.d/conda.sh && conda activate thesis_env
 
-# Run smoke test, then full generation
+# Run smoke test, then candidate generation
 sbatch slurm/smoke_test.sh
 sbatch slurm/generate_candidates.sh
 
 # Build reward-model preferences (holistic + GCA) on A100
 sbatch slurm/build_reward_preferences.sh
+
+# Train Bradley-Terry reward models (holistic + GCA), 5-fold CV
+sbatch slurm/train_rm_1000.sh      # or train_rm_scale.sh for 5k/10k reruns
 
 # Monitor
 squeue -u muhhas01
@@ -188,12 +212,13 @@ squeue -u muhhas01
 
 ## Key Design Decisions
 
-- **Controlled experiment:** Only feedback granularity varies — model, data, and DPO recipe are identical across conditions
-- **Config-driven:** All parameters in YAML files, overridable via CLI `--override key=value`
-- **Reproducible:** Seeded randomness, SHA256-based sample IDs, run metadata JSON per execution
-- **Fixed reward/factuality model judge:** Preferences are now derived from `yzha/AlignScore` as the primary judge. It is deterministic, testable, and avoids any OpenAI / generative LLM dependency. `CogComp/bart-faithful-summary-detector` is retained only as a fallback baseline.
-- **Margin-gated preferences:** Pairs where the score difference is below `tie_margin=0.05` are marked `no_preference` and excluded from DPO training, avoiding forced noisy labels.
-- **Compatibility with accepted proposal:** The core thesis comparison is unchanged — holistic AI feedback vs granular AI feedback via GCA. Only the source of the feedback signal has shifted from a generative LLM to a fixed factuality classifier.
+- **Controlled experiment:** Only feedback granularity (holistic vs GCA) varies — candidate pool, judge, and RM training recipe are identical across conditions
+- **Config-driven:** All parameters in YAML files / CLI flags, overridable via `--override key=value` or explicit flags
+- **Reproducible:** Seeded randomness, SHA256-based sample IDs, run metadata JSON per execution, multi-seed validation for the headline result
+- **Fixed factuality judge:** Preferences are derived from `yzha/AlignScore` (`nli` mode, locked). Deterministic, testable, avoids any OpenAI / generative LLM dependency.
+- **No margin gating in the final pipeline:** unlike the early prototype (`tie_margin=0.05`), the final config uses `margin=0` — all pairs are used, based on supervisor feedback (2 June 2026) that margin filtering discarded ~20% of usable pairs without clear benefit.
+- **DPO dropped from the final comparison:** the original proposal's DPO fine-tuning step (`src/dpo/`) was used in the early prototype (Mar–May 2026) but removed on 2 June 2026 so the thesis focuses purely on reward-model learnability — the core IRL framing suggested by the mentor.
+- **Compatibility with accepted proposal:** the core thesis comparison is unchanged — holistic AI feedback vs granular AI feedback via GCA. What changed is (a) the feedback source (generative LLM → fixed factuality classifier) and (b) the downstream target (DPO-tuned policy → Bradley-Terry reward model), both agreed with supervisors as within-scope pivots.
 
 ---
 
@@ -201,11 +226,10 @@ squeue -u muhhas01
 
 | Component | Choice |
 |-----------|--------|
-| Base model | Mistral-7B-Instruct-v0.3 |
+| Candidate generation model | Mistral-7B-Instruct-v0.3 |
 | Dataset | CNN/DailyMail |
-| Frameworks | Hugging Face Transformers 5.x, TRL, PEFT, BitsAndBytes, PyTorch 2.4 |
+| Frameworks | Hugging Face Transformers 5.x, PEFT, BitsAndBytes, PyTorch 2.4 |
 | Infrastructure | MOGON NHR (A100-SXM4-40GB, Slurm, partition `a100dl`) |
-| Judge | `yzha/AlignScore` (primary fixed reward/factuality model) |
-| Alignment objective | DPO + QLoRA |
-| Factuality metrics | SummaC, QAFactEval, FineSurE |
-| Similarity metrics | ROUGE-1/2/L, BERTScore F1 |
+| Judge | `yzha/AlignScore`, mode `nli` (locked final config) |
+| Reward model | Bradley-Terry, `FacebookAI/roberta-base` backbone |
+| Early-prototype only (superseded) | DPO + QLoRA (TRL), SummaC, QAFactEval, FineSurE, ROUGE-1/2/L, BERTScore F1 |
