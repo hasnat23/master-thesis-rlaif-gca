@@ -165,7 +165,7 @@ judgments at different granularities should be converted into the pairwise label
 in the first place, and measures the learnability of the resulting labels under a
 fixed Bradley--Terry architecture.
 
-\citet{qiu2026sentencelevel} modify the reward model itself, proposing a
+\citet{qiu2025sentencelevel} modify the reward model itself, proposing a
 sentence-level reward model that assigns scores at sentence boundaries and
 aggregates them into a response-level score, while still learning from
 response-level human preferences. Their aim is to address reward sparsity by
@@ -282,7 +282,7 @@ Work & Sentence-level signal enters at & Held fixed \\
   response-level objective \\
 \citet{gu2025maskdpo}        & the DPO objective, as a sentence mask &
   preference pair construction \\
-\citet{qiu2026sentencelevel} & the reward-model architecture &
+\citet{qiu2025sentencelevel} & the reward-model architecture &
   preference labels (human, response-level) \\
 \citet{laban2022summac}      & evaluation metric only & -- \\
 \citet{song2024finesure}     & evaluation metric only & -- \\
@@ -299,7 +299,7 @@ information is injected, which is the dimension along which the present study is
 distinguished. Sentence-level factuality signals are clearly not unexplored: they
 have been used to mask the policy-optimization objective
 \citep{gu2025maskdpo}, to restructure the reward model
-\citep{qiu2026sentencelevel}, to supply dense rewards during reinforcement
+\citep{qiu2025sentencelevel}, to supply dense rewards during reinforcement
 learning \citep{wu2023finegrained}, and to build evaluation metrics
 \citep{laban2022summac, song2024finesure}. What distinguishes this thesis is the
 insertion point. Each of the training-oriented works above takes the preference
@@ -339,7 +339,7 @@ Five adjacent lines of work are distinguished as follows:
     applies granular factuality information inside the policy-optimization
     objective while leaving preference construction unchanged; here the objective
     is unchanged and preference construction varies.
-  \item \textbf{Sentence-level reward modeling} \citep{qiu2026sentencelevel}
+  \item \textbf{Sentence-level reward modeling} \citep{qiu2025sentencelevel}
     changes the reward model's architecture while learning from conventional
     response-level preferences; here the architecture is fixed and the
     preferences vary.
