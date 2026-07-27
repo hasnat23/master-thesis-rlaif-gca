@@ -1,5 +1,11 @@
 # Meeting Notes — 30 June 2026
 
+> **Correction (27 July 2026).** The six runs described below span **five distinct
+> seed values** (42, 42, 7, 100, 314, 2026), not six independent seeds; seed 42
+> appears twice. The reported significance is also fold-level and anti-conservative
+> — at the run level the two-sided Wilcoxon p-value is 0.0625. See `thesis/` for
+> the corrected treatment.
+
 **Student:** Muhammad Hasnat
 **Supervisors:** Dr. Zeyd Boukhers, Prof. Dr. Frank Hopfgartner | **Mentor:** Lingxiao Kong
 

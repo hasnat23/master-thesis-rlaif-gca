@@ -16,7 +16,7 @@ This thesis investigates a controlled question: for long news summaries, are **h
 
 The base candidate pool, judge, and reward-model training recipe are held constant across conditions. The only manipulated factor is the granularity of AI-generated preference labels used to construct the pairwise training data.
 
-- **Dataset:** CNN/DailyMail (final validated runs: 1,000 / 5,000 / 10,000-sample subsets)
+- **Dataset:** CNN/DailyMail (final runs at 1,000 / 5,000 / 10,000 samples; note these subsets are *nested*, see [Final Results](#final-results))
 - **Candidate generation model:** Mistral-7B-Instruct-v0.3 (instruction-tuned 7B, Apache 2.0) — two-temperature sampling (T=0.7 / T=1.0)
 - **Judge:** `yzha/AlignScore`, `nli` mode — a fixed factual-consistency metric used as the primary automatic judge (no OpenAI API, no generative LLM calls). Locked as the final judge configuration.
 - **Reward model:** Bradley-Terry pairwise reward model, `FacebookAI/roberta-base` backbone, trained separately on holistic vs GCA preference sets, evaluated via 5-fold cross-validation pairwise accuracy
@@ -40,9 +40,9 @@ The base candidate pool, judge, and reward-model training recipe are held consta
 - **H1:** Sentence-level aggregated preferences produce a more learnable reward-model signal than holistic preferences because they localise the supervision signal on long outputs.
 - **H2:** Judge backend/mode configuration (e.g. AlignScore `nli` vs `nli_sp`/`bin`) materially affects whether the GCA advantage appears.
 - **H3:** Improvements are largest for localised errors (entity/relation mistakes) rather than global attributes such as style.
-- **H4:** If improvements reflect a genuine, generalisable signal, they should replicate across independent seeds — **confirmed at n=1,000** (6 seeds, +3.08pp, p=0.0034) but **not confirmed at larger scale** (n=5,000, n=10,000 — see [Final Results](#final-results)).
+- **H4:** If improvements reflect a generalisable signal, they should replicate across repeated runs — **repeatedly observed at n=1,000** (5 of 6 runs favour GCA, mean +3.08pp; run-level Wilcoxon p=0.0625, not significant at 0.05) but **not reproduced at comparable magnitude** at n=5,000 or n=10,000 (see [Final Results](#final-results)).
 
-**Status:** H1 and H4 are supported at n=1,000 but the effect is scale-dependent and does not hold uniformly at n=5,000/10,000. H3 is not yet evaluated (planned qualitative analysis). H2 is supported — the AlignScore `nli` mode was the key factor that produced the GCA advantage.
+**Status:** H1 and H4 are supported at n=1,000, though not at the conventional significance threshold, and the effect is not reproduced at comparable magnitude at n=5,000/10,000. H3 was not evaluated. H2 is supported by an exploratory sweep: the AlignScore `nli` mode is associated with the GCA advantage, but each mode was run once, so the mode comparison is suggestive rather than established.
 
 ---
 
@@ -79,7 +79,7 @@ GCA takes sentence-level factuality scores and aggregates them into a single sum
 | Factor | Value |
 |--------|-------|
 | Task | Single-document abstractive summarisation (news) |
-| Dataset | CNN/DailyMail — final validated runs at 1,000 / 5,000 / 10,000-sample subsets (nested subset seed 200) |
+| Dataset | CNN/DailyMail — runs at 1,000 / 5,000 / 10,000 samples (all subset seed 200; nested, not disjoint) |
 | Candidate generation model | Mistral-7B-Instruct-v0.3, two-temperature sampling (T=0.7 / T=1.0) |
 | Judge | `yzha/AlignScore`, mode `nli` (locked final configuration) |
 | Main variable | Feedback granularity: holistic A/B vs sentence-level + GCA |
@@ -99,15 +99,22 @@ Reward models were trained on holistic vs GCA preference pairs and compared by 5
 
 | Dataset size | Holistic mean acc | GCA mean acc | Gap (GCA − Holistic) |
 |---:|---:|---:|---:|
-| 1,000 (6 seeds / 30 folds, pooled) | 0.5295 | 0.5603 | **+0.0308** (95% CI [+0.013, +0.047], Wilcoxon p=0.0034) |
-| 5,000 | 0.5788 | 0.5746 | −0.0042 |
-| 10,000 | 0.5827 | 0.5862 | +0.0035 |
+| 1,000 (6 runs, 5 distinct seeds; 30 folds pooled) | 0.5295 | 0.5603 | **+0.0308** |
+| 5,000 (single run) | 0.5788 | 0.5746 | −0.0042 |
+| 10,000 (single run) | 0.5827 | 0.5862 | +0.0035 |
 
-**Interpretation:** at n=1,000 the GCA reward model shows a statistically significant, reproducible advantage over holistic (validated across 6 independent seeds). At larger scale (5,000 / 10,000) the effect shrinks and is no longer consistently in GCA's favour. The thesis claim is therefore that sentence-level credit assignment via GCA is a promising but scale/aggregation-sensitive way to construct reward-model preference data — not a universal improvement over holistic scoring.
+**Interpretation.** At n=1,000 GCA leads in 5 of 6 runs with a mean advantage of +3.08 pp. This is a *repeatedly observed* advantage, **not a statistically significant one**: the appropriate unit of independent replication is the run, and a two-sided Wilcoxon test over the six run-level differences gives **p = 0.0625**, which does not meet the conventional 0.05 threshold. The often-quoted fold-level figure (p = 0.0034, 95% CI [+0.013, +0.047]) is computed over 30 cross-validation folds that are **not independent** — folds within a run share most of their training data — and is therefore anti-conservative and exploratory only.
 
-Full experimental history (formula optimisation, judge-mode sweep, seed validation, scale reruns) is in `progress-updates/23-06-2026/`, `progress-updates/30-06-2026/`, `progress-updates/16-7-2026/`, and `OPTIMIZATION_CAMPAIGN.md`.
+Two further caveats bound the result:
 
-> **Note on `reports/reward_model_judging_results.md`:** that file is a stale artefact from the original 200-sample, margin=0.05, alpha=0.5, DPO-era preference-construction run (April 2026). It predates the final RM comparison above and should not be cited as the current result — see `progress-updates/16-7-2026/README.md` for the canonical final numbers.
+- **Both models are near chance.** 0.5295 and 0.5603 sit 3.0 and 6.0 pp above the 0.50 chance level. The comparison is between two weak preference signals.
+- **The three subsets are nested, not disjoint.** All use subset seed 200 and differ only in sample count: n=5,000 is entirely contained in n=10,000, and 999 of the 1,000 n=1,000 samples appear in n=10,000. The larger runs therefore measure behaviour as data is added to the same pool; they are **not** out-of-sample replication.
+
+Higher reward-model accuracy means the preference relation is more consistently *recoverable* by the chosen architecture. It does **not** establish better agreement with human factuality judgments, more accurate labels, or better generated summaries.
+
+Full experimental history is in `progress-updates/` and `OPTIMIZATION_CAMPAIGN.md`.
+
+> **Canonical source.** The written thesis in [`thesis/`](thesis/) supersedes all earlier summaries in this repository. Where a `progress-updates/` entry or `reports/` file disagrees with it, the thesis is correct: those files are dated records of what was believed at the time, and several predate the statistical and dataset-nesting corrections above. In particular, `reports/reward_model_judging_results.md` is an April 2026 artefact (200 samples, margin=0.05, α=0.5, DPO-era) and should not be cited as a current result.
 
 ---
 

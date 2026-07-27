@@ -1,0 +1,165 @@
+\documentclass[english,m,master,binding,twoside,palatino,scrreprt]{WeSTthesis}
+% Please read README.md for additional information on WeSTthesis parameters.
+
+\usepackage[english,ngerman]{babel}      % English and new German spelling
+\usepackage[utf8]{inputenc}              % correct input encoding
+\usepackage[T1]{fontenc}                 % correct output encoding
+\usepackage{graphicx}                    % enhanced support for graphics
+\usepackage{tabularx}                    % more flexible tabular
+\usepackage{booktabs}                    % professional-looking tables (\toprule etc.)
+\usepackage{multirow}                    % multi-row table cells
+\usepackage{amsfonts}                    % math fonts
+\usepackage{amssymb}                     % math symbols
+\usepackage{amsmath}                     % overall enhancements to math environment
+\usepackage{caption}                     % caption formatting
+\usepackage[numbers,sort&compress]{natbib} % \citep/\citet, numbered bracket style
+\usepackage{microtype}                   % better justification, fewer overfull lines
+\usepackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=black,
+            pdfborder={0 0 0}]{hyperref} % clickable links, no colored boxes (load after natbib)
+\usepackage{xurl}                        % allow \url to break at /, _, - (long code paths)
+\urlstyle{tt}                            % keep \url in the same monospace style as \texttt
+\usepackage{tikz}                        % pipeline diagram (Figure 5.1)
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,calc,fit,backgrounds}
+\usepackage{pgfplots}                    % charts
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{groupplots}
+% shared chart styling
+\pgfplotsset{
+  thesisplot/.style={
+    width=0.86\textwidth, height=5.4cm,
+    tick align=outside, tick pos=left,
+    axis line style={gray!60}, grid=major,
+    grid style={gray!20, line width=0.3pt},
+    label style={font=\small}, tick label style={font=\footnotesize},
+    legend style={font=\footnotesize, draw=gray!50, fill=white,
+                  cells={anchor=west}},
+  },
+  holbar/.style={fill=blue!25, draw=blue!55!black, line width=0.4pt},
+  gcabar/.style={fill=orange!45, draw=orange!65!black, line width=0.4pt},
+}
+
+\author{Muhammad Hasnat}
+
+\title{Benchmarking Holistic vs Sentence-Level Reward-Model Preferences for Factual Summarization via Granular Credit Assignment (GCA)}
+
+\degreecourse{Informatik} % TODO: confirm exact degree course name for the cover page
+
+\firstreviewer{Prof. Dr. Frank Hopfgartner}
+\firstreviewerinfo{Institute for Web Science and Technologies}
+\secondreviewer{Dr. Zeyd Boukhers}
+\secondreviewerinfo{Institute for Web Science and Technologies}
+% TODO: confirm first/second reviewer order and titles exactly as required by the examination office
+
+\englishabstract{%
+Preference-based alignment of abstractive summarization models increasingly relies
+on automatically generated preference labels rather than human judgments. It
+remains unclear whether a single holistic judgment over a multi-sentence summary
+uses the available supervision as effectively as a judgment assembled from
+sentence-level evidence. This thesis studies that question as a controlled
+comparison of two preference-construction procedures. In the holistic condition, a
+complete candidate summary is scored against the source article and the resulting
+scores form a pairwise preference. In the Granular Credit Assignment (GCA)
+condition, each summary is decomposed into sentences, each sentence is scored
+separately, and the sentence scores are aggregated into a summary-level preference.
+The candidate summaries, the factuality evaluator (AlignScore), the Bradley--Terry
+reward-model architecture, and the training procedure are held fixed, so that
+feedback granularity is the primary experimental variable.
+
+The dependent variable is preference learnability, measured as the pairwise
+validation accuracy of a reward model trained on the resulting preference pairs.
+Across six repeated runs at $n=1{,}000$, GCA achieved an average advantage of
+approximately 3.08 percentage points over holistic preference construction,
+favouring GCA in five of six runs. Uncertainty estimates based on
+cross-validation folds should be interpreted cautiously, because folds within a
+run are not independent; at the run level the evidence does not meet the
+conventional 0.05 threshold. The advantage did not remain equally large at larger
+sample sizes: it is approximately $-0.42$ percentage points at $n=5{,}000$ and
+$+0.35$ percentage points at $n=10{,}000$, while absolute accuracy improves for
+both conditions. An exploratory comparison of evaluator modes suggests that
+external sentence-level decomposition may be most useful when the evaluator does
+not already perform comparable decomposition internally.
+
+These results characterize when granular factuality feedback changes the structure
+of a preference-learning signal, rather than establishing that GCA is generally
+preferable. Higher reward-model accuracy indicates that a preference relation is
+more consistently recoverable by the chosen architecture. It does not by itself
+establish that GCA labels agree better with human factuality judgments, nor that
+summarization models trained on such preferences produce more factually consistent
+summaries; both questions are left to future work.
+}
+\germanabstract{
+Die präferenzbasierte Ausrichtung abstraktiver Zusammenfassungsmodelle stützt sich
+zunehmend auf automatisch erzeugte Präferenzlabels anstelle menschlicher
+Bewertungen. Unklar bleibt, ob ein einzelnes ganzheitliches Urteil über eine
+mehrsätzige Zusammenfassung das verfügbare Supervisionssignal ebenso wirksam nutzt
+wie ein Urteil, das aus satzweiser Evidenz zusammengesetzt wird. Diese Arbeit
+untersucht diese Frage als kontrollierten Vergleich zweier Verfahren der
+Präferenzkonstruktion. In der ganzheitlichen Bedingung wird eine vollständige
+Kandidatenzusammenfassung gegen den Quellartikel bewertet, und aus den Bewertungen
+wird eine paarweise Präferenz gebildet. In der Bedingung Granular Credit
+Assignment (GCA) wird jede Zusammenfassung in Sätze zerlegt, jeder Satz einzeln
+bewertet, und die Satzbewertungen werden zu einer Präferenz auf
+Zusammenfassungsebene aggregiert. Die Kandidatenzusammenfassungen, das
+Bewertungsmodell (AlignScore), die Bradley--Terry-Architektur des
+Belohnungsmodells sowie das Trainingsverfahren bleiben unverändert, sodass die
+Granularität des Feedbacks die zentrale experimentelle Variable bildet.
+
+Die abhängige Variable ist die Erlernbarkeit der Präferenzen, gemessen als
+paarweise Validierungsgenauigkeit eines auf den jeweiligen Präferenzpaaren
+trainierten Belohnungsmodells. Über sechs wiederholte Läufe bei $n=1.000$ ergibt
+sich für GCA-Präferenzen ein durchschnittlicher Vorteil von etwa 3,08
+Prozentpunkten gegenüber der ganzheitlichen Präferenzkonstruktion, wobei GCA in
+fünf von sechs Läufen vorne liegt. Unsicherheitsschätzungen auf Basis von
+Kreuzvalidierungs-Folds sind zurückhaltend zu interpretieren, da Folds innerhalb
+eines Laufs nicht unabhängig sind; auf Laufebene erreicht die Evidenz das
+konventionelle Niveau von 0,05 nicht. Der Vorteil bleibt bei größerem Datenumfang
+nicht in gleicher Höhe bestehen: Er beträgt etwa $-0{,}42$ Prozentpunkte bei
+$n=5.000$ und $+0{,}35$ Prozentpunkte bei $n=10.000$, während die absolute
+Genauigkeit in beiden Bedingungen zunimmt. Ein explorativer Vergleich der
+Bewertungsmodi legt nahe, dass eine externe satzweise Zerlegung vor allem dann
+nützlich sein könnte, wenn das Bewertungsmodell nicht bereits intern eine
+vergleichbare Zerlegung vornimmt.
+
+Die Ergebnisse charakterisieren, unter welchen Bedingungen granulares
+Faktizitäts-Feedback die Struktur eines Präferenzlernsignals verändert, und
+belegen nicht, dass GCA allgemein vorzuziehen ist. Eine höhere Genauigkeit des
+Belohnungsmodells zeigt an, dass eine Präferenzrelation von der gewählten
+Architektur konsistenter rekonstruiert werden kann. Sie belegt für sich genommen
+weder, dass GCA-Labels besser mit menschlichen Faktizitätsurteilen übereinstimmen,
+noch dass auf solchen Präferenzen trainierte Zusammenfassungsmodelle faktisch
+konsistentere Texte erzeugen; beide Fragen bleiben künftiger Arbeit vorbehalten.
+}
+
+\begin{document}
+\pagenumbering{roman}
+\maketitle
+
+\selectlanguage{english}
+
+\tableofcontents
+\cleardoublepage
+
+\listoffigures
+\cleardoublepage
+\listoftables
+\cleardoublepage
+
+\pagenumbering{arabic}
+
+\input{chapters/01_introduction}
+\input{chapters/02_related_work}
+\input{chapters/03_background}
+\input{chapters/04_methodology}
+\input{chapters/05_implementation}
+\input{chapters/06_results}
+\input{chapters/07_discussion}
+\input{chapters/08_conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+% \appendix
+% \input{chapters/appendix_prompts}
+% \input{chapters/appendix_configs}
+
+\end{document}

@@ -1,0 +1,167 @@
+\chapter{Conclusion}
+\label{ch:conclusion}
+
+\section{Summary}
+\label{sec:concl-summary}
+
+This thesis asked a controlled question: does converting sentence-level factuality
+scores into a summary-level preference through Granular Credit Assignment produce a
+more learnable reward-model signal than scoring each candidate summary
+holistically. The two conditions were compared under an identical candidate pool,
+an identical factuality judge, and an identical Bradley--Terry training recipe, so
+that the only manipulated factor was the preference-construction procedure itself.
+
+Averaged over six repeated runs at $n=1{,}000$, GCA preferences yield an
+advantage of approximately $+3.08$ percentage points in reward-model pairwise
+accuracy. The advantage does not remain equally large as the dataset grows: it is
+approximately $-0.42$ percentage points at $n=5{,}000$ and $+0.35$ percentage
+points at $n=10{,}000$, while absolute accuracy improves for both conditions.
+Uncertainty estimates computed over cross-validation folds are anti-conservative,
+because folds within a run are not independent, so the direction and approximate
+magnitude of the effect are better supported than any exact significance level.
+
+The experiments therefore do not support a universal claim that GCA is preferable
+to holistic factuality supervision. They show that sentence-level aggregation can
+improve the learnability of automatically generated pairwise preferences under
+particular configurations, most clearly in the $n=1{,}000$ setting. In the
+exploratory mode comparison, the advantage appears under evaluator modes that do
+not themselves decompose the input, which motivates the hypothesis that external
+and evaluator-internal decomposition may act partly as substitutes. At larger
+sample sizes the observed advantage is small and inconsistent in sign. Taken
+together, the results indicate that the usefulness of granular credit assignment
+varies with evaluator configuration, dataset size, and aggregation choice rather
+than following from finer granularity as such.
+
+\section{Answers to the Research Questions}
+\label{sec:concl-rqs}
+
+\textbf{RQ1} (does GCA produce a more learnable preference signal than holistic
+scoring?) is answered \emph{conditionally}. An average advantage of approximately
+3 percentage points is repeatedly observed at $n=1{,}000$, favouring GCA in five
+of six runs, though the run-level test does not meet the conventional threshold.
+It is not observed in the single run at $n=5{,}000$ and is marginal at
+$n=10{,}000$. The answer is therefore configuration-dependent rather than
+general.
+
+\textbf{RQ2} (how do evaluator configuration and aggregation strategy affect
+relative learnability?) is answered \emph{associationally}. Both the aggregation
+formula and the evaluator mode are associated with substantial changes in the
+outcome, and in the exploratory sweep the two modes in which the evaluator
+performs its own internal decomposition are also the two in which GCA shows no
+advantage (Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep}).
+Because only one mode received repeated-run validation, this pattern is suggestive
+rather than established.
+
+\textbf{RQ3} (how stable are the differences across runs and dataset sizes?) is
+answered \emph{partially}. The difference is directionally consistent across six
+runs at fixed $n=1{,}000$, favouring GCA in five of six. It is not reproduced with
+comparable magnitude in the single runs at $n=5{,}000$ and $n=10{,}000$, which use
+nested supersets of the same data (Section~\ref{sec:disc-scale}).
+
+\section{Limitations}
+\label{sec:concl-limitations}
+
+\begin{enumerate}
+  \item \textbf{No human factuality audit.} No independent human annotation was
+    collected in the final study, so the evaluator's judgments were never checked
+    against human assessments of faithfulness
+    (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-reliability}).
+  \item \textbf{The labels are not independent ground truth.} AlignScore supplies
+    both the holistic and the sentence-level scores, so it functions as the
+    reference standard rather than as a verified one. Every result is conditional
+    on that evaluator.
+  \item \textbf{Preference learnability is not factual correctness.} The
+    dependent variable measures how consistently a preference relation can be
+    recovered by the chosen architecture, not whether the preferences are
+    factually right (Chapter~\ref{ch:methodology},
+    Section~\ref{sec:methodology-scope}).
+  \item \textbf{No downstream policy evaluation.} The final study contains no
+    DPO or other policy-optimization stage, so it does not establish whether
+    models trained on either preference set generate more factually consistent
+    summaries.
+  \item \textbf{Both reward models are weak in absolute terms.} At $n=1{,}000$
+    the conditions reach 0.5295 and 0.5603 pairwise accuracy against a chance
+    level of 0.5, so the comparison is between two weak signals
+    (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-weak-signal}).
+  \item \textbf{Cross-validation folds are not independent.} Uncertainty
+    estimates computed over 30 folds treat correlated observations as
+    independent and are therefore anti-conservative; the direction and
+    approximate magnitude of the effect are better supported than any exact
+    significance level (Section~\ref{sec:disc-stats-caveat}).
+  \item \textbf{Incomplete determinism across runs.} Subset selection and
+    cross-validation fold assignment are explicitly seeded, but PyTorch's
+    generator is not seeded in the cross-validation path, leaving weight
+    initialization, batch ordering and dropout uncontrolled
+    (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}). Exact
+    run-level reproduction from the command-line seed alone is therefore not
+    guaranteed.
+  \item \textbf{Configuration selected on observed results.} The aggregation
+    strategy and evaluator mode were chosen after inspecting $n=1{,}000$ outcomes
+    (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-exploratory}), and
+    the larger-scale subsets are nested supersets of that same data
+    (Section~\ref{sec:methodology-nesting}), so no result in this thesis
+    evaluates the selected configuration on independent data.
+  \item \textbf{Candidate generation confounds temperature with condition.} The
+    two candidates differ in decoding temperature, and the lower-temperature
+    candidate is preferred substantially more often under both conditions and to
+    differing degrees (Chapter~\ref{ch:methodology},
+    Section~\ref{sec:methodology-ethics}), so temperature-correlated features may
+    carry part of the label information.
+  \item \textbf{Source-document truncation.} The reward model receives only a
+    truncated prefix of each article, so evidence located later in the source is
+    unavailable to it (Chapter~\ref{ch:implementation},
+    Section~\ref{sec:impl-rm-training}).
+  \item \textbf{Evaluator and dataset specificity.} All findings are obtained on
+    CNN/DailyMail with AlignScore, Mistral-7B-Instruct-v0.3 candidates, and a
+    RoBERTa-base reward model, and need not transfer to other domains,
+    evaluators, or architectures.
+  \item \textbf{Sentence segmentation was not evaluated.} Summaries are split
+    with a regex-based splitter whose accuracy was never measured
+    (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}).
+  \item \textbf{Nested dataset sizes.} The $n=1{,}000$, $n=5{,}000$ and
+    $n=10{,}000$ subsets overlap almost completely
+    (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-nesting}), so the
+    larger-scale runs are not independent samples and no experiment evaluates the
+    selected configuration on held-out data.
+  \item \textbf{No error-category analysis.} No analysis links the observed
+    effects to specific categories of factual error; this was not part of the
+    final research questions and is listed under future work.
+\end{enumerate}
+
+\section{Future Work}
+\label{sec:concl-future}
+
+\begin{itemize}
+  \item \textbf{Repeated runs at larger scale.} The $n=5{,}000$ and $n=10{,}000$
+    experiments were each executed once. Repeating them would test whether their
+    intervals overlap the $n=1{,}000$ estimate, which would indicate run-to-run
+    variance, or remain separated, which would support a dataset-size effect
+    (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-scale}).
+  \item \textbf{Remove the temperature confound.} Generating both candidates at a
+    single decoding temperature, and comparing the resulting preference sets
+    against the current ones, would establish how much of the observed structure
+    is attributable to temperature-correlated surface features rather than to
+    factuality (Section~\ref{sec:disc-confounds}).
+  \item \textbf{Measure the effect of source truncation.} Varying the retained
+    article length while holding all else fixed would quantify how much of the
+    near-chance reward-model accuracy is attributable to evidence falling outside
+    the model's input window (Section~\ref{sec:disc-weak-signal}).
+  \item \textbf{Test the decomposition-interaction mechanism directly.}
+    Section~\ref{sec:disc-interpretation} infers from AlignScore's documented
+    behavior that its split modes perform internally much of what GCA performs
+    externally. Comparing per-sentence scores under split and unsplit modes on the
+    same pairs would test that inference rather than rest on it.
+  \item \textbf{Independent validation of the labels.} Human annotation of a
+    stratified sample of holistic/GCA disagreement cases, or scoring the same
+    candidate pool with a second factuality model, would provide the external
+    reference this study lacks and would indicate whether either construction
+    procedure produces labels closer to human judgment.
+  \item \textbf{Downstream policy evaluation.} Training a summarization policy on
+    each preference set and evaluating the factual consistency of its generations
+    would test whether differences in preference learnability translate into
+    differences in generated output, which this study deliberately does not
+    address (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-evolution}).
+  \item \textbf{Error-category analysis.} Categorizing disagreement cases by
+    error type would test whether any advantage concentrates in localized errors
+    such as entity or relation mistakes, as originally hypothesized.
+\end{itemize}

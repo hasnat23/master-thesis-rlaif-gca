@@ -1,0 +1,291 @@
+\chapter{Implementation}
+\label{ch:implementation}
+
+\section{Pipeline Overview}
+\label{sec:impl-pipeline}
+
+Figure~\ref{fig:pipeline} shows the final pipeline. It differs from the pipeline
+described in the original proposal in exactly the ways described in
+Chapter~\ref{ch:methodology}: there is no DPO fine-tuning stage, no MoDPO branch,
+and no cross-summary sentence-alignment step. The pipeline has four stages. First,
+a fixed number of CNN/DailyMail articles are selected deterministically
+(Section~\ref{sec:impl-data}). Second, two candidate summaries are generated per
+article at different sampling temperatures (Section~\ref{sec:impl-generation}).
+Third, the same candidate pool is scored twice, once holistically and once at the
+sentence level with GCA aggregation, to produce two separate preference datasets
+(Section~\ref{sec:impl-preferences}). Fourth, a Bradley--Terry reward model is
+trained independently on each preference dataset and the two are compared
+(Section~\ref{sec:impl-rm-training}).
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=7mm and 8mm,
+  box/.style={draw, rounded corners, align=center, font=\footnotesize,
+    minimum width=34mm, minimum height=9mm, inner sep=2mm},
+  shared/.style={box, fill=gray!12},
+  hol/.style={box, fill=blue!8},
+  gca/.style={box, fill=orange!10},
+  end/.style={box, fill=gray!12, minimum width=48mm},
+  arr/.style={-{Stealth[length=2mm]}, thick},
+]
+
+% shared stages
+\node[shared] (data)   {1. Data Loader\\\footnotesize CNN/DailyMail, seeded subset};
+\node[shared, below=of data]  (gen)   {2. Candidate Generation\\\footnotesize Mistral-7B, $T{=}0.7$ / $T{=}1.0$};
+\node[shared, below=of gen]   (pair)  {3. Candidate Pairing\\\footnotesize Summary A, Summary B};
+
+% branch anchor row
+\node[hol, below left=12mm and -8mm of pair]  (hscore) {4A. Holistic Scoring\\\footnotesize AlignScore on full summary};
+\node[gca, below right=12mm and -8mm of pair] (seg)    {4B. Sentence Segmentation};
+
+\node[hol, below=of hscore] (hpref)  {5A. Holistic Preference\\\footnotesize margin $=0$};
+\node[gca, below=of seg]    (gscore) {5B. Sentence-Level Scoring\\\footnotesize AlignScore per sentence};
+
+\node[gca, below=of gscore] (gagg)   {6B. GCA Aggregation\\\footnotesize $\alpha{=}0.0$ (simple mean)};
+\node[gca, below=of gagg]   (gpref)  {7B. GCA Preference\\\footnotesize margin $=0$};
+
+\node[hol, below=18mm of hpref] (hrm) {8A. Bradley--Terry RM\\\footnotesize \emph{RM-Holistic}, 5-fold CV};
+\node[gca, below=of gpref]      (grm) {8B. Bradley--Terry RM\\\footnotesize \emph{RM-GCA}, 5-fold CV};
+
+\node[end, below=12mm of grm] (eval) {9. Evaluation and Comparison\\\footnotesize pairwise accuracy, bootstrap CI, Wilcoxon test};
+
+% arrows
+\draw[arr] (data) -- (gen);
+\draw[arr] (gen) -- (pair);
+\draw[arr] (pair) -| (hscore);
+\draw[arr] (pair) -| (seg);
+\draw[arr] (hscore) -- (hpref);
+\draw[arr] (seg) -- (gscore);
+\draw[arr] (gscore) -- (gagg);
+\draw[arr] (gagg) -- (gpref);
+\draw[arr] (hpref) -- (hrm);
+\draw[arr] (gpref) -- (grm);
+\draw[arr] (hrm) |- (eval);
+\draw[arr] (grm) -- (eval);
+
+\end{tikzpicture}
+\caption[The final experimental pipeline]{The final pipeline. Shared setup (grey) produces one candidate pool from
+which two independent preference-construction branches run: holistic (blue) and
+GCA (orange). Each branch trains its own Bradley--Terry reward model under an
+identical recipe, and the two are compared in the final evaluation step. Compare
+to the pipeline described in the original proposal (Chapter~\ref{ch:methodology}),
+which additionally included a DPO fine-tuning stage and a cross-summary
+sentence-alignment step, neither of which appears here.}
+\label{fig:pipeline}
+\end{figure}
+
+\section{Data}
+\label{sec:impl-data}
+
+All experiments use CNN/DailyMail \citep{hermann2015teaching}, version \texttt{3.0.0}
+as distributed through the Hugging Face \texttt{datasets} library. Subset selection
+(\url{src/data/subset.py}, function \texttt{select\_subset}) filters the chosen
+split to articles under 8{,}000 characters and reference summaries under 2{,}000
+characters, then draws a fixed-size sample from the eligible pool using Python's
+\texttt{random.Random} seeded deterministically. Each sample is assigned an ID of
+the form \texttt{cnn\_\{index\}\_\{hash\}}, where \texttt{hash} is the first 12
+hexadecimal characters of the SHA-256 digest of the article text
+(\texttt{make\_sample\_id}). This ties every sample's identifier to its content
+rather than to its position in the dataset, so the same article always receives the
+same ID regardless of which subset size or seed selected it.
+
+Table~\ref{tab:impl-subsets} lists every subset used across the project. The
+$n=1{,}000$, $n=5{,}000$, and $n=10{,}000$ subsets all use subset seed 200 and the
+same filtering parameters, differing only in the number of samples requested. They
+are therefore \emph{nested rather than disjoint}: the smaller sets are almost
+entirely contained in the larger ones. Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-nesting} quantifies the overlap and states its
+methodological consequence. Earlier subsets at seeds 42 and 100 were drawn with
+different seeds and are not part of the final comparison.
+
+\begin{table}[htbp]
+\centering
+\caption[CNN/DailyMail subsets used across the project]{CNN/DailyMail subsets used across the project.}
+\label{tab:impl-subsets}
+\begin{tabularx}{\textwidth}{lclX}
+\toprule
+$n$ & Subset seed & Purpose & Notes \\
+\midrule
+200    & 42  & Early DPO-based prototype & Superseded; see
+  Chapter~\ref{ch:results}, Section~\ref{sec:results-early} \\
+495    & 100 & First Bradley--Terry RM training set & Drawn with a different seed
+  from the $n=200$ set \\
+1{,}000 & 200 & Final repeated-run campaign & 6 RM training runs; seeds 42, 42, 7, 100,
+  314, 2026 \\
+5{,}000 & 200 & Scale-robustness check & Single training run \\
+10{,}000 & 200 & Scale-robustness check & Single training run \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Candidate Generation}
+\label{sec:impl-generation}
+
+Candidate summaries are generated with Mistral-7B-Instruct-v0.3, loaded in
+\texttt{bfloat16} without quantization (\url{src/generation/candidates.py}). On the
+A100-SXM4-40GB GPUs used for this project, the model occupies roughly 14\,GB in
+\texttt{bfloat16}, comfortably within budget, so 4-bit quantization, though
+supported in the code via \texttt{BitsAndBytesConfig}, is disabled in the
+configuration actually used (\texttt{load\_in\_4bit: false} in
+\url{configs/generation.yaml}). The tokenizer uses left-padding, required for
+batched generation with a decoder-only model, and articles are truncated to 1{,}024
+input tokens.
+
+Each article is summarized twice, using the fixed prompt template
+\texttt{"Summarize the following news article in a concise paragraph.\ \ldots"},
+with two different sampling configurations: a low-temperature setting
+($T=0.7$, top-$p=0.9$) and a high-temperature setting ($T=1.0$, top-$p=0.95$),
+generating up to 256 new tokens each. These two outputs form the candidate pair
+(``summary A'' and ``summary B'') that both the holistic and GCA preference
+construction stages score. Generation is resumable: the script checks which
+sample IDs already appear in the output file and only generates candidates for the
+remainder, which matters in practice on a shared cluster where a job may need to be
+resubmitted after a queue timeout.
+
+\section{Preference Construction}
+\label{sec:impl-preferences}
+
+Both preference-construction regimes are implemented in
+\url{src/judging/build_reward_preferences.py} and share a single judge object,
+\texttt{RewardModelJudge} (\url{src/judging/reward_model_judge.py}), configured to
+use the AlignScore backend.
+
+In the holistic regime (\texttt{judge\_holistic\_pair}), each full candidate
+summary is scored once against the article with \texttt{judge.score(article,\
+summary)}, and the two resulting scores are compared with a margin guard
+(\texttt{make\_decision}): summary A is preferred if its score exceeds summary B's
+by more than the margin, summary B is preferred in the opposite case, and the pair
+is marked \texttt{no\_preference} otherwise. With the final margin of 0
+(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-evolution}), every
+pair with a nonzero score
+difference produces a decision.
+
+In the GCA regime (\texttt{judge\_gca\_pair}), each candidate summary is first
+split into sentences with a regex-based splitter, then every sentence is scored
+independently against the article with \texttt{judge.score\_sentences(article,\
+sentences)}. The resulting list of per-sentence scores is passed to
+\texttt{aggregate\_sentence\_scores(scores,\ alpha)}
+(Chapter~\ref{ch:background}, Equation~\ref{eq:gca-general}) to produce a single
+GCA score per summary, and the same margin-guarded comparison determines the
+preference. Every output record retains the full sentence-level detail, including
+each sentence's individual AlignScore score and a count of ``low-faithfulness''
+sentences (score below 0.5), which supports the qualitative disagreement analysis
+in Chapter~\ref{ch:results}.
+
+The locked final configuration is invoked as:
+\begin{quote}
+\small\ttfamily
+python src/judging/build\_reward\_preferences.py\\
+\hspace*{1em}--mode both --alpha 0.0 --margin 0\\
+\hspace*{1em}--alignscore-evaluation-mode nli\\
+\hspace*{1em}--alignscore-backbone FacebookAI/roberta-base
+\end{quote}
+
+\section{Reward-Model Training}
+\label{sec:impl-rm-training}
+
+Reward-model training is implemented in \url{src/reward_model/train.py}
+(\texttt{BradleyTerryRewardModel}, \texttt{bradley\_terry\_loss}) and orchestrated
+by \url{src/reward_model/run_training.py}, which trains the holistic and GCA
+conditions from a single invocation. All results reported in
+Chapter~\ref{ch:results} use $k$-fold cross-validation
+(\texttt{\_kfold\_cv} in \texttt{run\_training.py}): the preference pairs are
+shuffled using a seeded \texttt{random.Random} instance, split into $k=5$
+contiguous folds, and for each fold a freshly initialized reward model is trained
+on the other four folds and evaluated on the held-out one. One implementation
+detail is worth stating precisely, since it affects how ``training seed'' should
+be interpreted. The \texttt{--seed} argument is passed to Python's
+\texttt{random} module, which governs the fold-assignment shuffle. PyTorch's own
+generator is not seeded anywhere in the cross-validation path
+(\texttt{\_kfold\_cv}), so every source of stochasticity drawn from it is
+uncontrolled: the randomly initialized reward head, the shuffling of training
+batches by the \texttt{DataLoader}, and the dropout masks applied during
+training. Changing \texttt{--seed} therefore changes the fold assignment, while
+these other sources vary between process executions regardless of the seed value.
+Together they explain why two executions launched with the same seed value
+produced different results (Chapter~\ref{ch:results},
+Section~\ref{sec:results-final-campaign}), and they are discussed as a source of
+run-to-run variation in Chapter~\ref{ch:discussion},
+Section~\ref{sec:disc-stochasticity}.
+
+The final training configuration, used for every reported reward-model result, is:
+\url{FacebookAI/roberta-base} backbone, 5 epochs, batch size 8, learning rate
+$2\times10^{-5}$ with a linear warmup over 10\% of total steps, maximum sequence
+length 512 tokens (article truncated to 2{,}000 characters before tokenization,
+concatenated with the summary), and 5-fold cross-validation. This is confirmed by
+\url{slurm/train_rm_1000.sh}, the Slurm script used for the headline
+$n=1{,}000$ result. One inconsistency in the codebase is worth flagging explicitly,
+since it could otherwise look like an error in the reported results: the in-code
+default for \texttt{--backbone} in both \texttt{train.py} and
+\texttt{run\_training.py} is \url{microsoft/deberta-v3-base}, a leftover from an
+earlier version of the training script. Every Slurm script used to produce a
+result reported in this thesis overrides this default and passes
+\texttt{--backbone FacebookAI/roberta-base} explicitly; the \texttt{deberta-v3-base}
+default was never actually used to produce a reported number. The one exception is
+the very first Bradley--Terry result on the $n=495$ set
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-rm-baseline}), which predates
+the standardization on \texttt{roberta-base} and is reported as such.
+
+\paragraph{Source-document truncation.} The reward model does not see the full
+source article. Two limits apply in sequence. The article string is first
+truncated to its leading 2{,}000 characters
+(\texttt{--max-article-chars}, applied in \texttt{PreferencePairDataset}), and the
+truncated article is then concatenated with the candidate summary and tokenized
+under a 512-token cap (\texttt{--max-length}), so the article prefix is shortened
+further to make room for the summary. Subset selection admits articles up to
+8{,}000 characters (Section~\ref{sec:impl-data}), so for the longer articles in
+the pool the reward model observes well under half of the source text.
+
+This matters for interpreting the reward-model results. The evaluator that
+produced the preference labels scores summaries against the article under its own
+chunking scheme, whereas the reward model must reconstruct those labels from a
+prefix only. Where the evidence supporting or contradicting a claim lies beyond
+the retained prefix, that evidence is simply unavailable to the reward model, and
+the corresponding preference is not recoverable from its input in principle rather
+than merely in practice. How large this effect is was not measured here, and the
+near-chance accuracies reported in Chapter~\ref{ch:results} should not be
+attributed to truncation without evidence; it is one plausible contributing factor
+among several discussed in Chapter~\ref{ch:discussion},
+Section~\ref{sec:disc-weak-signal}. Varying \texttt{--max-article-chars} while
+holding everything else fixed would isolate it, and is recorded as future work.
+
+\section{Compute Infrastructure}
+\label{sec:impl-infra}
+
+All experiments run on MOGON NHR (\texttt{mogon-nhr-01.zdv.uni-mainz.de}), the
+University of Mainz's high-performance computing cluster, using Slurm partition
+\texttt{a100dl} under account \texttt{nhr-haloed}, on NVIDIA A100-SXM4-40GB GPUs.
+All Slurm scripts producing results reported in Chapter~\ref{ch:results} exclude
+one cluster node found to have a faulty CUDA runtime, via
+\texttt{\#SBATCH --exclude}; this affects scheduling only and not the computation
+performed.
+
+\section{Reproducibility}
+\label{sec:impl-repro}
+
+The pipeline is config-driven throughout: dataset, generation, and judging
+parameters live in \url{configs/*.yaml} and can be overridden per run from the
+command line, and every script accepts explicit flags for the parameters that
+matter for a given experiment (margin, $\alpha$, AlignScore evaluation mode,
+reward-model hyperparameters, and so on) rather than hardcoding them.
+
+Seeding is partial, and the limits should be stated exactly. Subset selection and
+cross-validation fold assignment are explicitly seeded through Python's
+\texttt{random} module. PyTorch's generator is not seeded in the
+cross-validation path, so weight initialization, batch ordering and dropout are
+not fixed, and exact run-level reproduction from the command-line seed alone is
+not guaranteed: two executions with identical arguments can differ. Every
+pipeline script writes a JSON run-metadata file
+(\url{src/utils/logging.py}, \texttt{save\_run\_metadata}) recording its
+configuration, output artifact paths, and a timestamped run ID, so that any
+reported number can in principle be traced back to the exact invocation that
+produced it.
+
+The configuration required to reproduce the $n=1{,}000$ result is given in full
+in Table~\ref{tab:methodology-summary} (Chapter~\ref{ch:methodology}), together
+with the six training seeds listed in Chapter~\ref{ch:results},
+Table~\ref{tab:seed-validation}, and is implemented by
+\url{slurm/train_rm_1000.sh} and \url{slurm/mode_nli_seed_confirm.sh}. The
+codebase, including all scripts referenced in this chapter, is available at the
+project's GitHub repository: \url{https://github.com/hasnat23/master-thesis-rlaif-gca}.

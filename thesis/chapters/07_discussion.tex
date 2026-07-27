@@ -1,0 +1,391 @@
+\chapter{Discussion}
+\label{ch:discussion}
+
+\section{What the Experiments Establish, and What They Do Not}
+\label{sec:disc-claims}
+
+The experiments support a narrow and conditional claim. Under one specific
+configuration, at one dataset size, preferences constructed by sentence-level
+aggregation are more consistently recoverable by a Bradley--Terry reward model
+than preferences constructed holistically from the same evaluator and the same
+candidate summaries. The difference averages roughly three percentage points over
+six repeated runs and is consistent in direction across five of them.
+
+Four claims that might appear to follow do not. The results do not establish that
+GCA labels are factually more accurate, since no independent annotation was
+collected and AlignScore supplies both sets of labels
+(Section~\ref{sec:disc-reliability}). They do not establish that a summarization
+model trained on GCA preferences produces more faithful summaries, since the final
+study contains no policy-optimization stage. They do not establish that GCA is
+generally preferable, since Chapter~\ref{ch:results} reports configurations and
+scales at which it is not. And they do not establish a strong effect in absolute
+terms, since both reward models remain near chance
+(Section~\ref{sec:disc-weak-signal}). What the study contributes is evidence about
+\emph{when} feedback granularity changes the structure of a preference-learning
+signal, and the remainder of this chapter examines the conditions under which it
+does.
+
+\section{Why Granularity Interacts With Evaluator Design}
+\label{sec:disc-interpretation}
+
+The advantage reported in Chapter~\ref{ch:results},
+Section~\ref{sec:results-final-campaign} is not a property of GCA in the abstract.
+It appears only under a specific combination of two design choices,
+simple-mean aggregation ($\alpha=0.0$) and the AlignScore \texttt{nli} evaluation
+mode, and Section~\ref{sec:results-alpha0-validation} already showed that the
+aggregation-formula change alone is not sufficient: at $\alpha=0.0$ under the
+\texttt{nli\_sp} mode, holistic still led. This section asks why the
+judge mode specifically makes the difference.
+
+AlignScore's implementation suggests a plausible mechanism, though the present
+experiments do not test it directly. The \texttt{\_sp} suffix in \texttt{nli\_sp} enables
+a preprocessing and aggregation step that is internal to AlignScore itself: the
+context is split into roughly 350-token chunks and the claim is split into
+sentences, and the final score is computed as, in the library's own
+\texttt{inference\_per\_example} function, the maximum entailment score across
+context chunks for each claim sentence, averaged across claim sentences
+(\texttt{.max(dim=0).values.mean()}). Plain \texttt{nli} mode skips this
+entirely and scores the full context against the full claim in one pass.
+
+This has a direct consequence for what the holistic and GCA conditions actually
+compute under each mode. Under \texttt{nli\_sp}, a holistic call already
+decomposes the candidate summary into sentences internally, scores each one
+against the best-matching chunk of the article, and averages the results, which
+is functionally close to what GCA does \emph{externally} at $\alpha=0.0$: score
+each summary sentence against the article and take the mean. When GCA is applied
+on top of a judge that is already doing something close to sentence-level
+decomposition and mean-pooling internally, its external decomposition adds little
+genuinely new information, which is consistent with holistic and GCA performing
+similarly, and even favoring holistic, under \texttt{nli\_sp}
+(Table~\ref{tab:mode-sweep}). Under plain \texttt{nli}, by contrast, a holistic
+call scores the entire summary against the (length-truncated) article as one
+atomic unit, with no internal sentence decomposition at all. Here, GCA's external
+per-sentence scoring is the only source of sentence-level localization in the
+pipeline, and it is exactly under this mode that GCA shows a measurable
+advantage.
+
+The stored $n=200$ preference data allow one component of this account to be
+checked directly rather than inferred. If a holistic \texttt{nli\_sp} call
+internally splits the claim into sentences and averages, then the holistic score
+of a summary should closely track the mean of the separately computed
+per-sentence scores of that same summary. Across all 400 summaries in that set
+the two quantities correlate at $r = 0.983$, agree to within $0.001$ for 234 of
+400 summaries, and have a median absolute difference of $0.000$
+(Figure~\ref{fig:mean-vs-holistic}). Under \texttt{nli\_sp}, holistic scoring and
+mean-aggregated sentence scoring are therefore close to the same computation,
+which is consistent with the observation that GCA at $\alpha=0.0$ adds little
+under that mode.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  thesisplot,
+  width=0.62\textwidth, height=6.2cm,
+  xlabel={mean of per-sentence scores},
+  ylabel={holistic score},
+  xmin=0, xmax=1, ymin=0, ymax=1,
+  axis equal image, grid=major,
+]
+\addplot[only marks, mark=*, mark size=1.0pt,
+         draw=orange!70!black, fill=orange!55, fill opacity=0.55]
+        table[x=meansent, y=holistic] {figures/mean_vs_holistic.dat};
+\addplot[domain=0:1, samples=2, dashed, gray!70, line width=0.7pt] {x};
+\end{axis}
+\end{tikzpicture}
+\caption[Holistic score vs.\ mean of per-sentence scores]{Holistic AlignScore against the mean of the separately computed
+per-sentence scores, for all 400 candidate summaries in the $n=200$ preference
+set under evaluator mode \texttt{nli\_sp}. The dashed line is $y=x$. The two
+quantities are near-identical ($r = 0.983$), which is what the split mode's
+internal sentence-averaging predicts. The corresponding files for the final
+\texttt{nli} configuration are not retained in the repository, so the same check
+could not be run for the unsplit mode.}
+\label{fig:mean-vs-holistic}
+\end{figure}
+
+This measurement supports the part of the account concerning \texttt{nli\_sp},
+but the account as a whole remains an interpretation of an exploratory sweep, and
+three limitations constrain it. The mode comparison rests on a
+single run per mode, and Section~\ref{sec:disc-stochasticity} shows that
+single-run differences of this size fall within observed run-to-run variation;
+only the selected \texttt{nli} configuration received repeated-run validation. No
+ablation isolates the components of the \texttt{\_sp} preprocessing, such as chunk
+size, from the mode change as a whole. And nothing here verifies empirically that
+\texttt{nli\_sp}'s internal aggregation and GCA's external aggregation produce
+comparable scores rather than merely comparable rankings. The proposition that
+evaluator-internal decomposition reduces the marginal benefit of external GCA is
+therefore offered as the most plausible reading of the observed pattern, and as a
+hypothesis worth testing directly, rather than as a finding of this thesis
+(Chapter~\ref{ch:conclusion}).
+
+\section{How Much Weight the Statistical Evidence Can Carry}
+\label{sec:disc-stats-caveat}
+
+The $n=1{,}000$ result is accompanied by a fold-level interval and a Wilcoxon
+$p$-value of 0.0034. Both are computed over 30 pooled fold-level differences, and
+it is necessary to state plainly how much they can support.
+
+Those 30 differences are not 30 independent observations. Within a single run the
+five cross-validation folds partition one dataset: any two folds share four fifths
+of their training data, and all five evaluate models trained from the same pool of
+preference pairs. Their errors are correlated, so a test assuming independence
+treats the evidence as stronger than it is. The effective sample size lies between
+the number of runs (six) and the number of folds (30), and closer to the former.
+The fold-level $p$-value is therefore anti-conservative and is reported here as an
+exploratory summary, not as a hypothesis test.
+
+The appropriate unit of independent replication is the run. Applying the same
+two-sided Wilcoxon signed-rank test to the six run-level differences
+($+0.060$, $+0.013$, $-0.010$, $+0.051$, $+0.032$, $+0.039$) gives $p = 0.0625$,
+which does not meet the conventional $0.05$ threshold; the one-sided test in the
+direction favouring GCA gives $p = 0.0312$. With six observations, five of them
+positive, $0.0625$ is in fact the smallest two-sided value the test can return, so
+this outcome reflects the number of runs available as much as the size of the
+effect. At the run level, then, the evidence does not meet the conventional
+threshold, and the thesis does not claim statistical significance for the
+$n=1{,}000$ result.
+
+Two properties of the result do not depend on any threshold. The difference is
+directionally consistent, favouring GCA in five of six runs that differ in both
+fold assignment and model initialization. And its magnitude, roughly three
+percentage points, is stable across pooling stages
+(Table~\ref{tab:evidence-progression}) rather than drifting as runs were added.
+What the evidence supports is a directionally consistent, repeatedly observed
+advantage of approximately that size under this configuration, not a demonstrated
+effect at a stated significance level.
+
+\section{Both Reward Models Are Weak in Absolute Terms}
+\label{sec:disc-weak-signal}
+
+A comparison between two conditions can be sound while both conditions perform
+poorly, and that is the situation here. At $n=1{,}000$, the holistic reward model
+reaches 0.5295 and the GCA reward model 0.5603 pairwise accuracy, against a chance
+level of 0.5. In absolute terms these models recover very little of the preference
+signal: the better of the two is correct on roughly 56 of every 100 held-out pairs,
+where guessing would be correct on 50.
+
+This materially qualifies what the thesis shows. The finding is that GCA
+preferences are \emph{more learnable} than holistic preferences under the selected
+configuration, not that either produces a reward model one would want to deploy.
+A reward model at 0.56 accuracy would provide a very noisy training signal to any
+downstream policy, and the repeatedly observed $+3.08$ percentage-point advantage
+is an improvement to a weak signal rather than the difference between a weak and a
+strong one.
+
+Several factors plausibly contribute to the low absolute numbers, and this thesis
+can separate them only partially. The task itself is genuinely hard: both
+candidate summaries in a pair are generated by the same model from the same
+article and differ only in sampling temperature, so many pairs are near-ties in
+factual quality, and a judge's preference between them may encode little
+learnable structure. The RoBERTa-base reward model is also small, and articles are
+truncated to 2{,}000 characters before tokenization
+(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}), so the model
+may simply not see enough of the source to verify many claims. The accuracies at
+$n=5{,}000$ and $n=10{,}000$ are higher for both conditions (0.58--0.59), which is
+consistent with more training data helping the reward model in general, even as
+the gap between conditions closes. Distinguishing these explanations would require
+ablations this thesis did not run, and the low absolute ceiling is recorded as a
+limitation in Chapter~\ref{ch:conclusion} rather than explained away.
+
+\section{Interpreting the Larger-Scale Results}
+\label{sec:disc-scale}
+
+The $n=1{,}000$ advantage was not reproduced with comparable magnitude in the
+single runs at $n=5{,}000$ and $n=10{,}000$ (Chapter~\ref{ch:results},
+Section~\ref{sec:results-scale}). Three things must be kept apart here: the
+observed numerical behaviour, run-to-run variation, and hypotheses about
+dataset-size effects. The observation is that two single runs produced gaps of
+$-0.42$ and $+0.35$ percentage points where the pooled $n=1{,}000$ estimate was
+$+3.08$. Whether this reflects a dataset-size effect is a separate question, and
+the design does not answer it.
+
+The best-supported explanation is statistical rather than substantive. The
+$n=1{,}000$ estimate itself only stabilized after six pooled runs; the individual
+per-run gaps in Table~\ref{tab:seed-validation}
+ranged from $-0.010$ to $+0.060$, a spread wide enough that a single seed could
+easily have landed on either side of zero. The $n=5{,}000$ and $n=10{,}000$
+settings each contain a single run. Given how much the $n=1{,}000$ estimate moved
+between its first two executions alone (from $+0.060$ down to $+0.013$), a single
+run at a different dataset size landing outside the $n=1{,}000$ interval is not,
+by itself, strong evidence that the underlying effect changes with dataset size.
+It is at least as consistent with the same run-to-run variation already documented
+at $n=1{,}000$, which simply went unmeasured at the larger sizes because only one
+run was performed at each.
+
+A substantive explanation is also possible, but this thesis does not have
+evidence to support or rule it out: larger candidate pools could shift the
+distribution of article lengths, sentence counts, or segmentation quality in ways
+that change how much signal GCA's per-sentence scoring adds relative to holistic
+scoring. This is stated here as an open hypothesis, not a finding, since nothing
+in Chapter~\ref{ch:results} isolates article length, sentence count, or
+segmentation quality as a variable.
+
+Because these two explanations make different predictions, they are also
+distinguishable in principle: if the scale effect is genuinely statistical noise,
+repeated runs at $n=5{,}000$ should produce an interval overlapping the
+$n=1{,}000$ result; if it reflects a real, scale-dependent change, they should
+not. Repeating the $n=5{,}000$ experiment across several runs is the most direct
+way to resolve this and is listed as future work in
+Chapter~\ref{ch:conclusion}.
+
+One hypothesis would predict this pattern, and it is worth stating even though the
+present data cannot test it. At $n=1{,}000$ the reward
+model is fitting a small dataset, and how cleanly the preference relation is
+structured matters a great deal: a labeling that is internally more consistent is
+easier to recover from few examples. As the dataset grows, the model sees more
+examples of the same underlying relation, and additional data can compensate for a
+noisier labeling. Under that account, the benefit of a cleaner preference
+construction should be largest where data is scarce and should shrink as data
+accumulates, which is the pattern observed. Consistent with this, absolute
+accuracy rises for \emph{both} conditions between $n=1{,}000$ and $n=10{,}000$
+(from 0.5295 and 0.5603 to 0.5827 and 0.5862), while the difference between them
+contracts. The evidence is compatible with this explanation but does not establish
+it, since scale and dataset composition vary together across these runs.
+
+Read this way, the larger-scale results are informative rather than merely
+disappointing. The observed pattern is consistent with the hypothesis that GCA may
+provide a larger learnability advantage when preference data are limited, which
+would also be the regime in which automatic preference construction is most
+attractive, since it is where collecting human labels would be most burdensome.
+The present design cannot establish such a boundary, because the larger-scale
+settings contain single runs on nested datasets. What the study does contribute
+here is the observation itself, together with a specification of the experiment
+that would test it.
+
+\section{Implications for RLAIF Preference Construction}
+\label{sec:disc-implications}
+
+Three implications follow for anyone constructing AI-generated preference data
+from a fixed factuality judge, independent of whether the specific GCA method
+studied here is adopted.
+
+First, the aggregation formula used to combine sentence-level scores into a
+preference label is not a minor implementation detail. The original
+weakest-link-penalty formula ($\alpha=0.5$) actively hurt GCA relative to a plain
+mean (Chapter~\ref{ch:results}, Table~\ref{tab:formula-comparison}), which runs
+counter to the intuition that motivated it: a formula designed to be more
+sensitive to localized errors was, in practice, more sensitive to noise than to
+signal. Aggregation-formula choices of this kind should be validated
+empirically rather than assumed correct from first principles.
+
+Second, judge configuration can matter more than the granularity decision that
+is nominally the point of comparison. Section~\ref{sec:disc-interpretation}'s
+reading of AlignScore's mode behavior suggests that part of what looked like a
+question about holistic-versus-sentence-level supervision was really a question
+about how much sentence-level decomposition the judge was already doing
+internally. Anyone comparing supervision granularities on top of a judge with
+its own internal aggregation behavior should check what that judge already does
+before attributing an effect to the granularity of their own pipeline.
+
+Third, a result validated at one dataset scale should not be treated as general
+without a scale check. This is a caution this thesis can make credibly only
+because Section~\ref{sec:disc-scale}'s robustness check was actually run rather
+than assumed unnecessary; had the study stopped at the $n=1{,}000$ result, it
+would have reported a materially less qualified conclusion than the evidence
+supports.
+
+\section{Judge Reliability Without Human Auditing}
+\label{sec:disc-reliability}
+
+No independent human validation of the factuality labels was collected in this
+study, and it is worth stating precisely what this does and does not leave open.
+The repeated runs in Chapter~\ref{ch:results},
+Section~\ref{sec:results-final-campaign} establish that the difference between the
+two preference sets is repeatedly observed: it survives changes in fold assignment
+and training stochasticity, so it is not confined to a single favourable run.
+
+Reproducibility and correctness are separate properties, however. That a
+preference relation is consistently recoverable says nothing about whether the
+underlying AlignScore judgments agree with what a human reader would consider
+faithful to the source. A judge can produce labels that are highly reproducible
+and systematically wrong, and nothing in this study would detect that case. The
+labels function here as the reference standard, not as verified ground truth, and
+every result is conditional on them in that sense. Establishing agreement with
+human factuality judgments requires annotation this study did not collect, and the
+question is recorded as an open limitation in Chapter~\ref{ch:conclusion}.
+
+\section{Stochastic Variation Between Runs}
+\label{sec:disc-stochasticity}
+
+Run-to-run variation is large enough in this setting to determine what conclusions
+can be drawn, and it deserves treatment as a finding rather than as an
+inconvenience. Two same-configuration runs differed by 4.7 percentage points
+($+0.060$ versus $+0.013$), and across the six runs the gap ranged from $-0.010$
+to $+0.060$. A study reporting only one of these runs could honestly have
+concluded either that GCA helps substantially or that it does not help at all.
+
+This variation follows from an implementation property documented in
+Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}: the seed
+argument fixes the cross-validation fold assignment through Python's standard
+random number generator, but PyTorch's generator is not seeded in the
+cross-validation path. Several sources of training stochasticity are therefore
+uncontrolled, including reward-head weight initialization, the order in which
+training batches are drawn, and dropout masks. Runs are consequently not exactly
+reproducible from a seed value, which is a reproducibility weakness recorded in
+Chapter~\ref{ch:conclusion}. It also has an interpretive consequence: the two
+executions at seed 42 are genuine repetitions rather than duplicates, because they
+share the fold assignment but not the training stochasticity. The spread between
+them reflects uncontrolled training stochasticity, including weight
+initialization, rather than initialization alone.
+
+The practical implication generalizes beyond this study. At the accuracy levels
+and dataset sizes involved here, differences of one to two percentage points
+between conditions are within the range that a single run can produce by chance.
+Comparisons of preference-construction methods reported from single training runs
+at this scale should be treated with corresponding caution.
+
+\section{Confounds That Remain}
+\label{sec:disc-confounds}
+
+Two confounds could not be removed within this design, and both plausibly affect
+the reported numbers.
+
+The candidate pairs differ in decoding temperature, and
+Chapter~\ref{ch:methodology}, Table~\ref{tab:temperature-asymmetry} shows the
+consequence is not small: the lower-temperature candidate is preferred in 68.5\%
+of holistic pairs and 63.0\% of GCA pairs on the data where this could be
+measured. Because temperature systematically affects surface properties such as
+length and lexical conservativeness, a reward model could recover a meaningful
+share of the preference relation from stylistic cues without representing
+factuality at all. The asymmetry also differs between conditions by roughly five
+percentage points, so the two preference sets are not equivalent with respect to
+this confound, and part of the observed difference between them could in principle
+reflect that rather than granularity. Sampling both candidates at the same
+temperature would remove the confound and is the cleanest correction available.
+
+The reward model also sees only a truncated prefix of each source article
+(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}), while
+subset selection admits articles several times longer than the retained prefix.
+Where the evidence bearing on a claim lies beyond that prefix, the corresponding
+preference is not recoverable from the model's input even in principle. This is a
+plausible contributor to the low absolute accuracies discussed in
+Section~\ref{sec:disc-weak-signal}, though its magnitude was not measured, and it
+should not be assumed to be the dominant cause without the ablation described
+there.
+
+\section{Generalizability}
+\label{sec:disc-generalizability}
+
+Every result reported here is obtained under one combination of choices:
+CNN/DailyMail as the corpus, AlignScore as the evaluator,
+Mistral-7B-Instruct-v0.3 as the candidate generator, and a RoBERTa-base
+Bradley--Terry model as the reward model. Each of these bounds the conclusions in
+a distinct way.
+
+The evaluator is the most consequential. Section~\ref{sec:disc-interpretation}
+raises the possibility that whether external decomposition helps is related to
+whether the evaluator already decomposes internally, which would make the finding
+partly \emph{about} the evaluator's architecture rather than simply conditional on
+AlignScore as a fixed instrument. If that reading is correct, a different
+factuality model with different internal aggregation would shift the result. The corpus matters because CNN/DailyMail
+summaries are short, extractive-leaning, and drawn from a single register; domains
+with longer or more abstractive summaries would change both the number of
+sentences per summary and the difficulty of the underlying factuality judgments.
+The reward-model backbone matters because a stronger encoder, or one with a longer
+context window, might recover more of the preference relation and thereby narrow
+or widen the difference between conditions.
+
+Taken together, these dependencies mean the study is best read as characterizing
+behaviour under one specific configuration, and as motivating a hypothesis about
+the interaction between external and evaluator-internal decomposition, rather than
+as establishing a quantity that transfers directly to other setups.

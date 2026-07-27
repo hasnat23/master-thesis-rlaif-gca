@@ -51,3 +51,16 @@ wandb/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# LaTeX build artifacts (thesis/)
+thesis/*.aux
+thesis/*.log
+thesis/*.out
+thesis/*.toc
+thesis/*.lof
+thesis/*.lot
+thesis/*.blg
+thesis/*.bbl
+thesis/*.synctex.gz
+thesis/*.fls
+thesis/*.fdb_latexmk

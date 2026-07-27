@@ -1,5 +1,19 @@
 # Final Experimental Results Summary — 16 July 2026
 
+> **Correction (27 July 2026).** Two claims in this summary were revised during
+> the thesis write-up and no longer reflect the final position. (1) **Statistical
+> significance:** the p-value quoted below (0.0034) is computed over 30
+> cross-validation folds, which are not independent observations, since folds
+> within a run share most of their training data. Tested at the run level, which
+> is the appropriate unit of independent replication, the two-sided Wilcoxon
+> p-value is **0.0625** and does not meet the 0.05 threshold. The result should be
+> described as a *repeatedly observed* advantage (5 of 6 runs favour GCA, mean
+> +3.08 pp), not a statistically significant one. (2) **Dataset independence:** the
+> 1,000 / 5,000 / 10,000 subsets are **nested, not disjoint** — all use subset seed
+> 200 and differ only in sample count, so n=5,000 lies entirely within n=10,000.
+> The larger runs are therefore not out-of-sample checks. See `thesis/` for the
+> corrected treatment; that document supersedes this summary.
+
 **Student:** Muhammad Hasnat  
 **Supervisors:** Dr. Zeyd Boukhers, Prof. Dr. Frank Hopfgartner  
 **Mentor:** Lingxiao Kong  

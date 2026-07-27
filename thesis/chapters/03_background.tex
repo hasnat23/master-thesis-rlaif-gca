@@ -1,0 +1,275 @@
+\chapter{Theoretical Background}
+\label{ch:background}
+
+\section{Preference Optimization: The Bradley--Terry Model}
+\label{sec:bg-bradley-terry}
+
+The Bradley--Terry model is a standard probabilistic model of pairwise comparison.
+It assumes that every item $i$ has an underlying, unobserved scalar quality $r_i$,
+and that the probability of item $i$ being preferred over item $j$ in a pairwise
+comparison is
+\begin{equation}
+  P(i \succ j) = \sigma(r_i - r_j),
+  \qquad
+  \sigma(x) = \frac{1}{1 + e^{-x}}.
+  \label{eq:bradley-terry}
+\end{equation}
+Given a dataset of observed pairwise preferences $(w, l)$, where $w$ (the
+``winner'') was judged preferable to $l$ (the ``loser''), the model parameters are
+fit by maximizing the likelihood of the observed comparisons under
+Equation~\ref{eq:bradley-terry}. Here the parameters belong to a neural network
+$R_\theta$ that maps an (article, summary) pair to a scalar reward, and maximizing
+the likelihood is equivalent to minimizing the negative log-likelihood
+\begin{equation}
+  \mathcal{L}(\theta) = - \, \mathbb{E}_{(w, l) \sim \mathcal{D}}
+  \Big[ \log \sigma\big( R_\theta(w) - R_\theta(l) \big) \Big],
+  \label{eq:bt-loss}
+\end{equation}
+where $\mathcal{D}$ is the preference dataset, holistic or GCA in this thesis. This
+is exactly the loss implemented in \url{src/reward_model/train.py}
+(\url{bradley_terry_loss}), and it belongs to the same family of
+reward-modeling loss used inside RLHF pipelines more broadly
+\citep{stiennon2020learning, ouyang2022training}. The difference here is that the
+reward model $R_\theta$ is not an intermediate component on the way to fine-tuning a
+generation policy; it is the final object of comparison. The research question this
+thesis asks, whether GCA produces a more learnable preference signal than holistic
+scoring, is operationalized directly: does a Bradley--Terry reward model trained on
+GCA-derived preferences achieve higher held-out pairwise accuracy than one trained
+on holistic-derived preferences, under an otherwise identical training recipe?
+
+This corresponds to the inverse reinforcement learning perspective: given a set
+of preference demonstrations, the task is to recover the latent reward function
+that best explains them. Comparing two reward models trained on two differently
+constructed preference datasets is then a controlled test of which construction
+procedure yields the more consistently recoverable latent signal, without
+requiring a downstream generation policy to be fine-tuned and re-evaluated
+(Section~\ref{sec:bg-dpo}).
+
+The architecture used throughout this thesis (\texttt{BradleyTerryRewardModel} in
+\url{src/reward_model/train.py}) encodes the concatenation of a truncated source
+article and a candidate summary with a pretrained transformer encoder, mean-pools
+the encoder's final hidden states over non-padding tokens, and maps the pooled
+representation to a scalar reward through a single linear layer. Reward-model
+accuracy is defined as the fraction of held-out pairs for which the model correctly
+ranks the chosen summary above the rejected one, i.e.\ $R_\theta(w) > R_\theta(l)$
+(\texttt{\_evaluate} in \url{src/reward_model/train.py}); this is the metric
+reported throughout Chapter~\ref{ch:results}.
+
+\section{Direct Preference Optimization (DPO)}
+\label{sec:bg-dpo}
+
+This section is included as background on the study's earlier design rather than
+as part of its final methodology; DPO is not used in the main experiments
+(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-evolution}).
+
+Direct Preference Optimization (DPO) replaces RLHF's reward-model-plus-reinforcement-learning
+pipeline with a single closed-form supervised objective on a policy $\pi_\theta$,
+defined relative to a fixed reference policy $\pi_{\text{ref}}$
+\citep{rafailov2023dpo}:
+\begin{equation}
+  \mathcal{L}_{\text{DPO}}(\theta) = - \, \mathbb{E}_{(x, w, l) \sim \mathcal{D}}
+  \left[
+    \log \sigma \left(
+      \beta \log \frac{\pi_\theta(w \mid x)}{\pi_{\text{ref}}(w \mid x)}
+      - \beta \log \frac{\pi_\theta(l \mid x)}{\pi_{\text{ref}}(l \mid x)}
+    \right)
+  \right],
+  \label{eq:dpo-loss}
+\end{equation}
+where $x$ is the source article, $w$ and $l$ are the chosen and rejected
+summaries, and $\beta$ bounds divergence from the reference policy. The relevant
+point for this thesis is structural: DPO consumes exactly the same pairwise
+preference pairs used to train the reward models in
+Section~\ref{sec:bg-bradley-terry}, but converts them directly into a policy
+update, so the quality of the preference data and the behavior of the optimizer
+both influence the resulting summaries. Separating those two influences is what
+motivated measuring the preference data on its own
+(Section~\ref{sec:methodology-evolution}). Early DPO results obtained during the
+project are reported for context in Chapter~\ref{ch:results},
+Section~\ref{sec:results-early}.
+
+\section{AlignScore: Factual Consistency Scoring}
+\label{sec:bg-alignscore}
+
+AlignScore is a unified alignment function trained across a mixture of natural
+language processing tasks recast into a single ``information alignment'' format
+\citep{zha2023alignscore}. Given a context $c$, the source article in this thesis,
+and a claim $a$, a candidate summary or a single sentence from one, AlignScore
+produces a scalar score in $[0, 1]$ estimating the degree to which $a$ is supported
+by $c$. This thesis uses AlignScore unmodified as the sole factuality judge for
+both preference-construction regimes
+(\url{src/judging/reward_model_judge.py}, class \texttt{RewardModelJudge}).
+
+AlignScore exposes several evaluation modes, of which four are used in this thesis
+(the \texttt{alignscore-evaluation-mode} argument of
+\url{build_reward_preferences.py}):
+
+\begin{itemize}
+  \item \texttt{nli\_sp}: the context is first split into sentences before scoring,
+    and the claim is scored against this sentence-split representation via
+    AlignScore's NLI (three-way entailment/neutral/contradiction) output head. This
+    was the default mode inherited from the earliest AlignScore-based experiments
+    in the project.
+  \item \texttt{nli}: the same NLI output head, without the sentence-splitting
+    preprocessing step.
+  \item \texttt{bin\_sp} / \texttt{bin}: the same two preprocessing variants, but
+    using AlignScore's binary (aligned / not aligned) output head instead of the
+    three-way NLI head.
+\end{itemize}
+
+Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep} reports an empirical
+sweep across all four modes. The choice of mode is associated with substantial
+changes in the outcome, alongside the GCA aggregation formula
+(Section~\ref{sec:bg-gca}). The \texttt{nli} mode produced the largest GCA
+advantage in that sweep and was selected as the final configuration for the
+validated $n=1{,}000$ campaign and the scale-robustness checks
+(Section~\ref{sec:results-final-campaign}). This should be read as a
+judge-\emph{configuration} finding specific to this pipeline and this task, not as
+a general property of sentence-level aggregation independent of the underlying
+judge; Chapter~\ref{ch:discussion} discusses what can and cannot be concluded from
+it.
+
+\section{Granular Credit Assignment (GCA)}
+\label{sec:bg-gca}
+
+Granular Credit Assignment (GCA) is the aggregation layer that converts
+per-sentence AlignScore scores into a single summary-level score, which is then
+compared against the corresponding score for the other candidate summary to
+construct a preference label. A candidate summary is first split into sentences
+with a regex-based sentence splitter (\url{src/judging/sentence_level.py},
+\url{split_into_sentences}). Each sentence is then scored independently
+against the full source article using AlignScore
+(\url{RewardModelJudge.score_sentences}), yielding a list of per-sentence
+scores $s = (s_1, \ldots, s_n)$. These per-sentence scores are aggregated into a
+single summary-level score via (\texttt{src/judging/gca.py},
+\url{aggregate_sentence_scores}):
+\begin{equation}
+  \mathrm{gca}(s) = \bar{s} \cdot \left( \frac{\min(s)}{\bar{s}} \right)^{\alpha},
+  \qquad \bar{s} = \frac{1}{n}\sum_{k=1}^{n} s_k,
+  \label{eq:gca-general}
+\end{equation}
+where $\alpha \geq 0$ is a penalty exponent. When $\alpha = 0$, Equation
+\ref{eq:gca-general} reduces to the simple mean, $\mathrm{gca}(s) = \bar{s}$;
+larger $\alpha$ increasingly penalizes summaries containing at least one
+low-scoring, ``weakest-link'' sentence, even when the average sentence score is
+otherwise high.
+
+Two distinct configurations of Equation~\ref{eq:gca-general} were used at
+different points in the project. The original, proposal-era configuration used
+$\alpha = 0.5$, a moderate weakest-link penalty intended to make GCA sensitive to
+exactly the failure mode motivating this thesis: a summary that is mostly accurate
+but contains one fabricated or unsupported sentence. Empirically, this formula
+achieved only 82.2\% agreement with the corresponding holistic decision on the
+same 1{,}000 candidate pairs, and when used to construct reward-model training
+data it caused the GCA reward model to \emph{underperform} the holistic reward
+model (56.0\% vs.\ 57.2\% mean pairwise accuracy;
+Section~\ref{sec:results-rm-baseline}). A subsequent optimization campaign
+(Section~\ref{sec:results-formula-opt}) tested nine alternative aggregation
+strategies and found that the simple mean, $\alpha = 0.0$, achieved 97.6\%
+agreement with holistic decisions, the highest of all strategies tested, and,
+combined with the AlignScore \texttt{nli} mode (Section~\ref{sec:bg-alignscore}),
+was the configuration that eventually produced the repeated-run GCA advantage
+(Section~\ref{sec:results-final-campaign}). $\alpha = 0.0$ was accordingly locked
+as the final configuration.
+
+
+Figure~\ref{fig:gca-worked} illustrates the difference between the two settings of
+$\alpha$ on a real candidate pair drawn from the $n=200$ preference set. Summary A
+contains four well-supported sentences and one that the evaluator scores at
+$0.011$; summary B is more uniformly mediocre. Under the simple mean the single
+weak sentence is diluted by the other four and A is preferred, matching the
+holistic decision. Under the penalty formula the minimum term dominates and the
+decision reverses. This is the behaviour the penalty was designed to produce, and
+also the behaviour that made it noisier in practice
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}).
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  thesisplot,
+  width=0.80\textwidth, height=4.8cm,
+  ybar, bar width=9pt,
+  ymin=0, ymax=1.08,
+  ylabel={AlignScore per sentence},
+  xlabel={sentence index},
+  xtick={1,2,3,4,5}, xmin=0.4, xmax=5.6,
+  legend style={at={(0.5,-0.32)}, anchor=north, legend columns=2},
+]
+\addplot[holbar] coordinates {(1,0.994) (2,0.975) (3,0.997) (4,0.011) (5,0.977)};
+\addplot[gcabar] coordinates {(1,0.050) (2,0.880) (3,0.995) (4,0.757) (5,0.989)};
+\legend{Summary A, Summary B}
+\end{axis}
+\end{tikzpicture}
+
+\vspace{0.6em}
+\small
+\begin{tabular}{lccc}
+\toprule
+Aggregation & Summary A & Summary B & Preferred \\
+\midrule
+Holistic score (full summary)      & 0.7910 & 0.7345 & A \\
+GCA, $\alpha=0.0$ (simple mean)    & 0.7910 & 0.7345 & A \\
+GCA, $\alpha=0.5$ (penalty)        & 0.0938 & 0.1924 & B \\
+\bottomrule
+\end{tabular}
+\caption[Worked example: holistic scoring vs.\ GCA aggregation]{Worked example on pair \texttt{cnn\_00233} from the $n=200$ preference
+set (evaluator mode \texttt{nli\_sp}). Summary A has one sentence scored $0.011$
+among four strong ones. The simple mean preserves the holistic ordering, while
+the $\alpha=0.5$ penalty inverts it. Values are computed from the stored
+per-sentence scores in
+\url{data/preferences/gca_reward_preferences_200.jsonl}.}
+\label{fig:gca-worked}
+\end{figure}
+
+\paragraph{No cross-summary sentence alignment.} One design point is worth stating
+explicitly, since sentence-level methods in this area sometimes align the
+sentences of one candidate to those of another before comparing them. GCA as
+defined here performs no such cross-summary alignment. Each candidate summary's
+sentences are scored independently against the source article, and the two
+aggregated scores are compared only afterwards. The method therefore contains no
+alignment step that could introduce matching errors, and correspondingly offers no
+opportunity to study alignment quality as a variable.
+
+\section{Statistical Validation: Bootstrap Confidence Intervals and the Wilcoxon Signed-Rank Test}
+\label{sec:bg-stats}
+
+Two statistical tools are used throughout Chapter~\ref{ch:results} to assess
+whether an observed GCA-versus-holistic accuracy gap is distinguishable from
+noise.
+
+\textbf{Bootstrap confidence intervals.} Given a set of paired fold-level accuracy
+differences $\{d_1, \ldots, d_m\}$, where $d_k = \mathrm{acc}_{\text{GCA}, k} -
+\mathrm{acc}_{\text{Holistic}, k}$ for cross-validation fold $k$, pooled across
+independent training seeds, a bootstrap 95\% confidence interval for the mean
+difference $\bar{d}$ is constructed by resampling $\{d_1, \ldots, d_m\}$ with
+replacement $B$ times, computing the mean of each resample, and taking the 2.5th
+and 97.5th percentiles of the resulting distribution of means. This thesis uses $B
+= 10{,}000$ resamples with a fixed NumPy random seed of 42.
+
+\textbf{Wilcoxon signed-rank test.} As a complementary non-parametric test suited
+to a small number of paired, non-normally-distributed differences, the two-sided
+Wilcoxon signed-rank test is reported on the same paired differences. Unlike a
+paired $t$-test it does not assume normality, which is appropriate given the small
+number of observations and the fact that fold accuracies are bounded proportions.
+
+\textbf{An important qualification.} Both procedures assume that the observations
+they are applied to are independent, and in this thesis they are not. The
+fold-level differences are pooled across runs, but the five folds within a run
+partition a single dataset and therefore share most of their training data.
+Applying either procedure to 30 such observations treats correlated measurements
+as independent replications, which understates uncertainty and produces intervals
+that are too narrow and $p$-values that are too small. Every interval and
+$p$-value reported in Chapter~\ref{ch:results} is therefore anti-conservative and
+is presented as an exploratory summary of the spread rather than as a
+confirmatory hypothesis test. Chapter~\ref{ch:discussion},
+Section~\ref{sec:disc-stats-caveat} discusses what a more conservative treatment
+would permit and what the results support independently of any threshold.
+
+Pooling across runs rather than reporting a single run is nonetheless deliberate,
+and responds to an early observation
+(Section~\ref{sec:results-alpha0-validation}): a promising single-run result, a
+$+1.4$ percentage-point advantage from one hyperparameter configuration, did not
+reproduce when the same configuration was run again. Single runs at this dataset
+scale are therefore not reliable evidence on their own, whatever statistics are
+computed from their folds.

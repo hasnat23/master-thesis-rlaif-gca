@@ -1,0 +1,163 @@
+\chapter{Introduction}
+\label{ch:introduction}
+
+\section{Motivation}
+\label{sec:intro-motivation}
+
+Large language models are increasingly used for multi-sentence generation tasks such
+as news summarization. In this setting, the perceived quality of an output is often
+dominated not by its overall fluency but by a small number of high-impact factual
+errors: a wrong entity, a flipped relation, or a fabricated claim can outweigh
+otherwise well-written text. Throughout this thesis, \emph{reliability} refers
+specifically to factual consistency with the source document, not to stylistic
+polish or fluency.
+
+Preference-based fine-tuning, most prominently reinforcement learning from human
+feedback (RLHF), updates a model using comparative judgments between candidate
+outputs rather than token-level supervision \citep{christiano2017deep,
+stiennon2020learning, ouyang2022training}. Collecting high-quality human preferences
+at scale is expensive and slow, so reinforcement learning from AI feedback (RLAIF)
+replaces human annotators with an automatic judge \citep{bai2022constitutional,
+lee2023rlaif}. This trades annotation cost for a new source of label noise and bias.
+
+A further question arises for long, multi-sentence outputs such as news summaries,
+one that is largely independent of whether the feedback comes from a human or an AI
+judge: how granular should the preference signal be? A single holistic judgment
+(``summary A is better than summary B'') collapses all of the evidence in a
+multi-sentence output into one binary decision. If a summary is mostly accurate but
+contains one fabricated sentence, a holistic judge may still prefer it over an
+alternative that is uniformly mediocre but contains no outright fabrication. The
+holistic label cannot express that distinction. Sentence-level judging can in
+principle localize exactly which claims are, and are not, supported by the source,
+and that localized evidence can then be aggregated into a summary-level decision.
+This thesis asks whether that extra granularity actually produces a better training
+signal, and under what conditions.
+
+\section{Problem Statement}
+\label{sec:intro-problem}
+
+When constructing AI-generated preference data for training a factuality-oriented
+reward model, it is unclear whether coarse, holistic preferences are sufficient, or
+whether they systematically underuse the supervision signal available in long,
+multi-sentence outputs. The problem addressed here, under controlled conditions, is
+whether sentence-level factuality judgments, aggregated into a summary-level
+preference through a mechanism referred to as \emph{Granular Credit Assignment}
+(GCA), yield a more learnable preference signal for reward-model training than
+purely holistic judgments of the same candidate summaries.
+
+``More learnable'' is given a concrete, testable meaning throughout: the pairwise
+validation accuracy of a Bradley--Terry reward model trained on the resulting
+preference pairs (Chapter~\ref{ch:background}, Section~\ref{sec:bg-bradley-terry}).
+Given a held-out preference pair, how often does the trained reward model rank the
+summary the judge preferred above the alternative?
+
+\section{Thesis Objective}
+\label{sec:intro-objective}
+
+The objective of this thesis is to determine, through a controlled empirical
+comparison, whether Granular Credit Assignment produces a more learnable
+factuality-preference signal than holistic scoring. The two conditions differ only
+in how factuality scores are obtained and converted into a pairwise label:
+
+\begin{quote}
+\textbf{Holistic:} article $+$ complete candidate summary $\rightarrow$ factuality
+score $\rightarrow$ pairwise preference.
+
+\textbf{GCA:} article $+$ individual sentences $\rightarrow$ sentence factuality
+scores $\rightarrow$ aggregation $\rightarrow$ pairwise preference.
+\end{quote}
+
+Both preference sets are then used to train the same Bradley--Terry reward-model
+architecture under the same procedure. Holding the source articles, the candidate
+summaries and their generation settings, the evaluator family, the reward-model
+architecture, and the training procedure fixed allows feedback granularity to be
+studied as the primary experimental variable, rather than as one difference among
+several.
+
+The thesis does not propose a new reward-model architecture, a new factuality
+metric, or a new training objective. Its subject is the construction of the
+preference data itself.
+
+\section{Contributions}
+\label{sec:intro-contributions}
+
+This work makes the following contributions:
+
+\begin{enumerate}
+  \item A controlled framework for comparing holistic and sentence-level,
+    GCA-based construction of factuality preferences for abstractive
+    summarization, in which the candidate pool, evaluator, reward-model
+    architecture, and training procedure are held fixed
+    (Chapter~\ref{ch:methodology}).
+
+  \item An empirical study of how evaluator mode and aggregation strategy
+    interact with feedback granularity. Neither the aggregation formula nor the
+    evaluator configuration is neutral: a penalty-weighted aggregation performs
+    worse than a simple mean, and in an exploratory sweep the evaluator mode is
+    associated with whether an advantage for GCA is observed at all
+    (Chapter~\ref{ch:results}, Sections~\ref{sec:results-formula-opt}
+    and~\ref{sec:results-mode-sweep}).
+
+  \item A repeated-run and multi-scale evaluation showing that GCA can improve
+    preference learnability under some configurations, most clearly at
+    $n=1{,}000$ with the AlignScore \texttt{nli} mode, and that the improvement
+    diminishes at larger dataset sizes
+    (Sections~\ref{sec:results-final-campaign} and~\ref{sec:results-scale}).
+
+  \item An exploratory observation that the benefit of external sentence-level
+    decomposition may be reduced when the underlying evaluator already performs
+    comparable internal decomposition, offered as a hypothesis motivated by the
+    mode comparison rather than as an established mechanism
+    (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation}).
+
+  \item A transparent account of instability, stochastic variation across runs,
+    methodological limitations, and the reproducibility of the pipeline
+    (Chapters~\ref{ch:implementation}, \ref{ch:discussion},
+    and~\ref{ch:conclusion}).
+\end{enumerate}
+
+These contributions concern the construction and learnability of preference data.
+The thesis does not claim that GCA yields objectively more accurate factuality
+labels, nor that it improves the factual consistency of generated summaries; the
+scope of what the experiments support is stated precisely in
+Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-scope}.
+
+\section{Scope}
+\label{sec:intro-scope}
+
+\begin{itemize}
+  \item \textbf{Task:} single-document abstractive news summarization, using the
+    CNN/DailyMail dataset \citep{hermann2015teaching, nallapati2016abstractive}.
+  \item \textbf{Candidate generation:} a single instruction-tuned base model,
+    Mistral-7B-Instruct-v0.3, sampled at two temperatures ($T=0.7$ and $T=1.0$) to
+    produce an A/B candidate pair per source article.
+  \item \textbf{Judge:} a single fixed, deterministic factuality judge,
+    \texttt{yzha/AlignScore} \citep{zha2023alignscore}, in its \texttt{nli}
+    evaluation mode. No generative LLM-as-judge and no external API dependency is
+    used in the final pipeline.
+  \item \textbf{Optimization target:} the learnability of the resulting preference
+    data for Bradley--Terry reward-model training, measured by pairwise validation
+    accuracy under 5-fold cross-validation. A downstream fine-tuned generation
+    policy is not evaluated in the final comparison; an early Direct Preference
+    Optimization (DPO) prototype was explored but dropped from the final scope
+    (Chapter~\ref{ch:methodology}).
+\end{itemize}
+
+\section{Thesis Structure}
+\label{sec:intro-structure}
+
+Chapter~\ref{ch:related-work} situates this work within the literature on
+preference-based alignment, LLM-as-a-judge reliability, fine-grained feedback for
+long-form generation, and automatic factual-consistency evaluation.
+Chapter~\ref{ch:background} introduces the technical mechanisms this thesis builds
+on: the Bradley--Terry preference model, Direct Preference Optimization, the
+AlignScore factuality metric, the GCA aggregation formula, and the statistical tools
+used to validate the results. Chapter~\ref{ch:methodology} presents the experimental
+design, including an explicit account of how the study that was actually carried out
+diverges from the original proposal, and why. Chapter~\ref{ch:implementation}
+describes the pipeline, codebase, and compute infrastructure. Chapter~\ref{ch:results}
+reports the full experimental campaign, from the initial reward-model baseline
+through the formula and judge-mode optimization to the final multi-seed and
+multi-scale validation. Chapter~\ref{ch:discussion} interprets these results, and
+Chapter~\ref{ch:conclusion} answers the research questions, states the limitations
+of this work, and outlines directions for future work.

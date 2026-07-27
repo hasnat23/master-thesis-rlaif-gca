@@ -1,0 +1,354 @@
+\chapter{Related Work}
+\label{ch:related-work}
+
+This chapter reviews four bodies of work that this thesis draws on: preference-based
+alignment and how preference data becomes a training signal
+(Section~\ref{sec:rw-rlhf-rlaif}); the reliability of AI judges when they replace
+human annotators (Section~\ref{sec:rw-judge-reliability}); the granularity of
+feedback in long-form generation, which is the variable this thesis manipulates
+(Section~\ref{sec:rw-finegrained}); and automatic factual-consistency evaluation,
+which supplies the judge (Section~\ref{sec:rw-factual-eval}).
+Section~\ref{sec:rw-synthesis} draws these together into the specific gap this
+thesis addresses, and Section~\ref{sec:rw-positioning} states what separates the
+present work from the studies closest to it.
+
+\section{Preference-Based Alignment: RLHF, RLAIF, and Offline Optimization}
+\label{sec:rw-rlhf-rlaif}
+
+Preference-based alignment collects pairwise comparisons between candidate model
+outputs and converts those comparisons into a training signal. The approach
+originates in preference learning for reinforcement learning, where human
+annotators compare short trajectory segments and a reward model is fitted to
+reproduce their comparisons, allowing an agent to be trained on objectives that
+are easy to judge but hard to specify numerically \citep{christiano2017deep}. The
+choice to elicit comparisons rather than absolute scores is deliberate: relative
+judgments between two concrete outputs are more consistent between annotators than
+absolute ratings on an abstract scale, and the Bradley--Terry model
+(Chapter~\ref{ch:background}, Section~\ref{sec:bg-bradley-terry}) provides a
+principled way to recover a scalar reward from them.
+
+\citet{stiennon2020learning} adapted this recipe to summarization, and their
+pipeline is the direct ancestor of the one used in this thesis. They collect human
+comparisons between candidate summaries, train a reward model on those comparisons,
+and then fine-tune a policy against the learned reward with reinforcement learning.
+Two of their findings matter here. First, the reward model's own held-out agreement
+with human preferences is reported as a diagnostic in its own right, which
+establishes the precedent for treating reward-model accuracy as a meaningful
+measurement rather than merely an intermediate artifact, as this thesis does.
+Second, they observe that optimizing too hard against a learned reward degrades
+true quality, an early instance of the reward-overoptimization problem that
+motivates careful attention to the quality of the preference signal itself. RLHF
+was subsequently scaled to general instruction-following \citep{ouyang2022training},
+establishing the reward-model-plus-policy-optimization pattern as the default
+alignment recipe.
+
+Because human comparison data is expensive, reinforcement learning from AI feedback
+(RLAIF) substitutes a model for the human annotator. Constitutional AI generates
+critiques and revisions from a written set of principles and derives preference
+labels from them, removing human annotation from the harmlessness training loop
+almost entirely \citep{bai2022constitutional}. \citet{lee2023rlaif} compare RLAIF
+and RLHF directly on summarization and dialogue tasks and report broadly
+comparable downstream performance, which is the empirical result that makes
+AI-generated preference data a credible substitute rather than a compromise. They
+also emphasize that the outcome depends substantially on how the judge is
+prompted and calibrated, a dependency that recurs throughout
+Section~\ref{sec:rw-judge-reliability} and, in a different form, in the
+evaluator-configuration effects observed here
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep}).
+
+On the optimization side, RLHF pipelines have typically used on-policy algorithms
+such as Proximal Policy Optimization \citep{schulman2017ppo}, which require
+sampling from the policy during training and maintaining a separate reward model.
+Direct Preference Optimization (DPO) removes both requirements by reparameterizing
+the RLHF objective so that the optimal policy can be recovered in closed form
+directly from preference pairs \citep{rafailov2023dpo}. DPO was the objective
+originally proposed for this thesis, chosen because it isolates the effect of the
+preference data from the dynamics of reinforcement learning. As
+Chapter~\ref{ch:methodology} describes, DPO was implemented and produced early
+results before being dropped from the final comparison in favor of evaluating
+Bradley--Terry reward models directly. That change narrows the comparison further
+than DPO alone would: it removes both the optimization dynamics that motivated
+adopting DPO and the decoding variance introduced by generating and scoring a
+fine-tuned policy's outputs, leaving a more targeted question about whether the
+preference data itself is more learnable.
+
+\section{Reliability Risks in AI Supervision and LLM-as-a-Judge}
+\label{sec:rw-judge-reliability}
+
+Substituting a language model for a human annotator introduces a distinct class of
+error. Benchmark studies of LLM-as-a-judge document sensitivity to prompt wording,
+position bias favoring whichever candidate appears first, verbosity bias favoring
+longer answers regardless of quality, inconsistent scoring across repeated calls,
+and self-enhancement effects in which a judge prefers outputs from models similar
+to itself \citep{zheng2023judging}. \citet{liu2023geval} document related
+calibration problems in LLM-based evaluation of generated text, and a recent
+survey synthesizes the accumulated evidence on these failure modes and the
+mitigations proposed for them, including rubric enforcement, pairwise rather than
+absolute evaluation, and position swapping \citep{gu2024survey}.
+
+These issues are more consequential in RLAIF than in evaluation. An unreliable
+evaluation metric produces a noisy estimate of a model's quality; an unreliable
+judge used to construct training data produces systematically mislabeled
+supervision, and the model is then optimized to fit that mislabeling.
+\citet{casper2023open} catalogue failure modes of this kind across the RLHF
+pipeline, including reward misspecification and the divergence between training
+loss and intended behavior, and argue that problems in the preference data
+propagate into the trained policy in ways that are difficult to detect after the
+fact.
+
+One response to this literature is to treat the judge as a fallible instrument and
+wrap it in a reliability protocol: confidence gating, order randomization,
+evidence-grounded rationale requirements, and prompt-robustness checks. The design
+adopted here removes the exposure at its source instead, by using a fixed,
+deterministic factuality model rather than a generative judge
+(Section~\ref{sec:rw-factual-eval}). A deterministic model cannot exhibit prompt
+sensitivity, position bias, or run-to-run inconsistency, because it is never
+prompted and returns no natural-language output. This eliminates the category of
+risk the protocol above is designed to manage, at two costs: it does not make the
+evaluator correct, and it removes the rationale text that a human audit would
+examine. Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-scope} states
+what this implies for the claims the thesis can support.
+
+\section{Feedback Granularity and Credit Assignment in Long-Form Generation}
+\label{sec:rw-finegrained}
+
+The variable this thesis manipulates is how localized the supervision signal is.
+A single preference over a multi-sentence output provides one bit of information
+about a text that may contain a dozen independently checkable claims, and it does
+not indicate which claim caused the preference. This is a credit assignment
+problem, and it is present even in the original preference-learning formulation:
+\citet{christiano2017deep} have annotators compare short trajectory segments
+rather than whole episodes precisely to make the resulting supervision denser and
+easier to attribute.
+
+The closest prior work to this thesis is \citet{wu2023finegrained}, who study
+fine-grained human feedback for long-form question answering. Their approach
+differs from holistic RLHF along two dimensions simultaneously. First, feedback is
+collected at the density of individual sentences or sub-sentence spans rather than
+whole responses, so an annotator marks the specific span that is irrelevant,
+untruthful, or incomplete. Second, they train several distinct reward models, one
+per error category, and combine their outputs into a dense reward signal during
+reinforcement learning, so the policy receives a reward at each segment rather than
+a single scalar at the end of the sequence. They report that this improves both the
+resulting policy and the reward models themselves relative to holistic feedback,
+and that the multiple reward models allow the relative weight of different
+objectives to be adjusted after training.
+
+Three differences separate their setting from this thesis. Their fine-grained
+labels come from trained human annotators, whereas this thesis asks whether the
+same localization strategy is still useful when the localized judgments come from
+an automatic judge, which is cheaper by orders of magnitude but noisier per label.
+Their fine-grained signal is consumed as a dense per-segment reward during
+reinforcement learning, whereas GCA aggregates local scores back into a single
+summary-level preference pair so that the resulting dataset remains compatible
+with standard pairwise preference optimization, requiring no change to the training
+objective. And they vary feedback density and objective decomposition together,
+whereas this thesis holds the objective fixed at factual consistency alone and
+varies only granularity, which isolates the granularity question at the cost of
+addressing a narrower one.
+
+Two more recent lines of work place sentence-level signals at other points in the
+alignment pipeline, and both should be distinguished carefully from the present
+study, since neither leaves the question examined here open in general.
+
+\citet{gu2025maskdpo} introduce Mask-DPO, which incorporates sentence-level
+factuality signals directly into the DPO objective. Rather than treating a whole
+response as preferred or dispreferred, Mask-DPO uses sentence-level factuality
+information to learn only from the factually correct sentences within a preferred
+response, and to avoid penalizing factually correct content that appears inside a
+dispreferred one. The motivation is that response-level factuality supervision is
+noisy, because preferred and dispreferred responses each mix accurate and
+inaccurate sentences. The intervention point is the policy-optimization objective:
+the preference pair remains a response-level object, and the granular signal is applied as a mask during training. The present thesis intervenes earlier and
+leaves the training objective untouched. It asks how automatic factuality
+judgments at different granularities should be converted into the pairwise label
+in the first place, and measures the learnability of the resulting labels under a
+fixed Bradley--Terry architecture.
+
+\citet{qiu2026sentencelevel} modify the reward model itself, proposing a
+sentence-level reward model that assigns scores at sentence boundaries and
+aggregates them into a response-level score, while still learning from
+response-level human preferences. Their aim is to address reward sparsity by
+producing an intermediate granularity between response-level and token-level
+reward modeling. The distinction from this thesis is architectural: they change
+what the reward model computes, and the preference labels they learn from are
+conventional response-level human judgments. This thesis does not modify the
+reward-model architecture at all. The Bradley--Terry model, its backbone, and its
+training procedure are held fixed across both conditions precisely so that
+differences in outcome can be attributed to the preference labels rather than to
+the model consuming them.
+
+Reward models are also increasingly evaluated in their own right rather than only
+as components of a larger pipeline. RewardBench assembles prompt-chosen-rejected
+trios across several domains and evaluates reward models by how often they rank
+the preferred response above the dispreferred one
+\citep{lambert2024rewardbench}. That pairwise-ranking accuracy is the same
+quantity used as the dependent variable in this thesis
+(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-scope}), which places
+the measurement on established ground; the difference is that RewardBench varies
+the reward model against fixed data, whereas this thesis varies the data
+construction against a fixed reward model.
+
+\section{Factual Consistency in Summarization and Evaluation}
+\label{sec:rw-factual-eval}
+
+News summarization remains a standard benchmark domain, with CNN/DailyMail widely
+used for both training and evaluation \citep{hermann2015teaching,
+nallapati2016abstractive}. Abstractive systems have long produced fluent output
+that nonetheless contradicts or embellishes the source \citep{see2017get}, and this
+persistent gap between fluency and faithfulness is what makes factual consistency
+a worthwhile optimization target rather than a solved preprocessing concern.
+
+Automatic factuality evaluation has developed along two main lines. Entailment-based
+methods treat the source as a premise and the summary as a hypothesis: FactCC
+trains a classifier on synthetically corrupted summaries to detect factual
+conflicts \citep{kryscinski2020evaluating}. Question-answering-based methods
+instead generate questions from the summary and check whether the source yields
+the same answers, an approach developed in FEQA \citep{durmus2020feqa} and refined
+in QAFactEval, which systematically compares components of the QA-based pipeline
+\citep{fabbri2022qafacteval}.
+
+\paragraph{Decomposition and aggregation in SummaC.} The work most directly
+relevant to GCA's design is SummaC \citep{laban2022summac}, which observes that
+natural language inference models trained on sentence-level data transfer poorly
+to document-level consistency checking, partly because the inputs are far longer
+than anything seen in training. Their solution is to decompose the problem: they
+compute an entailment matrix between each source sentence and each summary
+sentence, then aggregate that matrix into a single score. Critically for this
+thesis, they show that \emph{how} the matrix is aggregated changes performance
+substantially. Their zero-shot variant takes, for each summary sentence, the
+maximum entailment score across all source sentences, and then averages these
+maxima across summary sentences. Their learned variant instead trains a
+convolutional layer over the distribution of entailment scores per summary
+sentence, retaining information that the maximum discards, and performs better.
+
+That aggregation strategy is a design decision with measurable consequences is
+therefore established in the evaluation literature before this thesis takes it up.
+The contribution here is to ask the same question one step upstream, at the point
+where scores are converted into training labels rather than into an evaluation
+metric, and Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt} finds
+the same lesson holds: the choice between a mean and a penalty-weighted
+aggregation changes the outcome more than the decision to decompose at all.
+
+\paragraph{AlignScore.} The judge used throughout this thesis, AlignScore, was not
+part of the literature surveyed in the original proposal. \citet{zha2023alignscore}
+recast a broad collection of natural language processing tasks, including natural
+language inference, question answering, paraphrase detection, and fact
+verification, into a single ``information alignment'' format, and train one model
+on the union. The resulting function takes a context and a claim and returns a
+scalar in $[0,1]$ estimating whether the context supports the claim. Because it is
+trained across many task formats rather than on entailment data alone, it
+generalizes across factuality benchmarks better than the single-task methods above.
+
+AlignScore also inherits the decomposition question from SummaC, and resolves it
+internally: in its split evaluation modes, the context is divided into chunks and
+the claim into sentences, and the final score aggregates the resulting matrix by
+taking a maximum over chunks and then a mean over claim sentences, which is
+structurally the same rule as SummaC's zero-shot variant. This internal behavior
+turns out to matter a great deal for the present work.
+Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep} finds that whether
+GCA outperforms holistic scoring depends on which AlignScore mode is used, and
+Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation} argues that this
+is because the split modes already perform, inside the judge, much of the
+decomposition that GCA performs outside it.
+
+\paragraph{Fine-grained evaluation.} More recent work evaluates summaries at
+sub-summary granularity rather than assigning a single score. FineSurE assesses
+faithfulness at the sentence level and content coverage against a list of extracted
+key facts, producing a diagnostic profile rather than one number
+\citep{song2024finesure}. Like SummaC, and unlike this thesis, it is positioned as
+an evaluation framework: it tells a practitioner where a summary went wrong, but
+does not convert that localized judgment into supervision for training.
+
+\section{Synthesis: The Gap This Thesis Addresses}
+\label{sec:rw-synthesis}
+
+Table~\ref{tab:rw-gap} summarizes the closest lines of work along the dimension
+that distinguishes the present study: the point in the pipeline at which
+sentence-level information is introduced, and what each approach holds fixed while
+doing so.
+
+\begin{table}[htbp]
+\centering
+\caption[Where sentence-level information enters the pipeline in related work]{Where sentence-level information enters the pipeline in related work.}
+\label{tab:rw-gap}
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+Work & Sentence-level signal enters at & Held fixed \\
+\midrule
+\citet{stiennon2020learning} & not used & -- \\
+\citet{lee2023rlaif}         & not used & -- \\
+\citet{wu2023finegrained}    & reward signal during RL (human labels) &
+  response-level objective \\
+\citet{gu2025maskdpo}        & the DPO objective, as a sentence mask &
+  preference pair construction \\
+\citet{qiu2026sentencelevel} & the reward-model architecture &
+  preference labels (human, response-level) \\
+\citet{laban2022summac}      & evaluation metric only & -- \\
+\citet{song2024finesure}     & evaluation metric only & -- \\
+\citet{zha2023alignscore}    & internal to the evaluator & -- \\
+\midrule
+This thesis & \textbf{construction of the preference label} &
+  reward-model architecture and training procedure \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Table~\ref{tab:rw-gap} organizes this literature by \emph{where} sentence-level
+information is injected, which is the dimension along which the present study is
+distinguished. Sentence-level factuality signals are clearly not unexplored: they
+have been used to mask the policy-optimization objective
+\citep{gu2025maskdpo}, to restructure the reward model
+\citep{qiu2026sentencelevel}, to supply dense rewards during reinforcement
+learning \citep{wu2023finegrained}, and to build evaluation metrics
+\citep{laban2022summac, song2024finesure}. What distinguishes this thesis is the
+insertion point. Each of the training-oriented works above takes the preference
+labels as given, in most cases as response-level human judgments, and modifies
+what happens downstream of them. The step examined here is the construction of
+those labels: how the output of an automatic factuality evaluator, queried at
+different granularities, is converted into a pairwise preference, and how
+learnable the resulting labels are when everything downstream is held constant.
+This is attractive because automatic labels are cheap, and uncertain because they
+are noisier per label than human ones, so whether the additional granularity
+recovers more signal than noise is not obvious in advance.
+
+\section{Positioning of This Thesis}
+\label{sec:rw-positioning}
+
+The contribution of this thesis is not sentence-level reward modeling itself, nor
+sentence-level factuality alignment in general, both of which are active areas
+with established results. It is a controlled comparison of
+\emph{preference-construction procedures}: the downstream Bradley--Terry
+architecture and training procedure are held fixed while the granularity at which
+automatic factuality evidence is converted into pairwise preference labels is
+varied. No new factuality scorer is introduced; AlignScore is used off the shelf,
+and the measurement instrument is the learnability of the resulting labels.
+
+Five adjacent lines of work are distinguished as follows:
+
+\begin{itemize}
+  \item \textbf{RLAIF and LLM-as-a-judge research}
+    \citep{bai2022constitutional, lee2023rlaif, zheng2023judging, gu2024survey}
+    studies judge reliability at the level of a whole-response verdict, rather
+    than the effect of querying the judge at a finer granularity.
+  \item \textbf{Fine-grained human feedback} \citep{wu2023finegrained}
+    establishes that localized supervision helps when labels are reliable; the
+    present study asks the cheaper and less certain version, in which each local
+    label is produced automatically.
+  \item \textbf{Sentence-level factuality alignment} \citep{gu2025maskdpo}
+    applies granular factuality information inside the policy-optimization
+    objective while leaving preference construction unchanged; here the objective
+    is unchanged and preference construction varies.
+  \item \textbf{Sentence-level reward modeling} \citep{qiu2026sentencelevel}
+    changes the reward model's architecture while learning from conventional
+    response-level preferences; here the architecture is fixed and the
+    preferences vary.
+  \item \textbf{Fine-grained evaluation frameworks}
+    \citep{laban2022summac, song2024finesure} decompose summaries in order to
+    diagnose them rather than to supervise with them.
+\end{itemize}
+
+The comparison is conducted on preference data generated by one evaluator on one
+corpus, so the findings describe behaviour under specific conditions rather than a
+general property of granular supervision
+(Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-generalizability}).
