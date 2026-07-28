@@ -1,0 +1,252 @@
+\chapter{Data and Code Availability}
+\label{app:availability}
+
+All source code, configuration files, Slurm job scripts, and analysis notebooks
+used to produce the results reported in this thesis are publicly available at:
+
+\begin{quote}
+\url{https://github.com/hasnat23/master-thesis-rlaif-gca}
+\end{quote}
+
+The repository is organized as follows. \url{src/} contains the pipeline
+implementation, split into the modules referenced throughout
+Chapter~\ref{ch:implementation}: \url{src/data/} (subset selection and record
+schemas), \url{src/generation/} (candidate summary generation),
+\url{src/judging/} (the AlignScore judge wrapper and both preference-construction
+regimes), \url{src/reward_model/} (Bradley--Terry training and cross-validation),
+and \url{src/eval/} and \url{src/analysis/} (evaluation and statistics).
+\url{configs/} holds the YAML configuration files for subset selection,
+generation, and judging. \url{slurm/} holds the batch scripts submitted on MOGON
+NHR, including \url{slurm/train_rm_1000.sh}, which produced the headline
+$n=1{,}000$ result. \url{analysis/} holds the standalone scripts used for the
+formula sweep, the judge-mode sweep, and the holistic-versus-GCA comparison.
+\url{progress-updates/} contains the dated working notes kept over the course of
+the project.
+
+The underlying corpus, CNN/DailyMail version \texttt{3.0.0}
+\citep{hermann2015teaching, nallapati2016abstractive}, is publicly available
+through the Hugging Face \texttt{datasets} library and is not redistributed in the
+repository. The candidate summaries, preference files, and trained reward-model
+checkpoints generated during this project are likewise not committed, as they run
+to several gigabytes; they can be regenerated from the corpus using the
+configuration recorded in Appendix~\ref{app:reproduction}. The factuality
+evaluator, \texttt{yzha/AlignScore} \citep{zha2023alignscore}, and the candidate
+generator, Mistral-7B-Instruct-v0.3, are both publicly released model checkpoints
+obtained from the Hugging Face Hub.
+
+\chapter{Reproduction Configuration}
+\label{app:reproduction}
+
+This appendix records the exact configuration required to reproduce the headline
+$n=1{,}000$ result. It restates in executable form what
+Chapter~\ref{ch:methodology}, Table~\ref{tab:methodology-summary} summarizes and
+Chapter~\ref{ch:implementation} describes in prose. The reproducibility caveat
+stated in Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-repro} applies:
+because PyTorch's generator is not seeded in the cross-validation path, two
+executions with identical arguments can differ, and these commands reproduce the
+experimental \emph{setup} rather than guaranteeing bit-identical numbers.
+
+\section{Summarization Prompt}
+\label{app:repro-prompt}
+
+Both candidate summaries for a given article are generated from the same fixed
+prompt template (\texttt{SUMMARIZATION\_PROMPT} in
+\url{src/generation/candidates.py}); the two candidates differ only in the
+sampling parameters applied at decoding time.
+
+\begin{quote}
+\small\ttfamily
+Summarize the following news article in a concise paragraph.\\[2mm]
+Article:\\
+\{article\}\\[2mm]
+Summary:
+\end{quote}
+
+\section{Pipeline Parameters}
+\label{app:repro-params}
+
+Table~\ref{tab:app-params} lists the parameters of each pipeline stage as used for
+the final comparison. Where a value differs from the default recorded in the
+corresponding YAML file, the command-line override in
+Section~\ref{app:repro-commands} is authoritative; this is the case for the
+subset size, the tie margin, and the GCA exponent $\alpha$, each of which changed
+over the course of the project as described in Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-evolution}.
+
+\begin{table}[htbp]
+\centering
+\caption[Pipeline parameters for the final $n=1{,}000$ comparison]{Pipeline
+parameters for the final $n=1{,}000$ comparison.}
+\label{tab:app-params}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+Stage & Parameter & Value \\
+\midrule
+\multirow{5}{*}{Subset selection}
+  & Corpus              & CNN/DailyMail 3.0.0, \texttt{test} split \\
+  & Samples             & 1{,}000 \\
+  & Subset seed         & 200 \\
+  & Max article length  & 8{,}000 characters \\
+  & Max summary length  & 2{,}000 characters \\
+\midrule
+\multirow{6}{*}{Candidate generation}
+  & Model               & Mistral-7B-Instruct-v0.3, \texttt{bfloat16} \\
+  & Candidate A         & $T=0.7$, top-$p=0.9$ \\
+  & Candidate B         & $T=1.0$, top-$p=0.95$ \\
+  & Max input tokens    & 1{,}024 \\
+  & Max new tokens      & 256 \\
+  & Batch size          & 4 \\
+\midrule
+\multirow{4}{*}{Preference construction}
+  & Evaluator           & \texttt{yzha/AlignScore}, \texttt{FacebookAI/roberta-base} \\
+  & Evaluation mode     & \texttt{nli} \\
+  & GCA exponent        & $\alpha = 0.0$ (simple mean) \\
+  & Tie margin          & $0$ \\
+\midrule
+\multirow{7}{*}{Reward-model training}
+  & Backbone            & \texttt{FacebookAI/roberta-base} \\
+  & Epochs              & 5 \\
+  & Batch size          & 8 \\
+  & Learning rate       & $2\times10^{-5}$, linear warmup over 10\% of steps \\
+  & Max sequence length & 512 tokens \\
+  & Max article chars   & 2{,}000 \\
+  & Cross-validation    & 5-fold; training seeds 42, 42, 7, 100, 314, 2026 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Command-Line Invocations}
+\label{app:repro-commands}
+
+The three stages are run in sequence. Preference construction produces both
+conditions from a single invocation, and reward-model training consumes both
+preference files so that the holistic and GCA models are trained under an
+identical recipe within one process.
+
+\begin{quote}
+\footnotesize
+\begin{verbatim}
+# 1. Subset selection
+python scripts/01_prepare_subset.py --n-samples 1000 --seed 200
+
+# 2. Candidate generation
+python scripts/02_generate_candidates.py \
+    --config configs/generation_1000.yaml
+
+# 3. Preference construction (both conditions)
+python src/judging/build_reward_preferences.py \
+    --mode both --alpha 0.0 --margin 0 \
+    --alignscore-evaluation-mode nli \
+    --alignscore-backbone FacebookAI/roberta-base
+
+# 4. Reward-model training (5-fold CV, both conditions)
+python src/reward_model/run_training.py \
+    --holistic data/preferences_1000/\
+holistic_reward_preferences_1000.jsonl \
+    --gca      data/preferences_1000/\
+gca_reward_preferences_1000.jsonl \
+    --output-dir outputs/reward_models_1000 \
+    --backbone FacebookAI/roberta-base \
+    --epochs 5 --batch-size 8 --lr 2e-5 \
+    --max-length 512 --max-article-chars 2000 \
+    --kfold 5 --seed 42
+\end{verbatim}
+\end{quote}
+
+\noindent
+In step 4 the two preference-file paths are shown split across lines for
+typesetting only; the trailing backslash inside a path is a line continuation in
+this listing, not part of the filename.
+
+On the MOGON NHR cluster these are submitted as Slurm batch jobs
+(\url{slurm/generate_candidates_1000.sh}, \url{slurm/build_preferences_1000.sh},
+\url{slurm/train_rm_1000.sh}) on partition \texttt{a100dl} with one
+A100-SXM4-40GB GPU, 32\,GB of host memory, and four CPU cores per task.
+
+\chapter{Example Preference Record}
+\label{app:example-record}
+
+Every record written by the GCA preference-construction stage retains the full
+sentence-level detail behind the summary-level decision, which is what makes the
+qualitative disagreement analysis in Chapter~\ref{ch:results} possible. The
+listing below shows one such record, abridged: the article, reference summary, and the
+\texttt{chosen}/\texttt{rejected} fields are truncated, and the sentence list for
+summary B is cut after the first three sentences. All numeric values are
+reproduced verbatim.
+
+The record shown was produced by the earlier $n=200$ run, which used the
+exploratory settings $\alpha = 0.5$ and margin $=0.05$ rather than the final
+$\alpha = 0.0$ and margin $=0$ (Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-evolution}). It is included to illustrate the record
+\emph{schema} and the relationship between the sentence scores and the aggregate,
+not as an instance of the final configuration. Note in particular that
+\texttt{gca\_score\_a} $=0.382$ is well below \texttt{mean\_score\_a} $=0.629$:
+this is the penalty term at $\alpha = 0.5$ pulling the aggregate down towards the
+summary's weakest sentence, the behaviour that Chapter~\ref{ch:results},
+Section~\ref{sec:results-formula-opt} found to perform worse than the simple mean.
+
+\begin{quote}
+\footnotesize
+\begin{verbatim}
+{
+  "sample_id": "cnn_00000_b0b34b2d843e",
+  "article": "LONDON, England (Reuters) -- Harry Potter star Daniel ...",
+  "reference_summary": "Harry Potter star Daniel Radcliffe gets ...",
+  "summary_a": "Daniel Radcliffe, the 18-year-old actor who plays ...",
+  "summary_b": "On Monday, July 23, 2007, Harry Potter actor Daniel ...",
+  "gca_score_a": 0.382102,
+  "gca_score_b": 0.169184,
+  "gca_score_diff": 0.212918,
+  "mean_score_a": 0.629039,
+  "mean_score_b": 0.578186,
+  "min_score_a": 0.232103,
+  "min_score_b": 0.049505,
+  "n_sentences_a": 3,
+  "n_sentences_b": 6,
+  "n_low_faithfulness_a": 1,
+  "n_low_faithfulness_b": 3,
+  "decision": "A",
+  "judge_method": "gca",
+  "judge_model": "yzha/AlignScore [FacebookAI/roberta-base]",
+  "margin": 0.05,
+  "alpha": 0.5,
+  "sentence_details_a": [
+    { "index": 0,
+      "text": "Daniel Radcliffe, the 18-year-old actor who plays Harry
+               Potter, has gained access to a 20 million pound fortune
+               on his 18th birthday.",
+      "score": 0.748840, "label": "faithful" },
+    { "index": 1,
+      "text": "Despite the newfound wealth, he has stated that he does
+               not plan to be extravagant, and will instead use his
+               money to buy books, CDs, and DVDs.",
+      "score": 0.232103, "label": "hallucinated" },
+    { "index": 2,
+      "text": "Radcliffe has filmed a TV movie and an Australian film,
+               and has made his stage debut in \"Equus.\" He is expected
+               to face closer media scrutiny now that he is legally an
+               adult.",
+      "score": 0.906173, "label": "faithful" }
+  ],
+  "sentence_details_b": [
+    { "index": 0, "text": "On Monday, July 23, 2007, ...",
+      "score": 0.475803, "label": "hallucinated" },
+    { "index": 1, "text": "Radcliffe has stated he has no ...",
+      "score": 0.997014, "label": "faithful" },
+    { "index": 2, "text": "Instead, he plans to use the money ...",
+      "score": 0.049505, "label": "hallucinated" }
+  ]
+}
+\end{verbatim}
+\end{quote}
+
+Two features of this record are worth drawing out, because they illustrate
+mechanisms discussed in the main text. First, the \texttt{label} field is a
+threshold applied at a score of 0.5 for reporting convenience only; it plays no
+part in the aggregation, which operates on the continuous scores. Second, summary
+B contains both the highest-scoring sentence in the pair (0.997) and the
+lowest (0.050). Under the holistic condition this internal variation is not
+observable at all: the summary receives a single score. This is precisely the
+information that sentence-level decomposition exposes and holistic scoring
+discards, and whether exposing it yields a more learnable preference signal is the
+question the thesis sets out to answer.

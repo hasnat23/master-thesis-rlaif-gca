@@ -141,7 +141,7 @@ with a regex-based sentence splitter (\url{src/judging/sentence_level.py},
 against the full source article using AlignScore
 (\url{RewardModelJudge.score_sentences}), yielding a list of per-sentence
 scores $s = (s_1, \ldots, s_n)$. These per-sentence scores are aggregated into a
-single summary-level score via (\texttt{src/judging/gca.py},
+single summary-level score via (\url{src/judging/gca.py},
 \url{aggregate_sentence_scores}):
 \begin{equation}
   \mathrm{gca}(s) = \bar{s} \cdot \left( \frac{\min(s)}{\bar{s}} \right)^{\alpha},

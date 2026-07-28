@@ -80,7 +80,7 @@ GCA RM      & 56.00\% & \\
 
 To understand why GCA underperformed, disagreement between the holistic and GCA
 decisions at $\alpha = 0.5$ was analyzed directly on the $n=1{,}000$ pairs
-(\texttt{analysis/gca\_vs\_holistic\_analysis.py}). The two methods disagreed on
+(\url{analysis/gca_vs_holistic_analysis.py}). The two methods disagreed on
 17.8\% of pairs. GCA scores showed higher discrimination between candidates than
 holistic scores (mean absolute score difference 0.2392 versus 0.1527), but only
 82.2\% of GCA decisions agreed with the corresponding holistic decision, suggesting
@@ -88,7 +88,7 @@ that the extra discrimination was at least partly noise rather than signal.
 
 Nine aggregation strategies were then compared by how well each agreed with the
 holistic decision on the same 1{,}000 pairs
-(\texttt{analysis/test\_gca\_formulas.py}, \texttt{analysis/test\_advanced\_aggregation.py}).
+(\url{analysis/test_gca_formulas.py}, \url{analysis/test_advanced_aggregation.py}).
 Table~\ref{tab:formula-comparison} reports the results. The simple mean
 ($\alpha = 0.0$) had the highest agreement of any strategy tested, 15.4 percentage
 points above the original penalty formula.

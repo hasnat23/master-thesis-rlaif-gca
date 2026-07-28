@@ -38,7 +38,11 @@
   gcabar/.style={fill=orange!45, draw=orange!65!black, line width=0.4pt},
 }
 
-\author{Muhammad Hasnat}
+% The class typesets \theauthor in \Large on the title page; the second line drops
+% back to \normalsize so the matriculation number sits under the name without
+% competing with it.
+\author{Muhammad Hasnat\\[.15cm]{\normalsize (Matriculation Number: 221100612)}%
+        \vspace*{-2.0cm}}
 
 \title{Benchmarking Holistic vs Sentence-Level Reward-Model Preferences for Factual Summarization via Granular Credit Assignment (GCA)}
 
@@ -140,12 +144,18 @@ konsistentere Texte erzeugen; beide Fragen bleiben künftiger Arbeit vorbehalten
 
 \selectlanguage{english}
 
+\input{chapters/00_acknowledgments}
+\cleardoublepage
+
 \tableofcontents
 \cleardoublepage
 
 \listoffigures
 \cleardoublepage
 \listoftables
+\cleardoublepage
+
+\input{chapters/00_abbreviations}
 \cleardoublepage
 
 \pagenumbering{arabic}
@@ -162,8 +172,7 @@ konsistentere Texte erzeugen; beide Fragen bleiben künftiger Arbeit vorbehalten
 \bibliographystyle{plainnat}
 \bibliography{references}
 
-% \appendix
-% \input{chapters/appendix_prompts}
-% \input{chapters/appendix_configs}
+\appendix
+\input{chapters/appendix_a_availability}
 
 \end{document}

@@ -78,6 +78,36 @@ The thesis does not propose a new reward-model architecture, a new factuality
 metric, or a new training objective. Its subject is the construction of the
 preference data itself.
 
+\section{Research Questions}
+\label{sec:intro-rqs}
+
+Three research questions follow from this objective. They are stated here in
+summary form; Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-rqs} gives them together with the working hypotheses
+and the scope conditions under which each can be answered, and
+Chapter~\ref{ch:conclusion}, Section~\ref{sec:conclusion-rqs} answers them
+against the evidence collected.
+
+\begin{itemize}
+  \item \textbf{RQ1.} Does sentence-level factuality feedback aggregated via GCA
+    produce a more learnable pairwise preference signal than holistic
+    summary-level feedback, as measured by reward-model pairwise validation
+    accuracy?
+
+  \item \textbf{RQ2.} How do evaluator configuration and sentence-score
+    aggregation strategy affect the relative learnability of holistic and
+    GCA-derived preferences?
+
+  \item \textbf{RQ3.} How stable are the observed differences across repeated
+    reward-model training runs and dataset sizes?
+\end{itemize}
+
+RQ1 is the confirmatory question and is addressed by a repeated-run comparison.
+RQ2 is addressed by an exploratory sweep, and therefore supports statements about
+association between configuration and outcome rather than about causal mechanism.
+RQ3 motivates both the repeated runs at a single dataset size and the
+multi-scale check at $n=5{,}000$ and $n=10{,}000$.
+
 \section{Contributions}
 \label{sec:intro-contributions}
 
