@@ -122,8 +122,8 @@ $n$ & Subset seed & Purpose & Notes \\
 \section{Candidate Generation}
 \label{sec:impl-generation}
 
-Candidate summaries are generated with Mistral-7B-Instruct-v0.3, loaded in
-\texttt{bfloat16} without quantization (\url{src/generation/candidates.py}). On the
+Candidate summaries are generated with Mistral-7B-Instruct-v0.3
+\citep{jiang2023mistral}, loaded in \texttt{bfloat16} without quantization (\url{src/generation/candidates.py}). On the
 A100-SXM4-40GB GPUs used for this project, the model occupies roughly 14\,GB in
 \texttt{bfloat16}, comfortably within budget, so 4-bit quantization, though
 supported in the code via \texttt{BitsAndBytesConfig}, is disabled in the
@@ -210,7 +210,7 @@ run-to-run variation in Chapter~\ref{ch:discussion},
 Section~\ref{sec:disc-stochasticity}.
 
 The final training configuration, used for every reported reward-model result, is:
-\url{FacebookAI/roberta-base} backbone, 5 epochs, batch size 8, learning rate
+\url{FacebookAI/roberta-base} \citep{liu2019roberta} backbone, 5 epochs, batch size 8, learning rate
 $2\times10^{-5}$ with a linear warmup over 10\% of total steps, maximum sequence
 length 512 tokens (article truncated to 2{,}000 characters before tokenization,
 concatenated with the summary), and 5-fold cross-validation. This is confirmed by

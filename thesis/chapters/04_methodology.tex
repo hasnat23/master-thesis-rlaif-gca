@@ -105,8 +105,11 @@ architecture. It does not by itself establish any of the following:
 \end{itemize}
 
 The first two are inaccessible here because no independent human annotation was
-collected, so the labels produced by AlignScore function as the reference standard
-rather than as verified ground truth. The third is inaccessible because the final
+collected, so the labels produced by AlignScore \citep{zha2023alignscore} function
+as the reference standard rather than as verified ground truth. Substituting an
+automatic judge for human annotators is the defining move of RLAIF
+\citep{bai2022constitutional, lee2023rlaif}, and it carries this limitation with
+it: the resulting labels are cheap and consistent, but unaudited. The third is inaccessible because the final
 study does not include a downstream policy-optimization stage
 (Section~\ref{sec:methodology-evolution}). The fourth is addressed empirically and
 answered in the negative: Chapter~\ref{ch:results} reports configurations in which
@@ -326,8 +329,9 @@ Chapter~\ref{ch:conclusion}.
 \label{sec:methodology-ethics}
 
 \paragraph{Ethical and practical considerations.} All experiments use
-CNN/DailyMail, a publicly available corpus of news articles and human-written
-summaries; no personally sensitive data is collected. Because both the evaluator's
+CNN/DailyMail \citep{hermann2015teaching, nallapati2016abstractive}, a publicly
+available corpus of news articles and human-written summaries; no personally
+sensitive data is collected. Because both the evaluator's
 judgments and the generated summaries can be incorrect, results are reported as
 measurements of preference-data learnability rather than as statements about
 factual correctness, and model outputs are not presented as verified fact. Compute

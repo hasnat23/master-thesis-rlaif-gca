@@ -4,7 +4,8 @@
 \section{Preference Optimization: The Bradley--Terry Model}
 \label{sec:bg-bradley-terry}
 
-The Bradley--Terry model is a standard probabilistic model of pairwise comparison.
+The Bradley--Terry model \citep{bradley1952rank} is a standard probabilistic model
+of pairwise comparison.
 It assumes that every item $i$ has an underlying, unobserved scalar quality $r_i$,
 and that the probability of item $i$ being preferred over item $j$ in a pairwise
 comparison is
@@ -238,7 +239,9 @@ Two statistical tools are used throughout Chapter~\ref{ch:results} to assess
 whether an observed GCA-versus-holistic accuracy gap is distinguishable from
 noise.
 
-\textbf{Bootstrap confidence intervals.} Given a set of paired fold-level accuracy
+\textbf{Bootstrap confidence intervals.} The bootstrap \citep{efron1979bootstrap}
+estimates the sampling distribution of a statistic by resampling the observed data.
+Given a set of paired fold-level accuracy
 differences $\{d_1, \ldots, d_m\}$, where $d_k = \mathrm{acc}_{\text{GCA}, k} -
 \mathrm{acc}_{\text{Holistic}, k}$ for cross-validation fold $k$, pooled across
 independent training seeds, a bootstrap 95\% confidence interval for the mean
@@ -249,7 +252,7 @@ and 97.5th percentiles of the resulting distribution of means. This thesis uses 
 
 \textbf{Wilcoxon signed-rank test.} As a complementary non-parametric test suited
 to a small number of paired, non-normally-distributed differences, the two-sided
-Wilcoxon signed-rank test is reported on the same paired differences. Unlike a
+Wilcoxon signed-rank test \citep{wilcoxon1945individual} is reported on the same paired differences. Unlike a
 paired $t$-test it does not assume normality, which is appropriate given the small
 number of observations and the fact that fold accuracies are bounded proportions.
 
