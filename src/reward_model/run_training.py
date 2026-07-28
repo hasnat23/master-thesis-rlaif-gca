@@ -33,6 +33,18 @@ from src.reward_model.train import train_reward_model, PreferencePairDataset, _e
 from src.utils.logging import setup_logger, get_run_id
 
 
+def _seed_worker(worker_id):
+    """Seed a DataLoader worker's RNGs from the torch seed the parent assigned it."""
+    import torch
+    worker_seed = torch.initial_seed() % 2 ** 32
+    random.seed(worker_seed)
+    try:
+        import numpy as np
+        np.random.seed(worker_seed)
+    except ImportError:
+        pass
+
+
 def _kfold_cv(
     jsonl_path: str,
     condition: str,
@@ -59,6 +71,19 @@ def _kfold_cv(
     logger = logging.getLogger("kfold")
     logger.info(f"K-fold CV (k={k}) for condition={condition}")
 
+    # Determinism. Previously only Python's `random` was seeded here, which fixed
+    # the fold assignment but left every source of randomness drawn from PyTorch
+    # uncontrolled: the reward head's weight initialization, the DataLoader's
+    # batch ordering, and the dropout masks. Two runs launched with the same
+    # --seed could therefore produce different results. Seeding torch as well
+    # makes a run a function of --seed alone.
+    #
+    # cudnn.deterministic trades some throughput for reproducible kernel
+    # selection. It does not promise bit-identical results across different GPU
+    # models or library versions, only across repeated runs on the same setup.
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
     ds = PreferencePairDataset(jsonl_path, max_article_chars=max_article_chars)
     n  = len(ds)
     indices = list(range(n))
@@ -72,16 +97,31 @@ def _kfold_cv(
 
     fold_accs = []
     for fold in range(k):
+        # Re-seed per fold so that a fold's result depends only on (seed, fold)
+        # and not on how much randomness the preceding folds happened to consume.
+        fold_seed = seed * 1000 + fold
+        random.seed(fold_seed)
+        torch.manual_seed(fold_seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(fold_seed)
+
         val_idx   = indices[fold * fold_size : (fold + 1) * fold_size]
         train_idx = indices[:fold * fold_size] + indices[(fold + 1) * fold_size:]
+
+        # An explicit generator fixes the shuffle order; worker_init_fn fixes the
+        # per-worker RNG state, which num_workers=2 would otherwise leave to chance.
+        loader_gen = torch.Generator()
+        loader_gen.manual_seed(fold_seed)
 
         train_loader = DataLoader(
             Subset(ds, train_idx), batch_size=batch_size, shuffle=True,
             collate_fn=_coll, num_workers=2,
+            generator=loader_gen, worker_init_fn=_seed_worker,
         )
         val_loader = DataLoader(
             Subset(ds, val_idx), batch_size=batch_size, shuffle=False,
             collate_fn=_coll, num_workers=2,
+            worker_init_fn=_seed_worker,
         )
 
         model     = BradleyTerryRewardModel(backbone=backbone).to(device)
@@ -136,7 +176,28 @@ def main():
     logger = setup_logger("rm_training", run_id=run_id)
     output_dir = Path(args.output_dir)
 
-    summary: dict = {"run_id": run_id, "backbone": args.backbone, "conditions": {}}
+    # Record the full configuration alongside the results. Aggregating many runs
+    # (the seed campaign, the truncation sweep) requires each summary file to say
+    # for itself which seed and which hyperparameters produced it, rather than
+    # relying on the output directory name.
+    summary: dict = {
+        "run_id": run_id,
+        "backbone": args.backbone,
+        "seed": args.seed,
+        "kfold": args.kfold,
+        "epochs": args.epochs,
+        "batch_size": args.batch_size,
+        "lr": args.lr,
+        "max_length": args.max_length,
+        "max_article_chars": args.max_article_chars,
+        "holistic_path": args.holistic,
+        "gca_path": args.gca,
+        # True for runs produced after the cross-validation path was made fully
+        # deterministic; absent or False for the earlier campaign, whose runs
+        # varied between executions at a fixed --seed.
+        "deterministic_seeding": True,
+        "conditions": {},
+    }
 
     for condition, train_path, val_path in [
         ("holistic", args.holistic, args.holistic_val),
