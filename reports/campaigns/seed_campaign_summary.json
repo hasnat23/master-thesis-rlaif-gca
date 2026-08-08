@@ -1,0 +1,14 @@
+{
+  "n_runs": 20,
+  "n_gca_ahead": 20,
+  "n_holistic_ahead": 0,
+  "mean_gap": 0.03949999999999997,
+  "median_gap": 0.039500000000000035,
+  "sd_gap": 0.017807449653386518,
+  "boot_ci_lo": 0.03189999999999994,
+  "boot_ci_hi": 0.04694999999999995,
+  "wilcoxon_two_sided_p": 8.844915021211902e-05,
+  "wilcoxon_one_sided_p": 4.422457510605951e-05,
+  "exact_two_sided_p": 1.9073486328125e-06,
+  "min_attainable_p": 1.9073486328125e-06
+}

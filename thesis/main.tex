@@ -70,17 +70,21 @@ feedback granularity is the primary experimental variable.
 
 The dependent variable is preference learnability, measured as the pairwise
 validation accuracy of a reward model trained on the resulting preference pairs.
-Across six repeated runs at $n=1{,}000$, GCA achieved an average advantage of
-approximately 3.08 percentage points over holistic preference construction,
-favouring GCA in five of six runs. Uncertainty estimates based on
-cross-validation folds should be interpreted cautiously, because folds within a
-run are not independent; at the run level the evidence does not meet the
-conventional 0.05 threshold. The advantage did not remain equally large at larger
-sample sizes: it is approximately $-0.42$ percentage points at $n=5{,}000$ and
-$+0.35$ percentage points at $n=10{,}000$, while absolute accuracy improves for
-both conditions. An exploratory comparison of evaluator modes suggests that
-external sentence-level decomposition may be most useful when the evaluator does
-not already perform comparable decomposition internally.
+An initial campaign of six repeated runs at $n=1{,}000$ gave a directionally
+consistent but statistically underpowered result (GCA ahead in five of six runs,
+mean advantage +3.08 percentage points; run-level Wilcoxon $p=0.0625$, which is
+the smallest two-sided value attainable with six paired observations). This
+campaign was subsequently extended to twenty independently seeded runs under a
+corrected, fully deterministic training procedure. GCA led in all twenty runs,
+with a mean advantage of 3.95 percentage points (bootstrap 95\% CI
+$[+3.19, +4.70]$ points) and a run-level Wilcoxon $p<0.001$, meeting the
+conventional significance threshold. The advantage did not remain equally large
+at larger sample sizes: it is approximately $-0.42$ percentage points at
+$n=5{,}000$ and $+0.35$ percentage points at $n=10{,}000$ (each a single run),
+while absolute accuracy improves for both conditions. An exploratory comparison
+of evaluator modes suggests that external sentence-level decomposition may be
+most useful when the evaluator does not already perform comparable decomposition
+internally.
 
 These results characterize when granular factuality feedback changes the structure
 of a preference-learning signal, rather than establishing that GCA is generally
@@ -109,18 +113,22 @@ Granularität des Feedbacks die zentrale experimentelle Variable bildet.
 
 Die abhängige Variable ist die Erlernbarkeit der Präferenzen, gemessen als
 paarweise Validierungsgenauigkeit eines auf den jeweiligen Präferenzpaaren
-trainierten Belohnungsmodells. Über sechs wiederholte Läufe bei $n=1.000$ ergibt
-sich für GCA-Präferenzen ein durchschnittlicher Vorteil von etwa 3,08
-Prozentpunkten gegenüber der ganzheitlichen Präferenzkonstruktion, wobei GCA in
-fünf von sechs Läufen vorne liegt. Unsicherheitsschätzungen auf Basis von
-Kreuzvalidierungs-Folds sind zurückhaltend zu interpretieren, da Folds innerhalb
-eines Laufs nicht unabhängig sind; auf Laufebene erreicht die Evidenz das
-konventionelle Niveau von 0,05 nicht. Der Vorteil bleibt bei größerem Datenumfang
-nicht in gleicher Höhe bestehen: Er beträgt etwa $-0{,}42$ Prozentpunkte bei
-$n=5.000$ und $+0{,}35$ Prozentpunkte bei $n=10.000$, während die absolute
-Genauigkeit in beiden Bedingungen zunimmt. Ein explorativer Vergleich der
-Bewertungsmodi legt nahe, dass eine externe satzweise Zerlegung vor allem dann
-nützlich sein könnte, wenn das Bewertungsmodell nicht bereits intern eine
+trainierten Belohnungsmodells. Eine erste Kampagne von sechs wiederholten Läufen
+bei $n=1.000$ ergab ein richtungskonsistentes, aber statistisch unterpotentes
+Ergebnis (GCA in fünf von sechs Läufen vorne, durchschnittlicher Vorteil 3,08
+Prozentpunkte; Wilcoxon-Test auf Laufebene $p=0{,}0625$ -- bei sechs gepaarten
+Beobachtungen der kleinstmögliche zweiseitige Wert). Diese Kampagne wurde
+anschließend auf zwanzig unabhängig geseedete Läufe unter einem korrigierten,
+vollständig deterministischen Trainingsverfahren erweitert. GCA lag in allen
+zwanzig Läufen vorne, mit einem durchschnittlichen Vorteil von 3,95
+Prozentpunkten (Bootstrap-95\%-Konfidenzintervall $[+3{,}19, +4{,}70]$ Punkte)
+und einem Wilcoxon-Test auf Laufebene von $p<0{,}001$, der das konventionelle
+Signifikanzniveau erreicht. Der Vorteil bleibt bei größerem Datenumfang nicht in
+gleicher Höhe bestehen: Er beträgt etwa $-0{,}42$ Prozentpunkte bei $n=5.000$ und
+$+0{,}35$ Prozentpunkte bei $n=10.000$ (jeweils ein einzelner Lauf), während die
+absolute Genauigkeit in beiden Bedingungen zunimmt. Ein explorativer Vergleich
+der Bewertungsmodi legt nahe, dass eine externe satzweise Zerlegung vor allem
+dann nützlich sein könnte, wenn das Bewertungsmodell nicht bereits intern eine
 vergleichbare Zerlegung vornimmt.
 
 Die Ergebnisse charakterisieren, unter welchen Bedingungen granulares

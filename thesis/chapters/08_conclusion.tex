@@ -11,14 +11,22 @@ holistically. The two conditions were compared under an identical candidate pool
 an identical factuality judge, and an identical Bradley--Terry training recipe, so
 that the only manipulated factor was the preference-construction procedure itself.
 
-Averaged over six repeated runs at $n=1{,}000$, GCA preferences yield an
-advantage of approximately $+3.08$ percentage points in reward-model pairwise
-accuracy. The advantage does not remain equally large as the dataset grows: it is
-approximately $-0.42$ percentage points at $n=5{,}000$ and $+0.35$ percentage
-points at $n=10{,}000$, while absolute accuracy improves for both conditions.
-Uncertainty estimates computed over cross-validation folds are anti-conservative,
-because folds within a run are not independent, so the direction and approximate
-magnitude of the effect are better supported than any exact significance level.
+Averaged over an extended campaign of twenty independently seeded runs at
+$n=1{,}000$ (Chapter~\ref{ch:results}, Section~\ref{sec:results-extended-campaign}),
+GCA preferences yield an advantage of approximately $+3.95$ percentage points in
+reward-model pairwise accuracy, favouring GCA in all twenty runs, with a
+bootstrap 95\% confidence interval of $[+3.19, +4.70]$ points and a run-level
+Wilcoxon $p<0.001$. An earlier six-run campaign had given a consistent but
+structurally underpowered estimate of $+3.08$ points that could not, with only
+six paired observations, reach the conventional significance threshold; the
+extension confirms that direction rather than revealing a different effect. The
+advantage does not remain equally large as the dataset grows: it is approximately
+$-0.42$ percentage points at $n=5{,}000$ and $+0.35$ percentage points at
+$n=10{,}000$ (each a single run), while absolute accuracy improves for both
+conditions. Uncertainty estimates computed over cross-validation folds remain
+anti-conservative, because folds within a run are not independent, but the
+run-level estimate at $n=1{,}000$ is now supported by a properly powered,
+significant test.
 
 The experiments therefore do not support a universal claim that GCA is preferable
 to holistic factuality supervision. They show that sentence-level aggregation can
@@ -37,12 +45,14 @@ than following from finer granularity as such.
 \label{sec:concl-rqs}
 
 \textbf{RQ1} (does GCA produce a more learnable preference signal than holistic
-scoring?) is answered \emph{conditionally}. An average advantage of approximately
-3 percentage points is repeatedly observed at $n=1{,}000$, favouring GCA in five
-of six runs, though the run-level test does not meet the conventional threshold.
-It is not observed in the single run at $n=5{,}000$ and is marginal at
-$n=10{,}000$. The answer is therefore configuration-dependent rather than
-general.
+scoring?) is answered \emph{conditionally, but with statistical support at
+$n=1{,}000$}. An average advantage of $+3.95$ percentage points is observed
+across twenty independent runs at $n=1{,}000$, favouring GCA in all twenty, with
+a run-level Wilcoxon $p<0.001$ and a bootstrap confidence interval that does not
+cross zero. It is not observed in the single run at $n=5{,}000$ and is marginal
+at $n=10{,}000$. The answer is therefore statistically supported at the dataset
+size where it was most thoroughly tested, but configuration- and
+scale-dependent rather than general.
 
 \textbf{RQ2} (how do evaluator configuration and aggregation strategy affect
 relative learnability?) is answered \emph{associationally}. Both the aggregation
@@ -54,10 +64,15 @@ Because only one mode received repeated-run validation, this pattern is suggesti
 rather than established.
 
 \textbf{RQ3} (how stable are the differences across runs and dataset sizes?) is
-answered \emph{partially}. The difference is directionally consistent across six
-runs at fixed $n=1{,}000$, favouring GCA in five of six. It is not reproduced with
-comparable magnitude in the single runs at $n=5{,}000$ and $n=10{,}000$, which use
-nested supersets of the same data (Section~\ref{sec:disc-scale}).
+answered \emph{differently across the two axes it asks about}. Across repeated
+runs at a fixed dataset size, the difference is highly stable: all twenty runs
+of the extended campaign at $n=1{,}000$ favour GCA, with a standard deviation of
+1.78 percentage points around a mean of $+3.95$. Across dataset sizes, stability
+does not hold: the advantage is not reproduced with comparable magnitude in the
+single runs at $n=5{,}000$ and $n=10{,}000$, which use nested supersets of the
+same data (Section~\ref{sec:disc-scale}). Run-to-run stability at fixed scale is
+therefore well established; stability across scale is not, and only one run was
+performed at each of the two larger sizes.
 
 \section{Limitations}
 \label{sec:concl-limitations}
@@ -85,17 +100,22 @@ nested supersets of the same data (Section~\ref{sec:disc-scale}).
     level of 0.5, so the comparison is between two weak signals
     (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-weak-signal}).
   \item \textbf{Cross-validation folds are not independent.} Uncertainty
-    estimates computed over 30 folds treat correlated observations as
-    independent and are therefore anti-conservative; the direction and
-    approximate magnitude of the effect are better supported than any exact
-    significance level (Section~\ref{sec:disc-stats-caveat}).
-  \item \textbf{Incomplete determinism across runs.} Subset selection and
-    cross-validation fold assignment are explicitly seeded, but PyTorch's
-    generator is not seeded in the cross-validation path, leaving weight
-    initialization, batch ordering and dropout uncontrolled
-    (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}). Exact
-    run-level reproduction from the command-line seed alone is therefore not
-    guaranteed.
+    estimates computed by pooling folds across runs treat correlated
+    observations as independent and are therefore anti-conservative regardless
+    of campaign size; the run-level test is the appropriate unit of replication
+    and is what the reported significance result is based on
+    (Section~\ref{sec:disc-stats-caveat}).
+  \item \textbf{Incomplete determinism in the original six-run campaign.}
+    In the campaign that first produced the $+3.08$-point estimate, subset
+    selection and cross-validation fold assignment were explicitly seeded, but
+    PyTorch's generator was not seeded in the cross-validation path, leaving
+    weight initialization, batch ordering and dropout uncontrolled
+    (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}). This
+    was fixed before the extended twenty-run campaign was carried out, so the
+    headline significance result in this thesis is based on fully deterministic,
+    exactly reproducible runs; the fix does not retroactively apply to the
+    original six runs, which remain a documented instance of the underlying
+    problem (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-stochasticity}).
   \item \textbf{Configuration selected on observed results.} The aggregation
     strategy and evaluator mode were chosen after inspecting $n=1{,}000$ outcomes
     (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-exploratory}), and
@@ -143,10 +163,19 @@ nested supersets of the same data (Section~\ref{sec:disc-scale}).
     against the current ones, would establish how much of the observed structure
     is attributable to temperature-correlated surface features rather than to
     factuality (Section~\ref{sec:disc-confounds}).
-  \item \textbf{Measure the effect of source truncation.} Varying the retained
-    article length while holding all else fixed would quantify how much of the
-    near-chance reward-model accuracy is attributable to evidence falling outside
-    the model's input window (Section~\ref{sec:disc-weak-signal}).
+  \item \textbf{Measure the effect of source truncation.} A preliminary ablation
+    varied the retained article length under the RoBERTa-base backbone
+    (500 / 1{,}000 / 2{,}000 characters, three seeds each) and found accuracy
+    was, if anything, \emph{higher} with less retained context, the opposite of
+    what the truncation hypothesis predicts. This is plausibly because the
+    512-token cap already binds at 2{,}000 characters, so shortening the budget
+    changes how consistently the retained prefix is truncated across examples
+    rather than simply removing evidence; it does not yet isolate whether more
+    context would help under a backbone that is not capped at 512 tokens.
+    Completing the two \texttt{deberta-v3-base} arms of the same ablation
+    (512 vs. 1{,}024 tokens, holding the backbone fixed) would separate that
+    question from the backbone change and was not completed in this thesis due
+    to an unavailable model-download mirror at the time of writing.
   \item \textbf{Test the decomposition-interaction mechanism directly.}
     Section~\ref{sec:disc-interpretation} infers from AlignScore's documented
     behavior that its split modes perform internally much of what GCA performs

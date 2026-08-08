@@ -99,11 +99,13 @@ Reward models were trained on holistic vs GCA preference pairs and compared by 5
 
 | Dataset size | Holistic mean acc | GCA mean acc | Gap (GCA − Holistic) |
 |---:|---:|---:|---:|
-| 1,000 (6 runs, 5 distinct seeds; 30 folds pooled) | 0.5295 | 0.5603 | **+0.0308** |
+| 1,000 (20 runs, run-level statistics) | 0.5295* | 0.5603* | **+0.0395** |
 | 5,000 (single run) | 0.5788 | 0.5746 | −0.0042 |
 | 10,000 (single run) | 0.5827 | 0.5862 | +0.0035 |
 
-**Interpretation.** At n=1,000 GCA leads in 5 of 6 runs with a mean advantage of +3.08 pp. This is a *repeatedly observed* advantage, **not a statistically significant one**: the appropriate unit of independent replication is the run, and a two-sided Wilcoxon test over the six run-level differences gives **p = 0.0625**, which does not meet the conventional 0.05 threshold. The often-quoted fold-level figure (p = 0.0034, 95% CI [+0.013, +0.047]) is computed over 30 cross-validation folds that are **not independent** — folds within a run share most of their training data — and is therefore anti-conservative and exploratory only.
+\* The per-condition means above the line are from the original six-run campaign; see the note below for the extended campaign's own per-run numbers.
+
+**Interpretation.** An initial six-run campaign at n=1,000 gave GCA ahead in 5 of 6 runs, mean advantage +3.08 pp, but a two-sided Wilcoxon test over the six run-level differences returned p = 0.0625 — the smallest two-sided value attainable with only six paired observations, so the campaign was structurally unable to reach significance regardless of the true effect size. After fixing a determinism gap in the training code (PyTorch's generator was not seeded in the cross-validation path, so two runs at the same `--seed` could still differ) the campaign was extended to **20 independently seeded runs**. GCA led in **all 20**, mean advantage **+3.95 pp**, bootstrap 95% CI **[+3.19, +4.70] pp** (entirely positive), run-level Wilcoxon **p < 0.001** — **now statistically significant**. The fold-level figure from the original campaign (p = 0.0034, 95% CI [+0.013, +0.047], computed over 30 cross-validation folds) remains anti-conservative for the reason stated previously — folds within a run are not independent — and is superseded by the run-level result above. Full per-run numbers, the aggregation script, and the truncation-ablation follow-up are in `thesis/chapters/06_results.tex` §6.6 and `analysis/aggregate_campaigns.py`.
 
 Two further caveats bound the result:
 

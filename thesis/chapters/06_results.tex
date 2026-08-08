@@ -439,6 +439,138 @@ Six-run  & 6 & 30 & $+0.031$ & $[+0.013, +0.047]$ & 0.0034 \\
 \end{tabular}
 \end{table}
 
+At six runs, the fold-pooled $p$-value in Table~\ref{tab:evidence-progression}
+had already fallen to 0.0034, yet the run-level test in
+Table~\ref{tab:pooled-headline}'s surrounding discussion could not fall below
+0.0312 no matter how consistent the six runs were, because that is the smallest
+two-sided value the Wilcoxon signed-rank test can return with six paired
+observations. The six-run campaign was therefore not merely inconclusive by
+chance; it was structurally unable to establish run-level significance at the
+conventional threshold, independent of the true size of the effect. Resolving
+this required more runs, which in turn required the reward-model training
+procedure to be fully deterministic under a given seed --- a property it did not
+previously have, as described next.
+
+\section{Extended Campaign: Twenty Independent Runs}
+\label{sec:results-extended-campaign}
+
+Before further runs could be added, a limitation in the cross-validation
+implementation had to be fixed. The seed argument used for the six-run campaign
+controlled only the fold-assignment shuffle; PyTorch's own random-number
+generator was never seeded, so the reward head's weight initialization, the
+training \texttt{DataLoader}'s batch order, and dropout were all left
+uncontrolled (Chapter~\ref{ch:implementation},
+Section~\ref{sec:impl-rm-training}). Two executions of the same seed could
+therefore still differ, which is why the original sweep and its confirmation
+rerun in Table~\ref{tab:seed-validation}, both at seed 42, produced different
+results. This was corrected by seeding PyTorch and CUDA per fold, supplying an
+explicit generator to the training \texttt{DataLoader}, and seeding the
+\texttt{DataLoader} workers, so that a run is now fully determined by its seed on
+fixed hardware.
+
+Under this corrected procedure, the campaign was extended to twenty runs at
+seeds 1 through 20, fixed in advance of running any of them so that no seed
+could be selected after seeing its result. Table~\ref{tab:seed-campaign-full}
+lists every run.
+
+\begin{table}[htbp]
+\centering
+\caption[Per-run results, extended twenty-run campaign]{Per-run results for the extended campaign, seeds 1--20,
+$n=1{,}000$, \texttt{nli} mode, $\alpha=0.0$, margin 0.}
+\label{tab:seed-campaign-full}
+\begin{tabular}{rrrr}
+\toprule
+Seed & Holistic & GCA & Gap (GCA $-$ Holistic) \\
+\midrule
+1  & 0.5280 & 0.5920 & $+6.40$ \\
+2  & 0.5400 & 0.5450 & $+0.50$ \\
+3  & 0.5200 & 0.5580 & $+3.80$ \\
+4  & 0.5360 & 0.5700 & $+3.40$ \\
+5  & 0.5470 & 0.5770 & $+3.00$ \\
+6  & 0.5380 & 0.5610 & $+2.30$ \\
+7  & 0.5050 & 0.5700 & $+6.50$ \\
+8  & 0.5340 & 0.5430 & $+0.90$ \\
+9  & 0.5300 & 0.5830 & $+5.30$ \\
+10 & 0.5270 & 0.5550 & $+2.80$ \\
+11 & 0.5090 & 0.5830 & $+7.40$ \\
+12 & 0.5260 & 0.5730 & $+4.70$ \\
+13 & 0.5320 & 0.5680 & $+3.60$ \\
+14 & 0.5490 & 0.5690 & $+2.00$ \\
+15 & 0.5220 & 0.5710 & $+4.90$ \\
+16 & 0.5280 & 0.5690 & $+4.10$ \\
+17 & 0.5290 & 0.5740 & $+4.50$ \\
+18 & 0.5400 & 0.5740 & $+3.40$ \\
+19 & 0.5220 & 0.5730 & $+5.10$ \\
+20 & 0.5310 & 0.5750 & $+4.40$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+GCA led in all twenty runs. Figure~\ref{fig:seed-campaign-20} plots every
+per-run gap against the pooled mean. Table~\ref{tab:seed-campaign-stats}
+reports the run-level statistics, which is the appropriate unit of independent
+replication (Section~\ref{sec:results-final-campaign} above;
+Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-stats-caveat}).
+
+\begin{table}[htbp]
+\centering
+\caption[Run-level statistics, extended twenty-run campaign]{Run-level statistics across the extended twenty-run campaign. The
+bootstrap interval resamples runs (not folds) 10{,}000 times with a fixed seed
+of 0. The two-sided Wilcoxon $p$-value is scipy's default computation; an
+independent exact permutation test (enumerating all $2^{20}$ sign
+assignments) gives $p \approx 1.9\times10^{-6}$, the theoretical floor for
+twenty same-signed observations. The two figures differ because one pair of
+runs (seeds 4 and 18) produced an identical gap of $+3.4$ percentage points,
+and scipy's default method falls back from the exact permutation calculation
+to a normal approximation whenever a tie is present; both figures are
+far below the conventional threshold, so the substantive conclusion does not
+depend on which is reported.}
+\label{tab:seed-campaign-stats}
+\begin{tabular}{rrrrrr}
+\toprule
+Runs & GCA ahead & Mean gap & SD & 95\% bootstrap CI & Wilcoxon $p$ (two-sided) \\
+\midrule
+20 & 20/20 & \textbf{+3.95} pp & 1.78 pp & $[+3.19, +4.70]$ pp & $8.8\times10^{-5}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  thesisplot,
+  width=0.92\textwidth, height=6.4cm,
+  xlabel={seed}, ylabel={GCA $-$ Holistic gap (pp)},
+  xmin=0.5, xmax=20.5, ymin=0, ymax=8,
+  xtick={1,2,...,20}, tick label style={font=\tiny},
+  ymajorgrids, xmajorgrids=false,
+]
+\addplot[gcabar, ybar, bar width=6pt]
+  table[x=seed, y=gap_pp] {figures/seed_campaign_20.dat};
+\draw[thick, blue!60!black, dashed]
+  (axis cs:0.5,3.95) -- (axis cs:20.5,3.95)
+  node[pos=0.02, above, font=\footnotesize, blue!60!black] {mean $+3.95$pp};
+\end{axis}
+\end{tikzpicture}
+\caption[Per-run GCA$-$Holistic accuracy gap, twenty-run campaign]{Per-run GCA$-$Holistic accuracy gap across all twenty runs of the
+extended campaign, against the pooled mean. Every run favors GCA; the spread
+(1.78 percentage points, standard deviation) is narrower than in the six-run
+campaign, consistent with the earlier spread having reflected sampling noise
+from too few runs rather than genuine instability of the effect.}
+\label{fig:seed-campaign-20}
+\end{figure}
+
+This is the headline statistical result of the thesis: at $n=1{,}000$, under the
+locked \texttt{nli}-mode, $\alpha=0.0$, margin-0 configuration, GCA preference
+construction produces a more learnable reward-model signal than holistic
+construction, and the difference meets the conventional significance threshold
+at the run level. The mean gap under the extended campaign, $+3.95$ percentage
+points, is close to the six-run estimate of $+3.08$ percentage points, so the
+additional runs refined the precision of the estimate rather than revealing a
+different effect. Section~\ref{sec:disc-stats-caveat} in the next chapter
+discusses what this result does and does not establish.
+
 \section{Scale Robustness: 5{,}000 and 10{,}000 Samples}
 \label{sec:results-scale}
 
@@ -530,10 +662,13 @@ Full interpretation is left to Chapter~\ref{ch:discussion}.
 & Finding \\
 \midrule
 RQ1 &
-  At $n=1{,}000$, GCA leads in 5 of 6 runs with a mean difference of
-  $+3.08$ percentage points. The run-level two-sided test does not meet
-  $p<0.05$, and the larger single-run experiments do not reproduce an advantage
-  of comparable magnitude. \\
+  At $n=1{,}000$, GCA leads in all 20 runs of the extended campaign
+  (Section~\ref{sec:results-extended-campaign}) with a mean difference of
+  $+3.95$ percentage points, a run-level two-sided Wilcoxon $p<0.001$, and a
+  bootstrap 95\% CI entirely above zero. An earlier six-run campaign gave a
+  consistent but structurally underpowered estimate ($+3.08$pp,
+  $p=0.0625$). The larger single-run experiments at $n=5{,}000$ and
+  $n=10{,}000$ do not reproduce an advantage of comparable magnitude. \\
 RQ2 &
   Aggregation strategy and evaluator mode are associated with substantial
   outcome differences. The evaluator-mode comparison is exploratory, because

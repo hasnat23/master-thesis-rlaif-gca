@@ -1,0 +1,35 @@
+[
+  {
+    "backbone": "FacebookAI/roberta-base",
+    "max_length": 512,
+    "max_article_chars": 500,
+    "n_runs": 3,
+    "holistic": 0.5553333333333333,
+    "gca": 0.5850000000000001,
+    "gap": 0.02966666666666673,
+    "holistic_sd": 0.00923760430703402,
+    "gca_sd": 0.008544003745317538
+  },
+  {
+    "backbone": "FacebookAI/roberta-base",
+    "max_length": 512,
+    "max_article_chars": 1000,
+    "n_runs": 3,
+    "holistic": 0.5663333333333334,
+    "gca": 0.5903333333333334,
+    "gap": 0.02400000000000002,
+    "holistic_sd": 0.02136195996001617,
+    "gca_sd": 0.016010413278030395
+  },
+  {
+    "backbone": "FacebookAI/roberta-base",
+    "max_length": 512,
+    "max_article_chars": 2000,
+    "n_runs": 3,
+    "holistic": 0.5289999999999999,
+    "gca": 0.548,
+    "gap": 0.019000000000000128,
+    "holistic_sd": 0.01946792233393174,
+    "gca_sd": 0.029461839725312498
+  }
+]

@@ -126,38 +126,57 @@ hypothesis worth testing directly, rather than as a finding of this thesis
 \section{How Much Weight the Statistical Evidence Can Carry}
 \label{sec:disc-stats-caveat}
 
-The $n=1{,}000$ result is accompanied by a fold-level interval and a Wilcoxon
-$p$-value of 0.0034. Both are computed over 30 pooled fold-level differences, and
-it is necessary to state plainly how much they can support.
+The $n=1{,}000$ result was first assessed from a fold-level interval and a
+Wilcoxon $p$-value of 0.0034, computed over 30 pooled fold-level differences from
+six runs. It is necessary to state plainly how much that figure could support, and
+then to describe what changed once the campaign was extended.
 
 Those 30 differences are not 30 independent observations. Within a single run the
 five cross-validation folds partition one dataset: any two folds share four fifths
 of their training data, and all five evaluate models trained from the same pool of
 preference pairs. Their errors are correlated, so a test assuming independence
 treats the evidence as stronger than it is. The effective sample size lies between
-the number of runs (six) and the number of folds (30), and closer to the former.
-The fold-level $p$-value is therefore anti-conservative and is reported here as an
-exploratory summary, not as a hypothesis test.
+the number of runs and the number of folds, and closer to the former. The
+fold-level $p$-value is therefore anti-conservative and is reported as an
+exploratory summary, not as a hypothesis test, at either campaign size.
 
-The appropriate unit of independent replication is the run. Applying the same
-two-sided Wilcoxon signed-rank test to the six run-level differences
-($+0.060$, $+0.013$, $-0.010$, $+0.051$, $+0.032$, $+0.039$) gives $p = 0.0625$,
-which does not meet the conventional $0.05$ threshold; the one-sided test in the
-direction favouring GCA gives $p = 0.0312$. With six observations, five of them
-positive, $0.0625$ is in fact the smallest two-sided value the test can return, so
-this outcome reflects the number of runs available as much as the size of the
-effect. At the run level, then, the evidence does not meet the conventional
-threshold, and the thesis does not claim statistical significance for the
-$n=1{,}000$ result.
+The appropriate unit of independent replication is the run. Applying the two-sided
+Wilcoxon signed-rank test to the six run-level differences from the original
+campaign ($+0.060$, $+0.013$, $-0.010$, $+0.051$, $+0.032$, $+0.039$) gives
+$p = 0.0625$, which does not meet the conventional $0.05$ threshold. With six
+observations, five of them positive, $0.0625$ is in fact the smallest two-sided
+value the test can return, so that outcome reflected the number of runs available
+at least as much as the size of the effect: no result with five wins and one loss
+out of six paired observations can reach significance, regardless of how large or
+small the true difference is.
 
-Two properties of the result do not depend on any threshold. The difference is
-directionally consistent, favouring GCA in five of six runs that differ in both
-fold assignment and model initialization. And its magnitude, roughly three
-percentage points, is stable across pooling stages
-(Table~\ref{tab:evidence-progression}) rather than drifting as runs were added.
-What the evidence supports is a directionally consistent, repeatedly observed
-advantage of approximately that size under this configuration, not a demonstrated
-effect at a stated significance level.
+This is a genuine limitation of a six-run design, not a property of the
+underlying effect, and Chapter~\ref{ch:results},
+Section~\ref{sec:results-extended-campaign} reports what happened when it was
+addressed directly: the campaign was extended to twenty independently seeded
+runs under a corrected, fully deterministic training procedure. GCA led in all
+twenty, with a mean gap of $+3.95$ percentage points, a bootstrap 95\% confidence
+interval of $[+3.19, +4.70]$ points that does not cross zero, and a run-level
+two-sided Wilcoxon $p < 0.001$. This does meet the conventional significance
+threshold, and the effect size is close to the original six-run estimate,
+indicating that the earlier campaign's direction was not an artifact of having
+too few runs to trust, only too few to prove.
+
+Reaching significance changes what can be claimed, but it does not remove the
+need for the qualifications that surrounded the six-run result. Statistical
+significance at the run level establishes that GCA preferences are
+\emph{consistently more learnable} than holistic preferences by this
+reward-model architecture, under this evaluator configuration, at this dataset
+size, to a degree unlikely to arise from run-to-run noise alone. It does not by
+itself establish a large effect (Section~\ref{sec:disc-weak-signal} addresses
+the absolute accuracy level), an effect that generalizes to other scales
+(Section~\ref{sec:disc-scale}), or a mechanism (Section~\ref{sec:disc-interpretation}
+remains an interpretation, not confirmed by the extended campaign). What the
+evidence now supports is a directionally consistent, statistically significant
+advantage of approximately three to four percentage points under this
+configuration --- a materially stronger claim than the six-run campaign could
+support, but one that is still scoped to the conditions under which it was
+measured.
 
 \section{Both Reward Models Are Weak in Absolute Terms}
 \label{sec:disc-weak-signal}
@@ -173,24 +192,63 @@ This materially qualifies what the thesis shows. The finding is that GCA
 preferences are \emph{more learnable} than holistic preferences under the selected
 configuration, not that either produces a reward model one would want to deploy.
 A reward model at 0.56 accuracy would provide a very noisy training signal to any
-downstream policy, and the repeatedly observed $+3.08$ percentage-point advantage
-is an improvement to a weak signal rather than the difference between a weak and a
-strong one.
+downstream policy, and the significant $+3.95$ percentage-point advantage
+established in the extended campaign (Chapter~\ref{ch:results},
+Section~\ref{sec:results-extended-campaign}) is an improvement to a weak signal
+rather than the difference between a weak and a strong one.
 
 Several factors plausibly contribute to the low absolute numbers, and this thesis
 can separate them only partially. The task itself is genuinely hard: both
 candidate summaries in a pair are generated by the same model from the same
 article and differ only in sampling temperature, so many pairs are near-ties in
 factual quality, and a judge's preference between them may encode little
-learnable structure. The RoBERTa-base reward model \citep{liu2019roberta} is also small, and articles are
-truncated to 2{,}000 characters before tokenization
+learnable structure. The RoBERTa-base reward model \citep{liu2019roberta} is also
+small, and articles are truncated to 2{,}000 characters before tokenization
 (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}), so the model
 may simply not see enough of the source to verify many claims. The accuracies at
 $n=5{,}000$ and $n=10{,}000$ are higher for both conditions (0.58--0.59), which is
 consistent with more training data helping the reward model in general, even as
-the gap between conditions closes. Distinguishing these explanations would require
-ablations this thesis did not run, and the low absolute ceiling is recorded as a
-limitation in Chapter~\ref{ch:conclusion} rather than explained away.
+the gap between conditions closes.
+
+A preliminary ablation tested the truncation explanation directly by varying the
+retained article length under the RoBERTa-base backbone, three seeds per setting
+(Table~\ref{tab:truncation-ablation}). The result runs against the truncation
+hypothesis as originally stated: accuracy was \emph{higher} with less retained
+context (500 and 1{,}000 characters) than at the thesis's own 2{,}000-character
+setting, for both conditions. A plausible reading is that 2{,}000 characters is
+not actually more informative in practice, because the concatenation of article
+prefix and summary already exceeds the 512-token cap at that length
+(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}), so how much
+of the 2{,}000-character budget survives tokenization varies unpredictably with
+summary length across examples. A shorter, more consistently-applied budget may
+therefore produce a more uniform input distribution even though it discards more
+raw text. This ablation does not yet isolate that explanation from a simple
+backbone effect, since it was run only under RoBERTa-base; the two prepared but
+unexecuted arms of the same ablation, under \texttt{deberta-v3-base} at 512 and
+1{,}024 tokens, would hold the backbone fixed while varying context length and
+are recorded as future work (Chapter~\ref{ch:conclusion}). Taken as it stands,
+this result reframes rather than resolves the truncation question: raw article
+length is not the limiting factor it was hypothesized to be, at least not in the
+straightforward way of "more characters, more evidence, higher accuracy," and the
+low absolute ceiling remains only partially explained.
+
+\begin{table}[htbp]
+\centering
+\caption[Truncation ablation, RoBERTa-base arms]{Truncation ablation, RoBERTa-base arms (three seeds each). All three
+rows use the 512-token cap; \texttt{max\_article\_chars} is the character budget
+before tokenization. The \texttt{deberta-v3-base} arms (512 and 1{,}024 tokens)
+were prepared but not completed; see Chapter~\ref{ch:conclusion}.}
+\label{tab:truncation-ablation}
+\begin{tabular}{rrrrr}
+\toprule
+Max article chars & Holistic & GCA & Gap (GCA $-$ Holistic) \\
+\midrule
+500   & 0.5553 & 0.5850 & +2.97 \\
+1{,}000 & 0.5663 & 0.5903 & +2.40 \\
+2{,}000 & 0.5290 & 0.5480 & +1.90 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Interpreting the Larger-Scale Results}
 \label{sec:disc-scale}
@@ -341,25 +399,38 @@ precisely this reason \citep{reimers2017reporting}. The repeated-run design used
 here follows that recommendation, and the spread it exposes is the reason this
 thesis reports a distribution of gaps rather than a single headline number.
 
-This variation follows from an implementation property documented in
-Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}: the seed
-argument fixes the cross-validation fold assignment through Python's standard
-random number generator, but PyTorch's generator is not seeded in the
-cross-validation path. Several sources of training stochasticity are therefore
-uncontrolled, including reward-head weight initialization, the order in which
-training batches are drawn, and dropout masks. Runs are consequently not exactly
-reproducible from a seed value, which is a reproducibility weakness recorded in
-Chapter~\ref{ch:conclusion}. It also has an interpretive consequence: the two
-executions at seed 42 are genuine repetitions rather than duplicates, because they
-share the fold assignment but not the training stochasticity. The spread between
-them reflects uncontrolled training stochasticity, including weight
-initialization, rather than initialization alone.
+This variation traced back to an implementation property documented in
+Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}: in the
+original six-run campaign, the seed argument fixed the cross-validation fold
+assignment through Python's standard random number generator, but PyTorch's
+generator was not seeded in the cross-validation path. Several sources of
+training stochasticity were therefore uncontrolled, including reward-head weight
+initialization, the order in which training batches are drawn, and dropout
+masks. Runs were consequently not exactly reproducible from a seed value alone.
+This had an interpretive consequence at the time: the two executions at seed 42
+were genuine repetitions rather than duplicates, because they shared the fold
+assignment but not the training stochasticity, and the 4.7-point spread between
+them reflects that uncontrolled stochasticity rather than fold assignment alone.
 
-The practical implication generalizes beyond this study. At the accuracy levels
-and dataset sizes involved here, differences of one to two percentage points
-between conditions are within the range that a single run can produce by chance.
-Comparisons of preference-construction methods reported from single training runs
-at this scale should be treated with corresponding caution.
+This property has since been fixed --- PyTorch and CUDA are now seeded per fold,
+with an explicit generator for the training \texttt{DataLoader} and seeded
+worker initialization, so a run is fully determined by its seed on fixed
+hardware. The extended twenty-run campaign in Chapter~\ref{ch:results},
+Section~\ref{sec:results-extended-campaign} was carried out under this corrected
+procedure; each of its twenty seeds is consequently a genuinely independent and
+exactly reproducible sample, which is what made it meaningful to extend the
+campaign at all. The fix does not retroactively change the original six runs,
+which remain a documented instance of exactly the seed-sensitivity the
+literature describes, but it does mean the concern raised in this section no
+longer applies to the results this thesis reports as its headline finding.
+
+The practical implication generalizes beyond this study regardless of the fix.
+At the accuracy levels and dataset sizes involved here, differences of one to two
+percentage points between conditions are within the range that a single
+under-seeded run can produce by chance. Comparisons of preference-construction
+methods reported from single training runs at this scale, without controlling
+every source of training randomness, should be treated with corresponding
+caution.
 
 \section{Confounds That Remain}
 \label{sec:disc-confounds}
