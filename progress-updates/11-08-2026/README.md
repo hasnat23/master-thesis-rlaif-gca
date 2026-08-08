@@ -27,15 +27,16 @@ meeting:
 **Short answer: this step is done, and it is the central experiment of the
 thesis, not an outstanding one.** Section 2 gives the direct evidence —
 exact files, exact numbers, exact thesis sections. Section 3 goes further and
-reports two things completed since the 16 July progress note: a
+reports two things completed since our last meeting on 21 July: a
 statistical-power fix that turns the headline result from suggestive into
 significant, and a diagnostic experiment on why both reward models sit close
 to chance.
 
-The confusion likely traces back to the 16 July update predating the point at
-which the reward-model comparison was written up as the thesis's central
-result — at the time, the most visible artefact in the repository was still
-framed around the (later dropped) DPO pipeline.
+The confusion likely traces back to the 16 July progress note (written before
+our 21 July meeting) predating the point at which the reward-model comparison
+was written up as the thesis's central result — at the time, the most visible
+artefact in the repository was still framed around the (later dropped) DPO
+pipeline.
 
 ---
 
@@ -77,7 +78,7 @@ significant claim, which was not previously true (§3.1).
 
 ---
 
-## 3. Work Completed Since 16 July
+## 3. Work Completed Since Our Last Meeting (21 July)
 
 ### 3.1 A statistical-power problem in the existing result — diagnosed, fixed, and resolved
 
@@ -240,7 +241,7 @@ this repository.
 
 ## 5. Recorded Outputs
 
-### Code and infrastructure changes since 16 July
+### Code and infrastructure changes since 21 July
 
 ```text
 src/reward_model/run_training.py   — deterministic seeding fix
