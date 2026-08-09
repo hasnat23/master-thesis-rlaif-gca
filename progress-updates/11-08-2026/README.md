@@ -331,5 +331,12 @@ reports/campaigns_5000/, reports/campaigns_10000/                     (scale-cam
 
 ### Git
 
-All of the above is committed and pushed to `main` (final push to follow this
-update).
+All of the above is committed and pushed to `main`:
+
+```text
+64524e4  docs: add progress update for 11 August supervisor meeting
+c9853a5  thesis: extended seed campaign reaches significance; truncation ablation (partial)
+eebbb24  docs: update 11 August progress note with completed campaign results
+06ac258  progress: correct meeting date; add repeated-run campaigns at n=5,000/10,000
+1757b3b  thesis: repeated-run campaigns at n=5,000/10,000 confirm the advantage vanishes
+```
