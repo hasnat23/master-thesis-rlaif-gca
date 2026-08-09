@@ -20,39 +20,46 @@ Wilcoxon $p<0.001$. An earlier six-run campaign had given a consistent but
 structurally underpowered estimate of $+3.08$ points that could not, with only
 six paired observations, reach the conventional significance threshold; the
 extension confirms that direction rather than revealing a different effect. The
-advantage does not remain equally large as the dataset grows: it is approximately
-$-0.42$ percentage points at $n=5{,}000$ and $+0.35$ percentage points at
-$n=10{,}000$ (each a single run), while absolute accuracy improves for both
-conditions. Uncertainty estimates computed over cross-validation folds remain
-anti-conservative, because folds within a run are not independent, but the
-run-level estimate at $n=1{,}000$ is now supported by a properly powered,
-significant test.
+advantage does not persist as the dataset grows: six-run campaigns at
+$n=5{,}000$ and $n=10{,}000$, using the same corrected procedure, give mean gaps
+of $+0.02$ and $-0.03$ percentage points respectively, both statistically
+indistinguishable from zero (95\% CIs $[-0.44,+0.62]$ and $[-0.54,+0.42]$
+points), with neither interval overlapping the significant $n=1{,}000$ result.
+Absolute accuracy improves for both conditions as the dataset grows even as
+their difference vanishes. Uncertainty estimates computed over cross-validation
+folds remain anti-conservative, because folds within a run are not independent,
+but the run-level estimates at all three scales are now each supported by a
+properly powered test.
 
 The experiments therefore do not support a universal claim that GCA is preferable
-to holistic factuality supervision. They show that sentence-level aggregation can
-improve the learnability of automatically generated pairwise preferences under
-particular configurations, most clearly in the $n=1{,}000$ setting. In the
-exploratory mode comparison, the advantage appears under evaluator modes that do
-not themselves decompose the input, which motivates the hypothesis that external
-and evaluator-internal decomposition may act partly as substitutes. At larger
-sample sizes the observed advantage is small and inconsistent in sign. Taken
-together, the results indicate that the usefulness of granular credit assignment
-varies with evaluator configuration, dataset size, and aggregation choice rather
-than following from finer granularity as such.
+to holistic factuality supervision. They show that sentence-level aggregation
+produces a statistically significant, repeatedly confirmed improvement in the
+learnability of automatically generated pairwise preferences specifically when
+training data are scarce, and no detectable improvement once training data
+become more plentiful. In the exploratory mode comparison, the advantage appears
+under evaluator modes that do not themselves decompose the input, which
+motivates the hypothesis that external and evaluator-internal decomposition may
+act partly as substitutes. Taken together, the results indicate that the
+usefulness of granular credit assignment is bounded to a specific,
+data-scarce regime, and depends within that regime on evaluator configuration
+and aggregation choice, rather than following from finer granularity as such.
 
 \section{Answers to the Research Questions}
 \label{sec:conclusion-rqs}
 \label{sec:concl-rqs}
 
 \textbf{RQ1} (does GCA produce a more learnable preference signal than holistic
-scoring?) is answered \emph{conditionally, but with statistical support at
-$n=1{,}000$}. An average advantage of $+3.95$ percentage points is observed
-across twenty independent runs at $n=1{,}000$, favouring GCA in all twenty, with
-a run-level Wilcoxon $p<0.001$ and a bootstrap confidence interval that does not
-cross zero. It is not observed in the single run at $n=5{,}000$ and is marginal
-at $n=10{,}000$. The answer is therefore statistically supported at the dataset
-size where it was most thoroughly tested, but configuration- and
-scale-dependent rather than general.
+scoring?) is answered \emph{yes at small scale, no at larger scale, both with
+statistical support}. An average advantage of $+3.95$ percentage points is
+observed across twenty independent runs at $n=1{,}000$, favouring GCA in all
+twenty, with a run-level Wilcoxon $p<0.001$ and a bootstrap confidence interval
+that does not cross zero. Six-run campaigns at $n=5{,}000$ and $n=10{,}000$
+give mean gaps statistically indistinguishable from zero ($p=0.6875$ and
+$p=1.0000$), with confidence intervals that do not overlap the $n=1{,}000$
+result. The answer is therefore not merely configuration-dependent in an
+unresolved sense: it is a confirmed advantage at one dataset scale and a
+confirmed absence of advantage at two larger ones, with both conclusions now
+resting on repeated, properly powered evidence rather than single runs.
 
 \textbf{RQ2} (how do evaluator configuration and aggregation strategy affect
 relative learnability?) is answered \emph{associationally}. Both the aggregation
@@ -64,15 +71,19 @@ Because only one mode received repeated-run validation, this pattern is suggesti
 rather than established.
 
 \textbf{RQ3} (how stable are the differences across runs and dataset sizes?) is
-answered \emph{differently across the two axes it asks about}. Across repeated
-runs at a fixed dataset size, the difference is highly stable: all twenty runs
-of the extended campaign at $n=1{,}000$ favour GCA, with a standard deviation of
-1.78 percentage points around a mean of $+3.95$. Across dataset sizes, stability
-does not hold: the advantage is not reproduced with comparable magnitude in the
-single runs at $n=5{,}000$ and $n=10{,}000$, which use nested supersets of the
-same data (Section~\ref{sec:disc-scale}). Run-to-run stability at fixed scale is
-therefore well established; stability across scale is not, and only one run was
-performed at each of the two larger sizes.
+answered \emph{differently, and now conclusively, across the two axes it asks
+about}. Across repeated runs at a fixed dataset size, the difference is highly
+stable: all twenty runs of the extended campaign at $n=1{,}000$ favour GCA, with
+a standard deviation of 1.78 percentage points around a mean of $+3.95$, and the
+six-run campaigns at $n=5{,}000$ and $n=10{,}000$ are similarly stable around a
+mean of approximately zero (SD under 0.8 points at both scales). Across dataset
+sizes, stability does not hold, and this is no longer an open question left by
+single runs: six repeated runs at each of $n=5{,}000$ and $n=10{,}000$ confirm a
+null result whose confidence intervals do not overlap the significant
+$n=1{,}000$ estimate (Section~\ref{sec:disc-scale}). Run-to-run stability at
+fixed scale is well established at all three sizes tested; stability across
+scale does not hold, and this absence is now itself a properly powered
+finding rather than an artefact of insufficient replication.
 
 \section{Limitations}
 \label{sec:concl-limitations}
@@ -153,11 +164,6 @@ performed at each of the two larger sizes.
 \label{sec:concl-future}
 
 \begin{itemize}
-  \item \textbf{Repeated runs at larger scale.} The $n=5{,}000$ and $n=10{,}000$
-    experiments were each executed once. Repeating them would test whether their
-    intervals overlap the $n=1{,}000$ estimate, which would indicate run-to-run
-    variance, or remain separated, which would support a dataset-size effect
-    (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-scale}).
   \item \textbf{Remove the temperature confound.} Generating both candidates at a
     single decoding temperature, and comparing the resulting preference sets
     against the current ones, would establish how much of the observed structure

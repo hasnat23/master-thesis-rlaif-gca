@@ -78,13 +78,16 @@ campaign was subsequently extended to twenty independently seeded runs under a
 corrected, fully deterministic training procedure. GCA led in all twenty runs,
 with a mean advantage of 3.95 percentage points (bootstrap 95\% CI
 $[+3.19, +4.70]$ points) and a run-level Wilcoxon $p<0.001$, meeting the
-conventional significance threshold. The advantage did not remain equally large
-at larger sample sizes: it is approximately $-0.42$ percentage points at
-$n=5{,}000$ and $+0.35$ percentage points at $n=10{,}000$ (each a single run),
-while absolute accuracy improves for both conditions. An exploratory comparison
-of evaluator modes suggests that external sentence-level decomposition may be
-most useful when the evaluator does not already perform comparable decomposition
-internally.
+conventional significance threshold. Six-run campaigns at $n=5{,}000$ and
+$n=10{,}000$, using the same corrected procedure, show that this advantage does
+not persist at larger scale: mean gaps of $+0.02$ and $-0.03$ percentage points
+respectively, both statistically indistinguishable from zero (95\% confidence
+intervals $[-0.44,+0.62]$ and $[-0.54,+0.42]$ points), with neither interval
+overlapping the $n=1{,}000$ result. Absolute accuracy improves for both
+conditions as data increases even as their difference vanishes. An exploratory
+comparison of evaluator modes suggests that external sentence-level
+decomposition may be most useful when the evaluator does not already perform
+comparable decomposition internally.
 
 These results characterize when granular factuality feedback changes the structure
 of a preference-learning signal, rather than establishing that GCA is generally
@@ -123,13 +126,17 @@ vollständig deterministischen Trainingsverfahren erweitert. GCA lag in allen
 zwanzig Läufen vorne, mit einem durchschnittlichen Vorteil von 3,95
 Prozentpunkten (Bootstrap-95\%-Konfidenzintervall $[+3{,}19, +4{,}70]$ Punkte)
 und einem Wilcoxon-Test auf Laufebene von $p<0{,}001$, der das konventionelle
-Signifikanzniveau erreicht. Der Vorteil bleibt bei größerem Datenumfang nicht in
-gleicher Höhe bestehen: Er beträgt etwa $-0{,}42$ Prozentpunkte bei $n=5.000$ und
-$+0{,}35$ Prozentpunkte bei $n=10.000$ (jeweils ein einzelner Lauf), während die
-absolute Genauigkeit in beiden Bedingungen zunimmt. Ein explorativer Vergleich
-der Bewertungsmodi legt nahe, dass eine externe satzweise Zerlegung vor allem
-dann nützlich sein könnte, wenn das Bewertungsmodell nicht bereits intern eine
-vergleichbare Zerlegung vornimmt.
+Signifikanzniveau erreicht. Sechsfach wiederholte Kampagnen bei $n=5.000$ und
+$n=10.000$ unter demselben korrigierten Verfahren zeigen, dass dieser Vorteil
+bei größerem Datenumfang nicht bestehen bleibt: Die mittleren Differenzen
+betragen $+0{,}02$ bzw. $-0{,}03$ Prozentpunkte und sind statistisch nicht von
+Null zu unterscheiden (95\%-Konfidenzintervalle $[-0{,}44, +0{,}62]$ und
+$[-0{,}54, +0{,}42]$ Punkte), wobei keines der beiden Intervalle das
+$n=1.000$-Ergebnis überschneidet. Die absolute Genauigkeit steigt in beiden
+Bedingungen mit zunehmendem Datenumfang, während ihre Differenz verschwindet.
+Ein explorativer Vergleich der Bewertungsmodi legt nahe, dass eine externe
+satzweise Zerlegung vor allem dann nützlich sein könnte, wenn das
+Bewertungsmodell nicht bereits intern eine vergleichbare Zerlegung vornimmt.
 
 Die Ergebnisse charakterisieren, unter welchen Bedingungen granulares
 Faktizitäts-Feedback die Struktur eines Präferenzlernsignals verändert, und

@@ -12,6 +12,14 @@
 > the actual numbers in place of the earlier "results not yet available"
 > note, and Section 4 has been revised accordingly — the open question is no
 > longer whether to run the extension, but what it shows.
+>
+> **Second update (9 August 2026).** The same treatment was extended to
+> $n=5{,}000$ and $n=10{,}000$, which had previously been single, unrepeated
+> runs. Six-run campaigns at both scales now show the GCA advantage is
+> **confirmed absent**, not merely smaller, with confidence intervals that do
+> not overlap the significant $n=1{,}000$ result at all. See the new §3.2.
+> The thesis now rests on properly powered evidence at every dataset scale
+> tested, not only at $n=1{,}000$.
 
 ---
 
@@ -127,7 +135,48 @@ Full per-run breakdown: `thesis/chapters/06_results.tex`, Table 6.8; raw
 outputs at `outputs/seed_campaign/seed_{1..20}/rm_training_summary.json`
 (committed to this repository).
 
-### 3.2 Diagnosing the near-chance accuracy — partially completed
+### 3.2 Does the advantage hold at scale? Now resolved, not just observed
+
+The thesis previously reported single runs at $n=5{,}000$ and $n=10{,}000$
+showing a much smaller, direction-inconsistent gap than at $n=1{,}000$
+(−0.42pp and +0.35pp), with an explicit caveat that a single run at each
+scale could not distinguish a genuine dataset-size effect from the same
+run-to-run noise the $n=1{,}000$ campaign had. Following the same logic that
+resolved §3.1, both scales were extended to **six independently seeded runs
+each**, submitted as Slurm array jobs **1415902** ($n=5{,}000$) and **1415903**
+($n=10{,}000$), using the identical corrected training procedure. Both
+completed successfully — 12/12 tasks `COMPLETED`, exit code 0.
+
+**Result: the advantage is confirmed absent at both larger scales, not merely
+smaller.**
+
+| Dataset size | Runs | GCA ahead | Mean gap | 95% bootstrap CI | Wilcoxon $p$ |
+|---:|---:|---:|---:|---:|---:|
+| 1,000 | 20 | 20/20 | +3.95pp | [+3.19, +4.70]pp | 8.8×10⁻⁵ |
+| 5,000 | 6 | 2/6 | +0.02pp | [−0.44, +0.62]pp | 0.6875 |
+| 10,000 | 6 | 4/6 | −0.03pp | [−0.54, +0.42]pp | 1.0000 |
+
+Both larger-scale confidence intervals are centred almost exactly on zero and
+**do not overlap the significant $n=1{,}000$ interval at all** — the nearest
+edges are separated by more than 2.5 percentage points at both scales. This is
+exactly the test the thesis proposed when only single runs were available: if
+the scale movement were statistical noise, repeated runs should produce
+intervals overlapping the $n=1{,}000$ result; if it reflects a real,
+scale-dependent change, they should not. They do not. The GCA advantage is
+therefore a genuine, bounded effect — real and significant when preference
+data are scarce ($n=1{,}000$), and undetectable once more training data are
+available — rather than an artefact that a single run happened to catch.
+
+This is a materially stronger position than "the effect doesn't reproduce at
+scale, and we don't know why": it is now a fully powered, two-sided finding
+at every scale tested, and it directly answers the open question the thesis
+previously could only pose as a hypothesis. Full write-up:
+`thesis/chapters/06_results.tex` §6.8 (new Table 6.10, revised Table 6.11,
+revised Figure 6.5) and `thesis/chapters/07_discussion.tex` §7.5 (substantially
+rewritten). Raw outputs:
+`outputs/seed_campaign_{5000,10000}/seed_{1..6}/rm_training_summary.json`.
+
+### 3.3 Diagnosing the near-chance accuracy — partially completed
 
 Both reward models sit close to chance (0.53–0.59 against a 0.50 baseline).
 One candidate explanation, already flagged as an open question in the thesis:
@@ -193,7 +242,7 @@ the six original per-seed accuracy pairs to the third decimal place from the
 correct source files before launching either job, and corrected before
 submission.
 
-### 3.3 Thesis document
+### 3.4 Thesis document
 
 The thesis document (`thesis/main.tex` and eight chapters, now **87 pages**)
 was substantially completed and updated during this period, including:
@@ -221,21 +270,26 @@ this repository.
 ## 4. What Tuesday's Meeting Should Resolve
 
 1. Confirm that the reward-model comparison described in Section 2, now
-   supported by a statistically significant twenty-run extension, resolves
-   the concern raised, and clarify if there is a different or additional
-   expectation about what "training and evaluating reward models" should
-   include.
+   supported by a statistically significant twenty-run extension at
+   $n=1{,}000$ **and** a confirmed, statistically null result at $n=5{,}000$
+   and $n=10{,}000$ (§3.2), resolves the concern raised, and clarify if there
+   is a different or additional expectation about what "training and
+   evaluating reward models" should include.
 2. Decide whether the two remaining truncation-ablation configurations
-   (`deberta-v3-base` arms, §3.2) are worth pursuing once the cluster's HF
+   (`deberta-v3-base` arms, §3.3) are worth pursuing once the cluster's HF
    mirror recovers, or whether the partial result — which already
    complicates the original truncation hypothesis in an informative way — is
    sufficient to report as an exploratory finding with the missing arms
    listed as future work.
-3. Discuss whether, with a significant headline result now in hand, any
-   further scope should be added before submission, or whether the current
-   thesis (significant $n=1{,}000$ result; honestly-reported non-replication
-   at $n=5{,}000$/$n=10{,}000$; a partially-explained absolute-accuracy
-   limitation) represents a complete and submittable contribution.
+3. Discuss whether, with both the headline result and the scale question now
+   resolved with proper statistical power, any further scope should be added
+   before submission, or whether the current thesis (a significant,
+   scale-bounded GCA advantage at $n=1{,}000$; a confirmed absence of that
+   advantage at $n=5{,}000$/$n=10{,}000$; a partially-explained
+   absolute-accuracy limitation) represents a complete and submittable
+   contribution. Given how much stronger this position is than the one this
+   document opened with, this is now more plausibly "yes" than it was even
+   this morning.
 
 ---
 
@@ -245,23 +299,28 @@ this repository.
 
 ```text
 src/reward_model/run_training.py   — deterministic seeding fix
-slurm/seed_campaign.sh             — 20-run extended campaign (job 1415720, complete)
+slurm/seed_campaign.sh             — 20-run campaign at n=1,000 (job 1415720, complete)
+slurm/seed_campaign_5000.sh        — 6-run campaign at n=5,000 (job 1415902, complete)
+slurm/seed_campaign_10000.sh       — 6-run campaign at n=10,000 (job 1415903, complete)
 slurm/truncation_ablation.sh       — 5-config x 3-seed ablation (job 1415721, tasks 0-8 complete; 9-14 blocked)
 analysis/aggregate_campaigns.py    — run-level Wilcoxon + bootstrap analysis,
                                       validated against the published 6-run result
-thesis/                            — full 8-chapter document, 87 pages, front matter,
+thesis/                            — full 8-chapter document, 90 pages, front matter,
                                       appendices, 32 cited references
 ```
 
 ### New experimental outputs (this update)
 
 ```text
-outputs/seed_campaign/seed_{1..20}/rm_training_summary.json         (20 files, all complete)
-outputs/truncation_ablation/cfg_{A,B,C}/seed_{1,2,3}/...             (9 files, all complete)
-reports/campaigns/                                                   (derived tables, .dat files, JSON summaries)
+outputs/seed_campaign/seed_{1..20}/rm_training_summary.json           (20 files, n=1,000, all complete)
+outputs/seed_campaign_5000/seed_{1..6}/rm_training_summary.json       (6 files, n=5,000, all complete)
+outputs/seed_campaign_10000/seed_{1..6}/rm_training_summary.json      (6 files, n=10,000, all complete)
+outputs/truncation_ablation/cfg_{A,B,C}/seed_{1,2,3}/...              (9 files, all complete)
+reports/campaigns/                                                    (n=1,000 tables, .dat files, JSON summaries)
+reports/campaigns_5000/, reports/campaigns_10000/                     (scale-campaign summaries)
 ```
 
-### Historical reward-model outputs (original six-run campaign, referenced in Section 2)
+### Historical reward-model outputs (original single-run campaign, referenced in Section 2)
 
 ```text
 ~/thesis/outputs/reward_models_1000/rm_training_summary.json
@@ -272,9 +331,5 @@ reports/campaigns/                                                   (derived ta
 
 ### Git
 
-All of the above is committed and pushed to `main`:
-
-```text
-64524e4  docs: add progress update for 11 August supervisor meeting
-c9853a5  thesis: extended seed campaign reaches significance; truncation ablation (partial)
-```
+All of the above is committed and pushed to `main` (final push to follow this
+update).

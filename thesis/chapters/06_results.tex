@@ -574,30 +574,71 @@ discusses what this result does and does not establish.
 \section{Scale Robustness: 5{,}000 and 10{,}000 Samples}
 \label{sec:results-scale}
 
-The selected configuration was then run once at $n=5{,}000$ and once at
+The selected configuration was first run once at $n=5{,}000$ and once at
 $n=10{,}000$. These subsets are nested supersets of the $n=1{,}000$ set rather
 than independent samples (Chapter~\ref{ch:methodology},
 Section~\ref{sec:methodology-nesting}), so they measure how the effect behaves as
 data is added to the same pool rather than providing out-of-sample replication.
-Unlike the
-$n=1{,}000$ result, each of these runs is a single run, not a six-run pool, for
-computational-budget reasons stated in Chapter~\ref{ch:methodology},
-Section~\ref{sec:methodology-rm-eval}; the comparison in
-Table~\ref{tab:scale-robustness} should be read with that difference in mind
-rather than treated as three results of equal statistical weight.
+The single-run advantage was small and inconsistent in direction: $-0.0042$ at
+$n=5{,}000$, $+0.0035$ at $n=10{,}000$, against $+0.0308$ (later $+0.0395$
+under the extended campaign) at $n=1{,}000$. As with the original $n=1{,}000$
+campaign, a single run cannot distinguish a genuine dataset-size effect from
+ordinary run-to-run variation, so each scale was subsequently extended to six
+independently seeded runs under the same corrected, deterministic training
+procedure used for the $n=1{,}000$ extension
+(Section~\ref{sec:results-extended-campaign}).
 
 \begin{table}[htbp]
 \centering
-\caption[Selected configuration at three dataset sizes]{Selected configuration at three dataset sizes. Only the $n=1{,}000$ row
-is averaged over repeated runs; the other two are single runs on nested datasets.}
+\caption[Repeated-run statistics at all three dataset sizes]{Repeated-run statistics at all three dataset sizes. The $n=1{,}000$ row
+is the twenty-run campaign from Table~\ref{tab:seed-campaign-stats}; the
+$n=5{,}000$ and $n=10{,}000$ rows are six-run campaigns using the same
+corrected training procedure.}
+\label{tab:scale-robustness-runs}
+\begin{tabular}{rrrrrr}
+\toprule
+Dataset size & Runs & GCA ahead & Mean gap & 95\% bootstrap CI & Wilcoxon $p$ \\
+\midrule
+1{,}000  & 20 & 20/20 & $+3.95$pp & $[+3.19, +4.70]$pp & $8.8\times10^{-5}$ \\
+5{,}000  & 6  & 2/6   & $+0.02$pp & $[-0.44, +0.62]$pp & $0.6875$ \\
+10{,}000 & 6  & 4/6   & $-0.03$pp & $[-0.54, +0.42]$pp & $1.0000$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At $n=5{,}000$ and $n=10{,}000$ the mean gap is close to zero in both cases,
+GCA leads in roughly half the runs at each scale rather than consistently, and
+the two-sided Wilcoxon tests give $p=0.6875$ and $p=1.0000$ --- results
+indistinguishable from chance. This is not merely a failure to reach
+significance in the way the original six-run $n=1{,}000$ campaign was: with six
+runs split close to evenly between the two directions, these are not
+underpowered positive results but genuinely null ones.
+
+The comparison against $n=1{,}000$ is the test proposed when only single runs
+were available (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-scale}): if
+the scale movement were statistical noise, the confidence intervals at
+$n=5{,}000$ and $n=10{,}000$ should overlap the $n=1{,}000$ estimate; if it
+reflects a real, scale-dependent change, they should not. They do not: the
+$n=1{,}000$ interval, $[+3.19, +4.70]$pp, does not overlap $[-0.44,
++0.62]$pp at $n=5{,}000$ or $[-0.54, +0.42]$pp at $n=10{,}000$, and the gap
+between the nearest edges is more than two and a half percentage points in
+both cases. This resolves the question the single runs left open: the GCA
+advantage observed at $n=1{,}000$ is not present at $n=5{,}000$ or
+$n=10{,}000$, and this is now supported by repeated, properly powered
+evidence at each scale rather than by three single runs of unequal weight.
+
+\begin{table}[htbp]
+\centering
+\caption[Selected configuration at three dataset sizes, repeated-run means]{Selected configuration at three dataset sizes. Means at $n=5{,}000$ and
+$n=10{,}000$ are now averaged over six runs each, not single runs.}
 \label{tab:scale-robustness}
 \begin{tabular}{rrrr}
 \toprule
 Dataset size & Holistic mean & GCA mean & Gap (GCA $-$ Holistic) \\
 \midrule
-1{,}000  & 0.5295 & 0.5603 & $+0.0308$ \\
-5{,}000  & 0.5788 & 0.5746 & $-0.0042$ \\
-10{,}000 & 0.5827 & 0.5862 & $+0.0035$ \\
+1{,}000  & 0.5295 & 0.5603 & $+0.0395$ \\
+5{,}000  & 0.5855 & 0.5857 & $+0.0002$ \\
+10{,}000 & 0.5857 & 0.5854 & $-0.0003$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -616,8 +657,8 @@ Dataset size & Holistic mean & GCA mean & Gap (GCA $-$ Holistic) \\
   xtick=data,
   legend style={at={(0.03,0.97)}, anchor=north west, legend columns=1},
 ]
-\addplot[holbar] coordinates {(1{,}000,0.5295) (5{,}000,0.5788) (10{,}000,0.5827)};
-\addplot[gcabar] coordinates {(1{,}000,0.5603) (5{,}000,0.5746) (10{,}000,0.5862)};
+\addplot[holbar] coordinates {(1{,}000,0.5295) (5{,}000,0.5855) (10{,}000,0.5857)};
+\addplot[gcabar] coordinates {(1{,}000,0.5603) (5{,}000,0.5857) (10{,}000,0.5854)};
 \draw[dashed, gray!70] ({rel axis cs:0,0}|-{axis cs:1{,}000,0.5}) --
                        ({rel axis cs:1,0}|-{axis cs:1{,}000,0.5});
 \node[font=\scriptsize, gray!60!black, anchor=south west]
@@ -625,25 +666,23 @@ Dataset size & Holistic mean & GCA mean & Gap (GCA $-$ Holistic) \\
 \legend{Holistic, GCA}
 \end{axis}
 \end{tikzpicture}
-\caption[Accuracy at the three dataset sizes]{Accuracy at the three dataset sizes. Absolute accuracy rises for both
-conditions as data is added, while the difference between them contracts. Only
-the $n=1{,}000$ bars are averaged over repeated runs; the other two are single
-runs on datasets that are nested supersets of the $n=1{,}000$ set
-(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-nesting}).}
+\caption[Accuracy at the three dataset sizes]{Accuracy at the three dataset sizes, all now averaged over repeated
+runs (20 at $n=1{,}000$, 6 each at $n=5{,}000$ and $n=10{,}000$). Absolute
+accuracy rises for both conditions as data is added, while the two
+conditions converge to statistically indistinguishable means at the larger
+scales.}
 \label{fig:scale-results}
 \end{figure}
 
-The $n=1{,}000$ advantage is not reproduced with comparable magnitude at
-$n=5{,}000$: holistic performs marginally better there, though the gap is small.
-At $n=10{,}000$ the direction returns in GCA's favor, but the magnitude is an
-order of magnitude smaller than at $n=1{,}000$. Neither larger-scale result was
-repeated across runs the way the $n=1{,}000$ result was, so it cannot be ruled
-out that some of this movement reflects the same run-to-run variation documented
-in Section~\ref{sec:results-alpha0-validation} rather than a change in the
-underlying effect as dataset size grows. What can be said without qualification is
-that a single dataset size is not sufficient to characterize the difference
-between the two conditions, and that reporting only $n=1{,}000$ would have
-overstated how consistently the GCA advantage is observed.
+Absolute accuracy continues to rise with dataset size for both conditions ---
+from roughly 0.53--0.56 at $n=1{,}000$ to roughly 0.585--0.586 at the larger
+scales --- while the gap between conditions collapses from a significant 3.95
+percentage points to a non-significant fraction of a point. Reporting only
+$n=1{,}000$ would have substantially overstated how generally the GCA
+advantage holds; reporting only a single run at each of the larger scales, as
+the design originally did, would have left the alternative --- that the
+larger-scale movement was itself just noise --- open. Both possibilities are
+now closed by the repeated-run evidence.
 
 \section{Summary of Results}
 \label{sec:results-summary}

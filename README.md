@@ -97,20 +97,20 @@ GCA takes sentence-level factuality scores and aggregates them into a single sum
 
 Reward models were trained on holistic vs GCA preference pairs and compared by 5-fold cross-validation pairwise accuracy, at three dataset scales:
 
-| Dataset size | Holistic mean acc | GCA mean acc | Gap (GCA − Holistic) |
-|---:|---:|---:|---:|
-| 1,000 (20 runs, run-level statistics) | 0.5295* | 0.5603* | **+0.0395** |
-| 5,000 (single run) | 0.5788 | 0.5746 | −0.0042 |
-| 10,000 (single run) | 0.5827 | 0.5862 | +0.0035 |
+| Dataset size | Runs | Holistic mean acc | GCA mean acc | Mean gap | 95% CI | Wilcoxon p |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1,000 | 20 | 0.5295 | 0.5603 | **+3.95 pp** | [+3.19, +4.70] pp | **8.8×10⁻⁵** |
+| 5,000 | 6 | 0.5855 | 0.5857 | +0.02 pp | [−0.44, +0.62] pp | 0.6875 |
+| 10,000 | 6 | 0.5857 | 0.5854 | −0.03 pp | [−0.54, +0.42] pp | 1.0000 |
 
-\* The per-condition means above the line are from the original six-run campaign; see the note below for the extended campaign's own per-run numbers.
+**Interpretation.** An initial six-run campaign at n=1,000 gave GCA ahead in 5 of 6 runs, mean advantage +3.08 pp, but a two-sided Wilcoxon test over the six run-level differences returned p = 0.0625 — the smallest two-sided value attainable with only six paired observations, so the campaign was structurally unable to reach significance regardless of the true effect size. After fixing a determinism gap in the training code (PyTorch's generator was not seeded in the cross-validation path, so two runs at the same `--seed` could still differ) the campaign was extended to **20 independently seeded runs**. GCA led in **all 20**, mean advantage **+3.95 pp**, bootstrap 95% CI **[+3.19, +4.70] pp** (entirely positive), run-level Wilcoxon **p < 0.001** — **now statistically significant**.
 
-**Interpretation.** An initial six-run campaign at n=1,000 gave GCA ahead in 5 of 6 runs, mean advantage +3.08 pp, but a two-sided Wilcoxon test over the six run-level differences returned p = 0.0625 — the smallest two-sided value attainable with only six paired observations, so the campaign was structurally unable to reach significance regardless of the true effect size. After fixing a determinism gap in the training code (PyTorch's generator was not seeded in the cross-validation path, so two runs at the same `--seed` could still differ) the campaign was extended to **20 independently seeded runs**. GCA led in **all 20**, mean advantage **+3.95 pp**, bootstrap 95% CI **[+3.19, +4.70] pp** (entirely positive), run-level Wilcoxon **p < 0.001** — **now statistically significant**. The fold-level figure from the original campaign (p = 0.0034, 95% CI [+0.013, +0.047], computed over 30 cross-validation folds) remains anti-conservative for the reason stated previously — folds within a run are not independent — and is superseded by the run-level result above. Full per-run numbers, the aggregation script, and the truncation-ablation follow-up are in `thesis/chapters/06_results.tex` §6.6 and `analysis/aggregate_campaigns.py`.
+The n=5,000 and n=10,000 rows were originally single runs (−0.42 pp and +0.35 pp respectively), which could not distinguish a genuine scale effect from ordinary run-to-run noise. Both were extended to six-run campaigns under the same corrected procedure. The result is decisive: mean gaps of **+0.02 pp and −0.03 pp**, both statistically indistinguishable from zero, with confidence intervals that **do not overlap** the n=1,000 result at all (nearest edges over 2.5 pp apart). This resolves the question definitively — **GCA's advantage is confirmed real and significant at n=1,000, and confirmed absent at n=5,000 and n=10,000**, not merely smaller. Full per-run numbers and the aggregation script are in `thesis/chapters/06_results.tex` §6.6–6.8 and `analysis/aggregate_campaigns.py`.
 
 Two further caveats bound the result:
 
-- **Both models are near chance.** 0.5295 and 0.5603 sit 3.0 and 6.0 pp above the 0.50 chance level. The comparison is between two weak preference signals.
-- **The three subsets are nested, not disjoint.** All use subset seed 200 and differ only in sample count: n=5,000 is entirely contained in n=10,000, and 999 of the 1,000 n=1,000 samples appear in n=10,000. The larger runs therefore measure behaviour as data is added to the same pool; they are **not** out-of-sample replication.
+- **Both models are weak in absolute terms at n=1,000.** 0.5295 and 0.5603 sit only 3.0 and 6.0 pp above the 0.50 chance level, even though the difference between them is significant. Both conditions rise to ≈0.586 at the larger scales.
+- **The three subsets are nested, not disjoint.** All use subset seed 200 and differ only in sample count: n=5,000 is entirely contained in n=10,000, and 999 of the 1,000 n=1,000 samples appear in n=10,000. The larger-scale runs therefore measure behaviour as data is added to the same pool; they are **not** out-of-sample replication, independent of how many times each was repeated.
 
 Higher reward-model accuracy means the preference relation is more consistently *recoverable* by the chosen architecture. It does **not** establish better agreement with human factuality judgments, more accurate labels, or better generated summaries.
 

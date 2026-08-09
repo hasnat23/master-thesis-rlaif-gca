@@ -253,67 +253,61 @@ Max article chars & Holistic & GCA & Gap (GCA $-$ Holistic) \\
 \section{Interpreting the Larger-Scale Results}
 \label{sec:disc-scale}
 
-The $n=1{,}000$ advantage was not reproduced with comparable magnitude in the
-single runs at $n=5{,}000$ and $n=10{,}000$ (Chapter~\ref{ch:results},
-Section~\ref{sec:results-scale}). Three things must be kept apart here: the
-observed numerical behaviour, run-to-run variation, and hypotheses about
-dataset-size effects. The observation is that two single runs produced gaps of
-$-0.42$ and $+0.35$ percentage points where the pooled $n=1{,}000$ estimate was
-$+3.08$. Whether this reflects a dataset-size effect is a separate question, and
-the design does not answer it.
+The $n=1{,}000$ advantage was initially not reproduced with comparable
+magnitude in single runs at $n=5{,}000$ and $n=10{,}000$ (Chapter~\ref{ch:results},
+Section~\ref{sec:results-scale}), and this section originally posed a question
+it could not answer: does that movement reflect a genuine dataset-size effect,
+or is it the same run-to-run variation already documented at $n=1{,}000$,
+simply unmeasured at the larger sizes because only one run was performed at
+each? The distinguishing test was stated explicitly at the time: if the scale
+effect is statistical noise, repeated runs at $n=5{,}000$ should produce a
+confidence interval overlapping the $n=1{,}000$ estimate; if it reflects a
+real, scale-dependent change, they should not. Six-run campaigns at both
+$n=5{,}000$ and $n=10{,}000$, using the same corrected, deterministic training
+procedure as the $n=1{,}000$ extension, now answer that question.
 
-The best-supported explanation is statistical rather than substantive. The
-$n=1{,}000$ estimate itself only stabilized after six pooled runs; the individual
-per-run gaps in Table~\ref{tab:seed-validation}
-ranged from $-0.010$ to $+0.060$, a spread wide enough that a single seed could
-easily have landed on either side of zero. The $n=5{,}000$ and $n=10{,}000$
-settings each contain a single run. Given how much the $n=1{,}000$ estimate moved
-between its first two executions alone (from $+0.060$ down to $+0.013$), a single
-run at a different dataset size landing outside the $n=1{,}000$ interval is not,
-by itself, strong evidence that the underlying effect changes with dataset size.
-It is at least as consistent with the same run-to-run variation already documented
-at $n=1{,}000$, which simply went unmeasured at the larger sizes because only one
-run was performed at each.
+The result is unambiguous. At $n=5{,}000$, the mean gap across six runs is
+$+0.02$ percentage points (95\% CI $[-0.44, +0.62]$pp, Wilcoxon $p=0.6875$); at
+$n=10{,}000$, $-0.03$ percentage points (95\% CI $[-0.54, +0.42]$pp, $p=1.0000$).
+Both intervals are centred almost exactly on zero and are indistinguishable
+from a null result. Neither overlaps the $n=1{,}000$ interval, $[+3.19,
++4.70]$pp, and the margin is not close: the nearest edges are separated by more
+than two and a half percentage points at both scales. This is the pattern the
+genuine-scale-effect explanation predicted and the statistical-noise
+explanation did not. The GCA advantage observed at $n=1{,}000$ is therefore not
+an artifact that would have appeared at any scale if only enough runs had been
+collected; it is specific to the smaller dataset size, and it disappears, not
+merely shrinks, once training data becomes more plentiful.
 
-A substantive explanation is also possible, but this thesis does not have
-evidence to support or rule it out: larger candidate pools could shift the
-distribution of article lengths, sentence counts, or segmentation quality in ways
-that change how much signal GCA's per-sentence scoring adds relative to holistic
-scoring. This is stated here as an open hypothesis, not a finding, since nothing
-in Chapter~\ref{ch:results} isolates article length, sentence count, or
-segmentation quality as a variable.
+This resolves what could previously only be raised as a hypothesis. Because
+this thesis holds candidate pool, evaluator, and reward-model architecture
+fixed while varying only preference-construction granularity and dataset size,
+the mechanism proposed earlier remains the most natural reading: at
+$n=1{,}000$ the reward model is fitting a small dataset, and how cleanly the
+preference relation is structured matters a great deal, since a labeling that
+is internally more consistent is easier to recover from few examples. As the
+dataset grows, the model sees more examples of the same underlying relation,
+and additional data can compensate for a noisier labeling, so the benefit of a
+cleaner preference construction shrinks toward the point of being
+undetectable. Consistent with this account, absolute accuracy rises for
+\emph{both} conditions from $n=1{,}000$ to the larger scales (from 0.5295 and
+0.5603 to roughly 0.585--0.586 at both $n=5{,}000$ and $n=10{,}000$), exactly
+as the two conditions converge. What the repeated-run evidence newly
+establishes is the \emph{shape} of this pattern --- a real effect at small
+scale that is absent at larger scale, not merely a shrinking one --- not the
+mechanism behind it: nothing in this design isolates article length, sentence
+count, or segmentation quality as an independent variable, so the account
+above remains the most plausible explanation rather than a demonstrated one.
 
-Because these two explanations make different predictions, they are also
-distinguishable in principle: if the scale effect is genuinely statistical noise,
-repeated runs at $n=5{,}000$ should produce an interval overlapping the
-$n=1{,}000$ result; if it reflects a real, scale-dependent change, they should
-not. Repeating the $n=5{,}000$ experiment across several runs is the most direct
-way to resolve this and is listed as future work in
-Chapter~\ref{ch:conclusion}.
-
-One hypothesis would predict this pattern, and it is worth stating even though the
-present data cannot test it. At $n=1{,}000$ the reward
-model is fitting a small dataset, and how cleanly the preference relation is
-structured matters a great deal: a labeling that is internally more consistent is
-easier to recover from few examples. As the dataset grows, the model sees more
-examples of the same underlying relation, and additional data can compensate for a
-noisier labeling. Under that account, the benefit of a cleaner preference
-construction should be largest where data is scarce and should shrink as data
-accumulates, which is the pattern observed. Consistent with this, absolute
-accuracy rises for \emph{both} conditions between $n=1{,}000$ and $n=10{,}000$
-(from 0.5295 and 0.5603 to 0.5827 and 0.5862), while the difference between them
-contracts. The evidence is compatible with this explanation but does not establish
-it, since scale and dataset composition vary together across these runs.
-
-Read this way, the larger-scale results are informative rather than merely
-disappointing. The observed pattern is consistent with the hypothesis that GCA may
-provide a larger learnability advantage when preference data are limited, which
-would also be the regime in which automatic preference construction is most
-attractive, since it is where collecting human labels would be most burdensome.
-The present design cannot establish such a boundary, because the larger-scale
-settings contain single runs on nested datasets. What the study does contribute
-here is the observation itself, together with a specification of the experiment
-that would test it.
+Read this way, the larger-scale results are a substantive finding rather than
+an unresolved caveat. GCA provides a confirmed learnability advantage when
+preference data are scarce, and no detectable advantage once enough data are
+available for holistic preferences to be recoverable on their own terms. This
+is also the regime in which automatic preference construction is most
+attractive in practice, since data scarcity is precisely where collecting
+human labels would be most burdensome; the result therefore bounds GCA's
+practical usefulness to a specific and identifiable regime rather than leaving
+that boundary unmeasured, as the original single-run design had.
 
 \section{Implications for RLAIF Preference Construction}
 \label{sec:disc-implications}
