@@ -8,21 +8,23 @@
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=4
 #SBATCH --time=07:00:00
-#SBATCH --array=1-6
+#SBATCH --array=1-20
 #SBATCH --mail-type=END,FAIL
 #SBATCH --exclude=gpu0001
 
 # ============================================================
-# Repeated-run campaign at n=10,000 — six independent seeds
+# Repeated-run campaign at n=10,000 — twenty independent seeds
 #
-# Same rationale as slurm/seed_campaign_5000.sh: the n=10,000 result was a
-# single run, and cannot on its own distinguish a genuine scale effect from
-# run-to-run noise.
+# Same rationale as slurm/seed_campaign_5000.sh, extended from six seeds to
+# twenty to match the rigor of the n=1,000 campaign. Seeds 1-6 already have
+# results from the first pass and are skipped automatically by the
+# idempotency check below; only seeds 7-20 actually run new training.
 #
 # Historical single run at this scale (job 1411415) took 4h27m; --time is set
 # with margin above that.
 #
 # Submit: sbatch slurm/seed_campaign_10000.sh
+#     or: sbatch --array=7-20 slurm/seed_campaign_10000.sh  (skip the no-ops)
 # ============================================================
 
 set -euo pipefail

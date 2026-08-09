@@ -8,25 +8,31 @@
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=4
 #SBATCH --time=04:00:00
-#SBATCH --array=1-6
+#SBATCH --array=1-20
 #SBATCH --mail-type=END,FAIL
 #SBATCH --exclude=gpu0001
 
 # ============================================================
-# Repeated-run campaign at n=5,000 — six independent seeds
+# Repeated-run campaign at n=5,000 — twenty independent seeds
 #
-# The n=5,000 and n=10,000 results in the thesis were each a single training
-# run, so there is no way to tell a genuine scale effect (the GCA advantage
-# shrinking/reversing as data grows) apart from ordinary run-to-run noise --
-# exactly the problem the n=1,000 six-run campaign originally had. This array
-# gives n=5,000 the same six-run treatment, under the now-corrected
-# deterministic training code (torch/CUDA seeded per fold; see
-# src/reward_model/run_training.py).
+# The n=5,000 and n=10,000 results in the thesis were originally each a
+# single training run, so there was no way to tell a genuine scale effect
+# (the GCA advantage shrinking/reversing as data grows) apart from ordinary
+# run-to-run noise. A first extension to six seeds (matching the original
+# n=1,000 campaign's size) found both conditions statistically tied. This
+# array extends n=5,000 to twenty seeds, matching the rigor of the n=1,000
+# extension, under the corrected deterministic training code (torch/CUDA
+# seeded per fold; see src/reward_model/run_training.py).
+#
+# Seeds 1-6 already have results from the first pass and are skipped
+# automatically by the idempotency check below; only seeds 7-20 actually run
+# new training. Submitting the full 1-20 range is safe and correct either way.
 #
 # Historical single run at this scale (job 1411308) took 2h14m; --time is set
 # with margin above that.
 #
 # Submit: sbatch slurm/seed_campaign_5000.sh
+#     or: sbatch --array=7-20 slurm/seed_campaign_5000.sh  (skip the no-ops)
 # ============================================================
 
 set -euo pipefail
