@@ -128,10 +128,13 @@ This work makes the following contributions:
     (Chapter~\ref{ch:results}, Sections~\ref{sec:results-formula-opt}
     and~\ref{sec:results-mode-sweep}).
 
-  \item A repeated-run and multi-scale evaluation showing that GCA can improve
-    preference learnability under some configurations, most clearly at
-    $n=1{,}000$ with the AlignScore \texttt{nli} mode, and that the improvement
-    diminishes at larger dataset sizes
+  \item A repeated-run, multi-scale evaluation establishing a statistically
+    significant GCA advantage at $n=1{,}000$ with the AlignScore \texttt{nli}
+    mode (20 independent runs, mean $+3.95$ percentage points, run-level
+    Wilcoxon $p<0.001$), and confirming, through six-run campaigns at
+    $n=5{,}000$ and $n=10{,}000$, that this advantage is genuinely absent
+    rather than merely unreproduced at larger scale: both confidence intervals
+    are centred on zero and neither overlaps the $n=1{,}000$ result
     (Sections~\ref{sec:results-final-campaign} and~\ref{sec:results-scale}).
 
   \item An exploratory observation that the benefit of external sentence-level
