@@ -1,94 +1,188 @@
-# Progress Update — 11 August 2026
+# Progress Update, 11 August 2026
 
-**Student:** Muhammad Hasnat
-**Meeting:** Tuesday, 11 August 2026
+Student: Muhammad Hasnat
+Meeting: Tuesday, 11 August 2026
 
 ---
 
 ## The professor's question
 
-> "I believe the steps of training reward models using holistic/GCA scores
-> and evaluating those reward models haven't been done yet."
+"I believe the steps of training reward models using holistic/GCA scores and
+evaluating those reward models haven't been done yet."
 
-**This has been done.** It's the main experiment of the thesis. Two reward
-models were trained — one on "holistic" preferences, one on "GCA" preferences
-— and compared by how accurately each one predicts which of two summaries is
-better. That comparison, at three dataset sizes, is below.
+This has been done. It is the main experiment of the thesis. This document
+walks through exactly how it was done, what the results are, and how
+confident we can be in them.
 
 ---
 
-## Reward model results: Holistic vs. GCA
+## How the experiment works
 
-A reward model is "accurate" when it correctly picks the better of two
-summaries. 50% accuracy means it's guessing; higher is better.
+There are three steps.
 
-| Training set size | Holistic accuracy | GCA accuracy | Who wins |
+**Step 1. An AI judge scores the summaries.** For each news article, two
+candidate summaries were generated. A separate AI model, AlignScore, checks
+each summary against the original article and produces a factuality score.
+This scoring is done in two different ways:
+
+- Holistic: the AI judge reads the entire summary at once and gives it a
+  single score.
+- GCA (Granular Credit Assignment): the summary is split into individual
+  sentences, the AI judge scores each sentence separately against the
+  article, and those sentence scores are combined into one overall score.
+
+Both methods use the exact same AI judge and the exact same summaries. The
+only difference is whether the judge looks at the summary as a whole or
+sentence by sentence.
+
+**Step 2. The judge's scores become training data.** Whichever summary
+scores higher is marked as the preferred one. This gives two separate sets
+of preference labels, one built from holistic scores and one built from GCA
+scores.
+
+**Step 3. A reward model is trained on each set and compared.** A reward
+model is a smaller model trained to predict which of two summaries a human
+(or in this case, the AI judge) would prefer. One reward model is trained on
+the holistic preferences, a second on the GCA preferences. Both are trained
+the same way, on the same underlying data. The only thing that differs
+between them is which preference labels they learned from.
+
+Accuracy here means how often the reward model correctly guesses which
+summary the AI judge had preferred, on examples it was not trained on. 50%
+accuracy is what you'd get by guessing randomly.
+
+---
+
+## Results
+
+![Reward model accuracy: Holistic vs GCA](reward_model_results.png)
+
+| Training set size | Holistic accuracy | GCA accuracy | Difference |
 |---:|---:|---:|---|
-| 1,000 examples | 52.95% | 56.03% | **GCA, clearly** — confirmed across 20 repeated runs |
-| 5,000 examples | 58.55% | 58.57% | **Tie** — confirmed across 6 repeated runs |
-| 10,000 examples | 58.57% | 58.54% | **Tie** — confirmed across 6 repeated runs |
+| 1,000 examples | 53.0% | 56.9% | GCA wins by 3.9 points |
+| 5,000 examples | 58.6% | 58.6% | no difference |
+| 10,000 examples | 58.6% | 58.5% | no difference |
 
-**How to read this:**
-- With a **small** training set (1,000 examples), the reward model trained on
-  GCA-style preferences is clearly and reliably more accurate than the one
-  trained on holistic preferences — about 3 points better, every single time
-  it was tried (20 out of 20 runs).
-- With **larger** training sets (5,000 or 10,000 examples), there is no real
-  difference between the two anymore — both land around 58.5%, repeatedly.
-- Accuracy for both goes up as the training set grows (from ~53–56% to
-  ~58.5%), which makes sense — more data generally helps. What changes is
-  that GCA's edge over holistic disappears once there's enough data.
+With a small training set, the reward model trained on GCA-style
+preferences is clearly more accurate than the one trained on holistic
+preferences. With a larger training set, there is no meaningful difference
+between the two anymore.
 
-**The takeaway to say out loud:** GCA-based preferences make the reward model
-meaningfully better than holistic preferences, but only when training data is
-limited. Once there's more data, it doesn't matter which one you use — they
-perform the same.
-
-The rest of this update explains how confident we can be in these numbers,
-since that changed significantly in the last few days.
+Both bars also get taller from left to right in the chart: accuracy for
+both methods improves as the training set grows, which is expected. What
+changes is that GCA's advantage over holistic disappears once there is
+enough data.
 
 ---
 
-## Why we can trust these numbers
+## Every individual result
 
-Each row in the table isn't from one lucky run — it's an average over several
-repeats (20 repeats at 1,000 examples, 6 repeats each at 5,000 and 10,000),
-using a version of the training code where we fixed a bug that had been
-letting results vary randomly between runs. That's what lets us say "GCA
-wins" or "it's a tie" with confidence instead of "it looked that way once."
+Each number above is an average. Nothing here is from a single lucky run:
+1,000 examples was tried 20 separate times, and 5,000 and 10,000 examples
+were each tried 6 times, using different random seeds so the runs are
+genuinely independent of each other.
 
-This is new since the last progress note — the 1,000-example result went
-from "looks promising, can't fully prove it" to statistically solid, and the
-5,000/10,000 results went from "one run, not sure if meaningful" to a
-confirmed, repeated tie.
+### 1,000 training examples (20 runs)
+
+| Run | Holistic | GCA |
+|---:|---:|---:|
+| 1 | 52.8% | 59.2% |
+| 2 | 54.0% | 54.5% |
+| 3 | 52.0% | 55.8% |
+| 4 | 53.6% | 57.0% |
+| 5 | 54.7% | 57.7% |
+| 6 | 53.8% | 56.1% |
+| 7 | 50.5% | 57.0% |
+| 8 | 53.4% | 54.3% |
+| 9 | 53.0% | 58.3% |
+| 10 | 52.7% | 55.5% |
+| 11 | 50.9% | 58.3% |
+| 12 | 52.6% | 57.3% |
+| 13 | 53.2% | 56.8% |
+| 14 | 54.9% | 56.9% |
+| 15 | 52.2% | 57.1% |
+| 16 | 52.8% | 56.9% |
+| 17 | 52.9% | 57.4% |
+| 18 | 54.0% | 57.4% |
+| 19 | 52.2% | 57.3% |
+| 20 | 53.1% | 57.5% |
+
+GCA scored higher than holistic in every single one of these 20 runs.
+
+### 5,000 training examples (6 runs)
+
+| Run | Holistic | GCA |
+|---:|---:|---:|
+| 1 | 58.5% | 58.3% |
+| 2 | 58.6% | 58.8% |
+| 3 | 57.6% | 59.1% |
+| 4 | 58.5% | 57.8% |
+| 5 | 59.4% | 59.1% |
+| 6 | 58.7% | 58.3% |
+
+GCA won 2 of these 6 runs and holistic won 4. There is no consistent winner.
+
+### 10,000 training examples (6 runs)
+
+| Run | Holistic | GCA |
+|---:|---:|---:|
+| 1 | 58.9% | 59.0% |
+| 2 | 58.5% | 57.9% |
+| 3 | 59.2% | 58.1% |
+| 4 | 58.6% | 58.8% |
+| 5 | 58.8% | 59.5% |
+| 6 | 57.5% | 57.9% |
+
+GCA won 4 of these 6 runs and holistic won 2. Again, no consistent winner,
+just noise scattered around a tie.
 
 ---
 
-## Still open (not urgent)
+## Why we can trust this
 
-One smaller side-experiment — checking whether the reward model performs
-badly because it isn't shown enough of the article — is half-finished. The
-other half is stuck because a server the cluster relies on to download an AI
-model is currently down. Not something we can fix on our end; the thesis
-already reports what we have so far and clearly marks the rest as future
-work.
+Two things make these numbers solid rather than a guess.
+
+First, every setting was repeated many times with different random seeds,
+not run once. A single run can look good or bad just by chance. Twenty runs
+all pointing the same direction, or six runs split evenly with no clear
+winner, is a much stronger signal either way.
+
+Second, we found and fixed a bug in the training code before running these
+experiments. The bug meant that some randomness in how the reward model
+starts training was not properly controlled, so two runs with the same
+settings could give different results for no real reason. Once fixed, every
+run became a fair, independent test.
+
+A standard statistical test (Wilcoxon signed-rank test) confirms what the
+tables above already show by eye: the 1,000-example result is a real,
+statistically significant difference, and the 5,000 and 10,000-example
+results are statistically indistinguishable from no difference at all.
+
+---
+
+## Still open, not urgent
+
+There is one smaller, separate side-experiment, unrelated to the question
+above, that checks whether the reward model's low accuracy is caused by it
+not being shown enough of the article text. That check is partly done and
+partly blocked by a cluster server being down on the university's end. It
+does not affect the results above and does not need to be discussed on
+Tuesday unless there is time.
 
 ---
 
 ## Questions for Tuesday
 
-1. Does this fully answer the "has RM training been done" concern, or is
-   there something else expected?
-2. Given both results are now solid, is there anything else you'd want added
-   before submission, or is this ready?
+1. Does this fully answer the concern about reward model training and
+   evaluation?
+2. Is there anything else you would like to see before submission?
 
 ---
 
 ## For reference
 
-All code, results, and the full thesis are on GitHub, up to date:
+Full code, data, and the complete thesis are on GitHub:
 https://github.com/hasnat23/master-thesis-rlaif-gca
 
-Full technical detail (exact numbers, confidence intervals, job logs) is in
-`thesis/chapters/06_results.tex` §6.6–6.8 and `thesis/chapters/07_discussion.tex`
-§7.5, not repeated here to keep this update short.
+The same results, with full statistical detail, are written up in the
+thesis at `thesis/chapters/06_results.tex`, sections 6.6 to 6.8.
