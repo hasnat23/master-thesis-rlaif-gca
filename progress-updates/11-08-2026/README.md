@@ -10,62 +10,57 @@
 > "I believe the steps of training reward models using holistic/GCA scores
 > and evaluating those reward models haven't been done yet."
 
-**This has been done.** It's the main experiment of the thesis. Training two
-reward models (one on "holistic" preferences, one on "GCA" preferences) and
-comparing their accuracy is what Chapter 6 of the thesis reports. This was
-already finished before this update — the confusion is just that the last
-progress note (16 July) was written before the thesis document itself made
-this clear.
-
-The rest of this update is about what's new since then: the result got
-**much stronger**, and one open question got **fully answered**.
+**This has been done.** It's the main experiment of the thesis. Two reward
+models were trained — one on "holistic" preferences, one on "GCA" preferences
+— and compared by how accurately each one predicts which of two summaries is
+better. That comparison, at three dataset sizes, is below.
 
 ---
 
-## What's new: two results
+## Reward model results: Holistic vs. GCA
 
-### 1. The main result is now statistically significant
+A reward model is "accurate" when it correctly picks the better of two
+summaries. 50% accuracy means it's guessing; higher is better.
 
-Before: we trained 6 reward models and GCA won 5 times, with a ~3 point
-average improvement. But 6 tries is too few to prove anything statistically
-— even a perfect result would not have counted as "significant" by the usual
-standard.
+| Training set size | Holistic accuracy | GCA accuracy | Who wins |
+|---:|---:|---:|---|
+| 1,000 examples | 52.95% | 56.03% | **GCA, clearly** — confirmed across 20 repeated runs |
+| 5,000 examples | 58.55% | 58.57% | **Tie** — confirmed across 6 repeated runs |
+| 10,000 examples | 58.57% | 58.54% | **Tie** — confirmed across 6 repeated runs |
 
-We found and fixed a bug in the training code (some randomness wasn't
-properly controlled) and reran the experiment **20 times**.
+**How to read this:**
+- With a **small** training set (1,000 examples), the reward model trained on
+  GCA-style preferences is clearly and reliably more accurate than the one
+  trained on holistic preferences — about 3 points better, every single time
+  it was tried (20 out of 20 runs).
+- With **larger** training sets (5,000 or 10,000 examples), there is no real
+  difference between the two anymore — both land around 58.5%, repeatedly.
+- Accuracy for both goes up as the training set grows (from ~53–56% to
+  ~58.5%), which makes sense — more data generally helps. What changes is
+  that GCA's edge over holistic disappears once there's enough data.
 
-**Result: GCA won all 20 times.** Average improvement: **+3.95 percentage
-points**. This time it clears the standard bar for statistical significance
-easily.
+**The takeaway to say out loud:** GCA-based preferences make the reward model
+meaningfully better than holistic preferences, but only when training data is
+limited. Once there's more data, it doesn't matter which one you use — they
+perform the same.
 
-**In plain terms: at this dataset size, GCA reliably makes the reward model
-better, and we can now say that with confidence instead of just "it looked
-that way."**
-
-### 2. At bigger datasets, the advantage genuinely disappears
-
-The thesis also tested bigger datasets (5,000 and 10,000 examples instead of
-1,000), but originally only once each — not enough to know if the advantage
-was really gone or if we just got unlucky.
-
-We reran each of those **6 times** too.
-
-**Result: at both bigger sizes, GCA and holistic are statistically tied.**
-Not "a bit worse," genuinely no difference — the numbers land almost exactly
-on top of each other, 6 times in a row.
-
-**In plain terms: GCA clearly helps when training data is limited (1,000
-examples), and clearly stops mattering once there's more data (5,000+). This
-is now a confirmed finding, not a guess.**
+The rest of this update explains how confident we can be in these numbers,
+since that changed significantly in the last few days.
 
 ---
 
-## What this means for the thesis
+## Why we can trust these numbers
 
-- The headline claim went from "looks promising but can't prove it" to
-  **"proven, with a clear explanation of when it does and doesn't apply."**
-- This is a stronger, more complete thesis than the one we had a few days
-  ago.
+Each row in the table isn't from one lucky run — it's an average over several
+repeats (20 repeats at 1,000 examples, 6 repeats each at 5,000 and 10,000),
+using a version of the training code where we fixed a bug that had been
+letting results vary randomly between runs. That's what lets us say "GCA
+wins" or "it's a tie" with confidence instead of "it looked that way once."
+
+This is new since the last progress note — the 1,000-example result went
+from "looks promising, can't fully prove it" to statistically solid, and the
+5,000/10,000 results went from "one run, not sure if meaningful" to a
+confirmed, repeated tie.
 
 ---
 
