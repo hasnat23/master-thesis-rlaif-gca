@@ -40,9 +40,9 @@ The base candidate pool, judge, and reward-model training recipe are held consta
 - **H1:** Sentence-level aggregated preferences produce a more learnable reward-model signal than holistic preferences because they localise the supervision signal on long outputs.
 - **H2:** Judge backend/mode configuration (e.g. AlignScore `nli` vs `nli_sp`/`bin`) materially affects whether the GCA advantage appears.
 - **H3:** Improvements are largest for localised errors (entity/relation mistakes) rather than global attributes such as style.
-- **H4:** If improvements reflect a generalisable signal, they should replicate across repeated runs — **repeatedly observed at n=1,000** (5 of 6 runs favour GCA, mean +3.08pp; run-level Wilcoxon p=0.0625, not significant at 0.05) but **not reproduced at comparable magnitude** at n=5,000 or n=10,000 (see [Final Results](#final-results)).
+- **H4:** If improvements reflect a generalisable signal, they should replicate across repeated runs — **confirmed at n=1,000** (20/20 runs favour GCA, mean +3.95pp, run-level Wilcoxon p<0.001, significant) but **confirmed absent** at n=5,000 and n=10,000 (20/20-run campaigns at each scale, mean gaps of −0.22pp and −0.11pp, both statistically indistinguishable from zero) (see [Final Results](#final-results)).
 
-**Status:** H1 and H4 are supported at n=1,000, though not at the conventional significance threshold, and the effect is not reproduced at comparable magnitude at n=5,000/10,000. H3 was not evaluated. H2 is supported by an exploratory sweep: the AlignScore `nli` mode is associated with the GCA advantage, but each mode was run once, so the mode comparison is suggestive rather than established.
+**Status:** H1 and H4 are supported at n=1,000, at the conventional significance threshold (p<0.001), and the effect is confirmed absent, not merely unreproduced, at n=5,000/10,000 (also at 20-run resolution, p=0.34 and p=0.59). H3 was not evaluated. H2 is supported by an exploratory sweep: the AlignScore `nli` mode is associated with the GCA advantage, but each mode was run once, so the mode comparison is suggestive rather than established.
 
 ---
 
