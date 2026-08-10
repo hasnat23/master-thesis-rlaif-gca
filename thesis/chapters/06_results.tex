@@ -583,62 +583,63 @@ The single-run advantage was small and inconsistent in direction: $-0.0042$ at
 $n=5{,}000$, $+0.0035$ at $n=10{,}000$, against $+0.0308$ (later $+0.0395$
 under the extended campaign) at $n=1{,}000$. As with the original $n=1{,}000$
 campaign, a single run cannot distinguish a genuine dataset-size effect from
-ordinary run-to-run variation, so each scale was subsequently extended to six
-independently seeded runs under the same corrected, deterministic training
-procedure used for the $n=1{,}000$ extension
+ordinary run-to-run variation, so each scale was subsequently extended, first
+to six and then to twenty independently seeded runs, under the same corrected,
+deterministic training procedure used for the $n=1{,}000$ extension
 (Section~\ref{sec:results-extended-campaign}).
 
 \begin{table}[htbp]
 \centering
-\caption[Repeated-run statistics at all three dataset sizes]{Repeated-run statistics at all three dataset sizes. The $n=1{,}000$ row
-is the twenty-run campaign from Table~\ref{tab:seed-campaign-stats}; the
-$n=5{,}000$ and $n=10{,}000$ rows are six-run campaigns using the same
-corrected training procedure.}
+\caption[Repeated-run statistics at all three dataset sizes]{Repeated-run statistics at all three dataset sizes. All three rows are
+now twenty-run campaigns using the same corrected training procedure; the
+$n=1{,}000$ row is repeated from Table~\ref{tab:seed-campaign-stats}.}
 \label{tab:scale-robustness-runs}
 \begin{tabular}{rrrrrr}
 \toprule
 Dataset size & Runs & GCA ahead & Mean gap & 95\% bootstrap CI & Wilcoxon $p$ \\
 \midrule
 1{,}000  & 20 & 20/20 & $+3.95$pp & $[+3.19, +4.70]$pp & $8.8\times10^{-5}$ \\
-5{,}000  & 6  & 2/6   & $+0.02$pp & $[-0.44, +0.62]$pp & $0.6875$ \\
-10{,}000 & 6  & 4/6   & $-0.03$pp & $[-0.54, +0.42]$pp & $1.0000$ \\
+5{,}000  & 20 & 7/20  & $-0.22$pp & $[-0.66, +0.21]$pp & $0.3410$ \\
+10{,}000 & 20 & 9/20  & $-0.11$pp & $[-0.39, +0.18]$pp & $0.5882$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 At $n=5{,}000$ and $n=10{,}000$ the mean gap is close to zero in both cases,
-GCA leads in roughly half the runs at each scale rather than consistently, and
-the two-sided Wilcoxon tests give $p=0.6875$ and $p=1.0000$ --- results
-indistinguishable from chance. This is not merely a failure to reach
-significance in the way the original six-run $n=1{,}000$ campaign was: with six
-runs split close to evenly between the two directions, these are not
-underpowered positive results but genuinely null ones.
+GCA leads in a minority of runs at each scale (7 of 20 and 9 of 20) rather
+than consistently, and the two-sided Wilcoxon tests give $p=0.3410$ and
+$p=0.5882$, results indistinguishable from chance. With twenty runs at each
+scale, exactly matching the resolution of the $n=1{,}000$ campaign, this is
+not an underpowered result in either direction: with twenty paired
+observations the test could have detected an effect as small as the
+$n=1{,}000$ one had it been present, and it did not.
 
 The comparison against $n=1{,}000$ is the test proposed when only single runs
 were available (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-scale}): if
 the scale movement were statistical noise, the confidence intervals at
 $n=5{,}000$ and $n=10{,}000$ should overlap the $n=1{,}000$ estimate; if it
 reflects a real, scale-dependent change, they should not. They do not: the
-$n=1{,}000$ interval, $[+3.19, +4.70]$pp, does not overlap $[-0.44,
-+0.62]$pp at $n=5{,}000$ or $[-0.54, +0.42]$pp at $n=10{,}000$, and the gap
+$n=1{,}000$ interval, $[+3.19, +4.70]$pp, does not overlap $[-0.66,
++0.21]$pp at $n=5{,}000$ or $[-0.39, +0.18]$pp at $n=10{,}000$, and the gap
 between the nearest edges is more than two and a half percentage points in
 both cases. This resolves the question the single runs left open: the GCA
 advantage observed at $n=1{,}000$ is not present at $n=5{,}000$ or
 $n=10{,}000$, and this is now supported by repeated, properly powered
-evidence at each scale rather than by three single runs of unequal weight.
+evidence at each scale, all three at the same twenty-run resolution, rather
+than by runs of unequal weight.
 
 \begin{table}[htbp]
 \centering
-\caption[Selected configuration at three dataset sizes, repeated-run means]{Selected configuration at three dataset sizes. Means at $n=5{,}000$ and
-$n=10{,}000$ are now averaged over six runs each, not single runs.}
+\caption[Selected configuration at three dataset sizes, repeated-run means]{Selected configuration at three dataset sizes. All three are now
+averaged over twenty runs each.}
 \label{tab:scale-robustness}
 \begin{tabular}{rrrr}
 \toprule
 Dataset size & Holistic mean & GCA mean & Gap (GCA $-$ Holistic) \\
 \midrule
 1{,}000  & 0.5297 & 0.5691 & $+0.0395$ \\
-5{,}000  & 0.5855 & 0.5857 & $+0.0002$ \\
-10{,}000 & 0.5857 & 0.5854 & $-0.0003$ \\
+5{,}000  & 0.5842 & 0.5820 & $-0.0022$ \\
+10{,}000 & 0.5859 & 0.5848 & $-0.0011$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -657,8 +658,8 @@ Dataset size & Holistic mean & GCA mean & Gap (GCA $-$ Holistic) \\
   xtick=data,
   legend style={at={(0.03,0.97)}, anchor=north west, legend columns=1},
 ]
-\addplot[holbar] coordinates {(1{,}000,0.5297) (5{,}000,0.5855) (10{,}000,0.5857)};
-\addplot[gcabar] coordinates {(1{,}000,0.5691) (5{,}000,0.5857) (10{,}000,0.5854)};
+\addplot[holbar] coordinates {(1{,}000,0.5297) (5{,}000,0.5842) (10{,}000,0.5859)};
+\addplot[gcabar] coordinates {(1{,}000,0.5691) (5{,}000,0.5820) (10{,}000,0.5848)};
 \draw[dashed, gray!70] ({rel axis cs:0,0}|-{axis cs:1{,}000,0.5}) --
                        ({rel axis cs:1,0}|-{axis cs:1{,}000,0.5});
 \node[font=\scriptsize, gray!60!black, anchor=south west]
@@ -666,16 +667,15 @@ Dataset size & Holistic mean & GCA mean & Gap (GCA $-$ Holistic) \\
 \legend{Holistic, GCA}
 \end{axis}
 \end{tikzpicture}
-\caption[Accuracy at the three dataset sizes]{Accuracy at the three dataset sizes, all now averaged over repeated
-runs (20 at $n=1{,}000$, 6 each at $n=5{,}000$ and $n=10{,}000$). Absolute
-accuracy rises for both conditions as data is added, while the two
-conditions converge to statistically indistinguishable means at the larger
-scales.}
+\caption[Accuracy at the three dataset sizes]{Accuracy at the three dataset sizes, all now averaged over twenty
+repeated runs each. Absolute accuracy rises for both conditions as data is
+added, while the two conditions converge to statistically indistinguishable
+means at the larger scales.}
 \label{fig:scale-results}
 \end{figure}
 
 Absolute accuracy continues to rise with dataset size for both conditions ---
-from roughly 0.53--0.56 at $n=1{,}000$ to roughly 0.585--0.586 at the larger
+from roughly 0.53--0.57 at $n=1{,}000$ to roughly 0.582--0.586 at the larger
 scales --- while the gap between conditions collapses from a significant 3.95
 percentage points to a non-significant fraction of a point. Reporting only
 $n=1{,}000$ would have substantially overstated how generally the GCA
@@ -706,11 +706,12 @@ RQ1 &
   $+3.95$ percentage points, a run-level two-sided Wilcoxon $p<0.001$, and a
   bootstrap 95\% CI entirely above zero. An earlier six-run campaign gave a
   consistent but structurally underpowered estimate ($+3.08$pp,
-  $p=0.0625$). Six-run campaigns at $n=5{,}000$ and $n=10{,}000$
-  (Section~\ref{sec:results-scale}) confirm the advantage is genuinely absent
-  at those scales, not merely unreproduced: mean gaps of $+0.02$pp
-  ($p=0.6875$) and $-0.03$pp ($p=1.0000$), with confidence intervals that do
-  not overlap the $n=1{,}000$ result. \\
+  $p=0.0625$). Twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$
+  (Section~\ref{sec:results-scale}), the same resolution as $n=1{,}000$,
+  confirm the advantage is genuinely absent at those scales, not merely
+  unreproduced: mean gaps of $-0.22$pp ($p=0.3410$) and $-0.11$pp
+  ($p=0.5882$), with confidence intervals that do not overlap the
+  $n=1{,}000$ result. \\
 RQ2 &
   Aggregation strategy and evaluator mode are associated with substantial
   outcome differences. The evaluator-mode comparison is exploratory, because
@@ -718,8 +719,8 @@ RQ2 &
   evaluated only once. \\
 RQ3 &
   Stable at fixed scale, not stable across scale. All 20 runs at $n=1{,}000$
-  favour GCA (SD 1.78pp); six-run campaigns at $n=5{,}000$ and $n=10{,}000$
-  are similarly stable around a mean of approximately zero. The advantage
+  favour GCA (SD 1.78pp); twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$
+  are similarly consistent around a mean of approximately zero. The advantage
   is confirmed present at $n=1{,}000$ and confirmed absent at the two larger,
   nested dataset sizes, with non-overlapping confidence intervals at every
   comparison. \\

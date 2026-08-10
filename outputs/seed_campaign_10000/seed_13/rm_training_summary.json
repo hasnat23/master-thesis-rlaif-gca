@@ -1,0 +1,38 @@
+{
+  "run_id": "20260810_011116_0bcf7d",
+  "backbone": "FacebookAI/roberta-base",
+  "seed": 13,
+  "kfold": 5,
+  "epochs": 5,
+  "batch_size": 8,
+  "lr": 2e-05,
+  "max_length": 512,
+  "max_article_chars": 2000,
+  "holistic_path": "data/preferences_10000/holistic_reward_preferences_10000.jsonl",
+  "gca_path": "data/preferences_10000/gca_reward_preferences_10000.jsonl",
+  "deterministic_seeding": true,
+  "conditions": {
+    "holistic": {
+      "kfold": 5,
+      "fold_accs": [
+        0.5655655655655656,
+        0.5865865865865866,
+        0.5820820820820821,
+        0.5705705705705706,
+        0.581081081081081
+      ],
+      "mean_val_acc": 0.5771771771771772
+    },
+    "gca": {
+      "kfold": 5,
+      "fold_accs": [
+        0.5915915915915916,
+        0.5870870870870871,
+        0.58008008008008,
+        0.5815815815815816,
+        0.5795795795795796
+      ],
+      "mean_val_acc": 0.583983983983984
+    }
+  }
+}

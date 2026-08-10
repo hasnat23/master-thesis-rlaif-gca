@@ -1,14 +1,14 @@
 {
-  "n_runs": 6,
-  "n_gca_ahead": 2,
-  "n_holistic_ahead": 4,
-  "mean_gap": 0.00016683350016686674,
-  "median_gap": -0.0023023023023022726,
-  "sd_gap": 0.007557303436033281,
-  "boot_ci_lo": -0.004371037704371028,
-  "boot_ci_hi": 0.006206206206206248,
-  "wilcoxon_two_sided_p": 0.6875,
-  "wilcoxon_one_sided_p": 0.71875,
-  "exact_two_sided_p": 0.6875,
-  "min_attainable_p": 0.03125
+  "n_runs": 20,
+  "n_gca_ahead": 7,
+  "n_holistic_ahead": 13,
+  "mean_gap": -0.0021721721721721654,
+  "median_gap": -0.002802802802802873,
+  "sd_gap": 0.010259218086905612,
+  "boot_ci_lo": -0.006606606606606624,
+  "boot_ci_hi": 0.002132132132132164,
+  "wilcoxon_two_sided_p": 0.3410214366810602,
+  "wilcoxon_one_sided_p": 0.8294892816594699,
+  "exact_two_sided_p": 0.3535594940185547,
+  "min_attainable_p": 1.9073486328125e-06
 }

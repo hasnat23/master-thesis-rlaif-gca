@@ -20,11 +20,12 @@ Wilcoxon $p<0.001$. An earlier six-run campaign had given a consistent but
 structurally underpowered estimate of $+3.08$ points that could not, with only
 six paired observations, reach the conventional significance threshold; the
 extension confirms that direction rather than revealing a different effect. The
-advantage does not persist as the dataset grows: six-run campaigns at
-$n=5{,}000$ and $n=10{,}000$, using the same corrected procedure, give mean gaps
-of $+0.02$ and $-0.03$ percentage points respectively, both statistically
-indistinguishable from zero (95\% CIs $[-0.44,+0.62]$ and $[-0.54,+0.42]$
-points), with neither interval overlapping the significant $n=1{,}000$ result.
+advantage does not persist as the dataset grows: twenty-run campaigns at
+$n=5{,}000$ and $n=10{,}000$, using the same corrected procedure and matching
+the $n=1{,}000$ campaign's resolution exactly, give mean gaps of $-0.22$ and
+$-0.11$ percentage points respectively, both statistically indistinguishable
+from zero (95\% CIs $[-0.66,+0.21]$ and $[-0.39,+0.18]$ points), with
+neither interval overlapping the significant $n=1{,}000$ result.
 Absolute accuracy improves for both conditions as the dataset grows even as
 their difference vanishes. Uncertainty estimates computed over cross-validation
 folds remain anti-conservative, because folds within a run are not independent,
@@ -53,9 +54,10 @@ scoring?) is answered \emph{yes at small scale, no at larger scale, both with
 statistical support}. An average advantage of $+3.95$ percentage points is
 observed across twenty independent runs at $n=1{,}000$, favouring GCA in all
 twenty, with a run-level Wilcoxon $p<0.001$ and a bootstrap confidence interval
-that does not cross zero. Six-run campaigns at $n=5{,}000$ and $n=10{,}000$
-give mean gaps statistically indistinguishable from zero ($p=0.6875$ and
-$p=1.0000$), with confidence intervals that do not overlap the $n=1{,}000$
+that does not cross zero. Twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$,
+the same resolution as $n=1{,}000$, give mean gaps statistically
+indistinguishable from zero ($p=0.3410$ and $p=0.5882$), with confidence
+intervals that do not overlap the $n=1{,}000$
 result. The answer is therefore not merely configuration-dependent in an
 unresolved sense: it is a confirmed advantage at one dataset scale and a
 confirmed absence of advantage at two larger ones, with both conclusions now
@@ -75,10 +77,11 @@ answered \emph{differently, and now conclusively, across the two axes it asks
 about}. Across repeated runs at a fixed dataset size, the difference is highly
 stable: all twenty runs of the extended campaign at $n=1{,}000$ favour GCA, with
 a standard deviation of 1.78 percentage points around a mean of $+3.95$, and the
-six-run campaigns at $n=5{,}000$ and $n=10{,}000$ are similarly stable around a
-mean of approximately zero (SD under 0.8 points at both scales). Across dataset
-sizes, stability does not hold, and this is no longer an open question left by
-single runs: six repeated runs at each of $n=5{,}000$ and $n=10{,}000$ confirm a
+twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$ are similarly consistent
+around a mean of approximately zero (SD 1.03 and 0.67 points respectively).
+Across dataset sizes, stability does not hold, and this is no longer an open
+question left by single or few runs: twenty repeated runs at each of
+$n=5{,}000$ and $n=10{,}000$, the same resolution used at $n=1{,}000$, confirm a
 null result whose confidence intervals do not overlap the significant
 $n=1{,}000$ estimate (Section~\ref{sec:disc-scale}). Run-to-run stability at
 fixed scale is well established at all three sizes tested; stability across
