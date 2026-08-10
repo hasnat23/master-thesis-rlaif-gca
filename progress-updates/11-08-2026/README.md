@@ -60,7 +60,7 @@ accuracy is what you'd get by guessing randomly.
 | Training set size | Holistic accuracy | GCA accuracy | Difference |
 |---:|---:|---:|---|
 | 1,000 examples | 53.0% | 56.9% | GCA wins by 3.9 points |
-| 5,000 examples | 58.6% | 58.6% | no difference |
+| 5,000 examples | 58.4% | 58.2% | no difference |
 | 10,000 examples | 58.6% | 58.5% | no difference |
 
 With a small training set, the reward model trained on GCA-style
@@ -78,9 +78,9 @@ enough data.
 ## Every individual result
 
 Each number above is an average. Nothing here is from a single lucky run:
-1,000 examples was tried 20 separate times, and 5,000 and 10,000 examples
-were each tried 6 times, using different random seeds so the runs are
-genuinely independent of each other.
+every training set size, 1,000, 5,000, and 10,000 examples, was tried 20
+separate times, using different random seeds so the runs are genuinely
+independent of each other.
 
 ### 1,000 training examples (20 runs)
 
@@ -109,7 +109,7 @@ genuinely independent of each other.
 
 GCA scored higher than holistic in every single one of these 20 runs.
 
-### 5,000 training examples (6 runs)
+### 5,000 training examples (20 runs)
 
 | Run | Holistic | GCA |
 |---:|---:|---:|
@@ -119,10 +119,25 @@ GCA scored higher than holistic in every single one of these 20 runs.
 | 4 | 58.5% | 57.8% |
 | 5 | 59.4% | 59.1% |
 | 6 | 58.7% | 58.3% |
+| 7 | 58.3% | 57.6% |
+| 8 | 57.8% | 57.9% |
+| 9 | 57.6% | 59.3% |
+| 10 | 58.7% | 58.4% |
+| 11 | 59.0% | 57.3% |
+| 12 | 57.7% | 57.2% |
+| 13 | 58.9% | 58.4% |
+| 14 | 57.4% | 58.1% |
+| 15 | 57.7% | 58.4% |
+| 16 | 59.4% | 56.5% |
+| 17 | 58.5% | 57.8% |
+| 18 | 58.6% | 58.5% |
+| 19 | 58.9% | 57.9% |
+| 20 | 58.5% | 59.3% |
 
-GCA won 2 of these 6 runs and holistic won 4. There is no consistent winner.
+GCA won 7 of these 20 runs and holistic won 13. There is no consistent
+winner, just noise scattered around a tie.
 
-### 10,000 training examples (6 runs)
+### 10,000 training examples (20 runs)
 
 | Run | Holistic | GCA |
 |---:|---:|---:|
@@ -132,8 +147,22 @@ GCA won 2 of these 6 runs and holistic won 4. There is no consistent winner.
 | 4 | 58.6% | 58.8% |
 | 5 | 58.8% | 59.5% |
 | 6 | 57.5% | 57.9% |
+| 7 | 58.7% | 58.5% |
+| 8 | 58.5% | 58.7% |
+| 9 | 59.3% | 58.2% |
+| 10 | 58.4% | 58.6% |
+| 11 | 59.4% | 58.5% |
+| 12 | 58.8% | 57.7% |
+| 13 | 57.7% | 58.4% |
+| 14 | 58.8% | 58.2% |
+| 15 | 58.2% | 58.1% |
+| 16 | 58.5% | 58.1% |
+| 17 | 58.8% | 58.6% |
+| 18 | 59.0% | 59.1% |
+| 19 | 58.9% | 58.8% |
+| 20 | 57.5% | 58.9% |
 
-GCA won 4 of these 6 runs and holistic won 2. Again, no consistent winner,
+GCA won 9 of these 20 runs and holistic won 11. Again, no consistent winner,
 just noise scattered around a tie.
 
 ---
@@ -142,10 +171,11 @@ just noise scattered around a tie.
 
 Two things make these numbers solid rather than a guess.
 
-First, every setting was repeated many times with different random seeds,
-not run once. A single run can look good or bad just by chance. Twenty runs
-all pointing the same direction, or six runs split evenly with no clear
-winner, is a much stronger signal either way.
+First, every setting was repeated 20 times with different random seeds, not
+run once. A single run can look good or bad just by chance. Twenty runs all
+pointing the same direction, or twenty runs split roughly evenly with no
+clear winner, is a much stronger signal either way, and all three training
+set sizes now got the same treatment.
 
 Second, we found and fixed a bug in the training code before running these
 experiments. The bug meant that some randomness in how the reward model

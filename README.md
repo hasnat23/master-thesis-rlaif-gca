@@ -99,17 +99,17 @@ Reward models were trained on holistic vs GCA preference pairs and compared by 5
 
 | Dataset size | Runs | Holistic mean acc | GCA mean acc | Mean gap | 95% CI | Wilcoxon p |
 |---:|---:|---:|---:|---:|---:|---:|
-| 1,000 | 20 | 0.5295 | 0.5603 | **+3.95 pp** | [+3.19, +4.70] pp | **8.8×10⁻⁵** |
-| 5,000 | 6 | 0.5855 | 0.5857 | +0.02 pp | [−0.44, +0.62] pp | 0.6875 |
-| 10,000 | 6 | 0.5857 | 0.5854 | −0.03 pp | [−0.54, +0.42] pp | 1.0000 |
+| 1,000 | 20 | 0.5297 | 0.5691 | **+3.95 pp** | [+3.19, +4.70] pp | **8.8×10⁻⁵** |
+| 5,000 | 20 | 0.5842 | 0.5820 | −0.22 pp | [−0.66, +0.21] pp | 0.3410 |
+| 10,000 | 20 | 0.5859 | 0.5848 | −0.11 pp | [−0.39, +0.18] pp | 0.5882 |
 
 **Interpretation.** An initial six-run campaign at n=1,000 gave GCA ahead in 5 of 6 runs, mean advantage +3.08 pp, but a two-sided Wilcoxon test over the six run-level differences returned p = 0.0625 — the smallest two-sided value attainable with only six paired observations, so the campaign was structurally unable to reach significance regardless of the true effect size. After fixing a determinism gap in the training code (PyTorch's generator was not seeded in the cross-validation path, so two runs at the same `--seed` could still differ) the campaign was extended to **20 independently seeded runs**. GCA led in **all 20**, mean advantage **+3.95 pp**, bootstrap 95% CI **[+3.19, +4.70] pp** (entirely positive), run-level Wilcoxon **p < 0.001** — **now statistically significant**.
 
-The n=5,000 and n=10,000 rows were originally single runs (−0.42 pp and +0.35 pp respectively), which could not distinguish a genuine scale effect from ordinary run-to-run noise. Both were extended to six-run campaigns under the same corrected procedure. The result is decisive: mean gaps of **+0.02 pp and −0.03 pp**, both statistically indistinguishable from zero, with confidence intervals that **do not overlap** the n=1,000 result at all (nearest edges over 2.5 pp apart). This resolves the question definitively — **GCA's advantage is confirmed real and significant at n=1,000, and confirmed absent at n=5,000 and n=10,000**, not merely smaller. Full per-run numbers and the aggregation script are in `thesis/chapters/06_results.tex` §6.6–6.8 and `analysis/aggregate_campaigns.py`.
+The n=5,000 and n=10,000 rows were originally single runs (−0.42 pp and +0.35 pp respectively), which could not distinguish a genuine scale effect from ordinary run-to-run noise. Both were extended to the same **20-run** resolution as n=1,000, under the same corrected procedure. The result is decisive: mean gaps of **−0.22 pp and −0.11 pp**, both statistically indistinguishable from zero, with confidence intervals that **do not overlap** the n=1,000 result at all (nearest edges over 2.5 pp apart). This resolves the question definitively — **GCA's advantage is confirmed real and significant at n=1,000, and confirmed absent at n=5,000 and n=10,000**, not merely smaller, and all three conclusions now rest on equally powered evidence. Full per-run numbers and the aggregation script are in `thesis/chapters/06_results.tex` §6.6–6.8 and `analysis/aggregate_campaigns.py`.
 
 Two further caveats bound the result:
 
-- **Both models are weak in absolute terms at n=1,000.** 0.5295 and 0.5603 sit only 3.0 and 6.0 pp above the 0.50 chance level, even though the difference between them is significant. Both conditions rise to ≈0.586 at the larger scales.
+- **Both models are weak in absolute terms at n=1,000.** 0.5297 and 0.5691 sit only 3.0 and 6.9 pp above the 0.50 chance level, even though the difference between them is significant. Both conditions rise to ≈0.58–0.59 at the larger scales.
 - **The three subsets are nested, not disjoint.** All use subset seed 200 and differ only in sample count: n=5,000 is entirely contained in n=10,000, and 999 of the 1,000 n=1,000 samples appear in n=10,000. The larger-scale runs therefore measure behaviour as data is added to the same pool; they are **not** out-of-sample replication, independent of how many times each was repeated.
 
 Higher reward-model accuracy means the preference relation is more consistently *recoverable* by the chosen architecture. It does **not** establish better agreement with human factuality judgments, more accurate labels, or better generated summaries.
