@@ -10,9 +10,9 @@
 
 ## Overview
 
-> **Status (as of 16 July 2026): main experimentation phase is closed.** The core empirical question has been answered via a Bradley-Terry reward-model comparison (see [Final Results](#final-results) below); remaining work is thesis write-up, theoretical framing, related work, and error analysis. Early-phase DPO fine-tuning experiments (Mar–May 2026) are preserved in `src/dpo/` and earlier `progress-updates/` entries but are **not** part of the final reported pipeline — DPO was dropped on 2 June 2026 in favour of a pure reward-model comparison, per supervisor feedback.
+> Status (as of 10 August 2026): experimentation is complete. The core empirical question has been answered via a Bradley-Terry reward-model comparison, now validated with 20 independent runs at all three dataset scales (see [Final Results](#final-results) below). Remaining work is thesis write-up, theoretical framing, and related work. Early-phase DPO fine-tuning experiments (Mar–May 2026) are preserved in `src/dpo/` and earlier `progress-updates/` entries but are not part of the final reported pipeline — DPO was dropped on 2 June 2026 in favour of a pure reward-model comparison, per supervisor feedback.
 
-This thesis investigates a controlled question: for long news summaries, are **holistic A/B preferences** sufficient to produce a learnable factual-reliability signal for reward-model training, or does supervision become more effective when the judge evaluates **aligned sentence pairs** whose local decisions are then aggregated into a summary-level preference via **Granular Credit Assignment (GCA)**?
+This thesis investigates a controlled question: for long news summaries, are holistic A/B preferences sufficient to produce a learnable factual-reliability signal for reward-model training, or does supervision become more effective when the judge evaluates aligned sentence pairs whose local decisions are then aggregated into a summary-level preference via Granular Credit Assignment (GCA)?
 
 The base candidate pool, judge, and reward-model training recipe are held constant across conditions. The only manipulated factor is the granularity of AI-generated preference labels used to construct the pairwise training data.
 
@@ -33,14 +33,14 @@ The base candidate pool, judge, and reward-model training recipe are held consta
 
 **RQ3:** What categories of factual errors are most affected by sentence-level supervision (entities, numbers, relations, temporal claims)? *(qualitative/error-analysis work, planned for the write-up phase)*
 
-**RQ4:** Do gains persist across independent random seeds and larger sample sizes, or are they an artefact of one run?
+**RQ4:** Do gains persist across independent random seeds and larger sample sizes, or are they an artefact of one run? Answered — see H4 below.
 
 ### Hypotheses
 
 - **H1:** Sentence-level aggregated preferences produce a more learnable reward-model signal than holistic preferences because they localise the supervision signal on long outputs.
 - **H2:** Judge backend/mode configuration (e.g. AlignScore `nli` vs `nli_sp`/`bin`) materially affects whether the GCA advantage appears.
 - **H3:** Improvements are largest for localised errors (entity/relation mistakes) rather than global attributes such as style.
-- **H4:** If improvements reflect a generalisable signal, they should replicate across repeated runs — **confirmed at n=1,000** (20/20 runs favour GCA, mean +3.95pp, run-level Wilcoxon p<0.001, significant) but **confirmed absent** at n=5,000 and n=10,000 (20/20-run campaigns at each scale, mean gaps of −0.22pp and −0.11pp, both statistically indistinguishable from zero) (see [Final Results](#final-results)).
+- **H4:** If improvements reflect a generalisable signal, they should replicate across repeated runs — confirmed at n=1,000 (20/20 runs favour GCA, mean +3.95pp, run-level Wilcoxon p<0.001, significant) but confirmed absent at n=5,000 and n=10,000 (20/20-run campaigns at each scale, mean gaps of −0.22pp and −0.11pp, both statistically indistinguishable from zero) — see [Final Results](#final-results).
 
 **Status:** H1 and H4 are supported at n=1,000, at the conventional significance threshold (p<0.001), and the effect is confirmed absent, not merely unreproduced, at n=5,000/10,000 (also at 20-run resolution, p=0.34 and p=0.59). H3 was not evaluated. H2 is supported by an exploratory sweep: the AlignScore `nli` mode is associated with the GCA advantage, but each mode was run once, so the mode comparison is suggestive rather than established.
 
@@ -99,24 +99,24 @@ Reward models were trained on holistic vs GCA preference pairs and compared by 5
 
 | Dataset size | Runs | Holistic mean acc | GCA mean acc | Mean gap | 95% CI | Wilcoxon p |
 |---:|---:|---:|---:|---:|---:|---:|
-| 1,000 | 20 | 0.5297 | 0.5691 | **+3.95 pp** | [+3.19, +4.70] pp | **8.8×10⁻⁵** |
+| 1,000 | 20 | 0.5297 | 0.5691 | +3.95 pp | [+3.19, +4.70] pp | 8.8×10⁻⁵ |
 | 5,000 | 20 | 0.5842 | 0.5820 | −0.22 pp | [−0.66, +0.21] pp | 0.3410 |
 | 10,000 | 20 | 0.5859 | 0.5848 | −0.11 pp | [−0.39, +0.18] pp | 0.5882 |
 
-**Interpretation.** An initial six-run campaign at n=1,000 gave GCA ahead in 5 of 6 runs, mean advantage +3.08 pp, but a two-sided Wilcoxon test over the six run-level differences returned p = 0.0625 — the smallest two-sided value attainable with only six paired observations, so the campaign was structurally unable to reach significance regardless of the true effect size. After fixing a determinism gap in the training code (PyTorch's generator was not seeded in the cross-validation path, so two runs at the same `--seed` could still differ) the campaign was extended to **20 independently seeded runs**. GCA led in **all 20**, mean advantage **+3.95 pp**, bootstrap 95% CI **[+3.19, +4.70] pp** (entirely positive), run-level Wilcoxon **p < 0.001** — **now statistically significant**.
+Interpretation. An initial six-run campaign at n=1,000 gave GCA ahead in 5 of 6 runs, mean advantage +3.08 pp, but a two-sided Wilcoxon test over the six run-level differences returned p = 0.0625 — the smallest two-sided value attainable with only six paired observations, so the campaign was structurally unable to reach significance regardless of the true effect size. After fixing a determinism gap in the training code (PyTorch's generator was not seeded in the cross-validation path, so two runs at the same `--seed` could still differ), the campaign was extended to 20 independently seeded runs. GCA led in all 20, mean advantage +3.95 pp, bootstrap 95% CI [+3.19, +4.70] pp (entirely positive), run-level Wilcoxon p < 0.001 — now statistically significant.
 
-The n=5,000 and n=10,000 rows were originally single runs (−0.42 pp and +0.35 pp respectively), which could not distinguish a genuine scale effect from ordinary run-to-run noise. Both were extended to the same **20-run** resolution as n=1,000, under the same corrected procedure. The result is decisive: mean gaps of **−0.22 pp and −0.11 pp**, both statistically indistinguishable from zero, with confidence intervals that **do not overlap** the n=1,000 result at all (nearest edges over 2.5 pp apart). This resolves the question definitively — **GCA's advantage is confirmed real and significant at n=1,000, and confirmed absent at n=5,000 and n=10,000**, not merely smaller, and all three conclusions now rest on equally powered evidence. Full per-run numbers and the aggregation script are in `thesis/chapters/06_results.tex` §6.6–6.8 and `analysis/aggregate_campaigns.py`.
+The n=5,000 and n=10,000 rows were originally single runs (−0.42 pp and +0.35 pp respectively), which could not distinguish a genuine scale effect from ordinary run-to-run noise. Both were extended to the same 20-run resolution as n=1,000, under the same corrected procedure. The result is decisive: mean gaps of −0.22 pp and −0.11 pp, both statistically indistinguishable from zero, with confidence intervals that do not overlap the n=1,000 result at all (nearest edges over 2.5 pp apart). This resolves the question definitively: GCA's advantage is confirmed real and significant at n=1,000, and confirmed absent at n=5,000 and n=10,000, not merely smaller — and all three conclusions now rest on equally powered evidence. Full per-run numbers and the aggregation script are in `thesis/chapters/06_results.tex` §6.6–6.8 and `analysis/aggregate_campaigns.py`.
 
 Two further caveats bound the result:
 
-- **Both models are weak in absolute terms at n=1,000.** 0.5297 and 0.5691 sit only 3.0 and 6.9 pp above the 0.50 chance level, even though the difference between them is significant. Both conditions rise to ≈0.58–0.59 at the larger scales.
-- **The three subsets are nested, not disjoint.** All use subset seed 200 and differ only in sample count: n=5,000 is entirely contained in n=10,000, and 999 of the 1,000 n=1,000 samples appear in n=10,000. The larger-scale runs therefore measure behaviour as data is added to the same pool; they are **not** out-of-sample replication, independent of how many times each was repeated.
+- Both models are weak in absolute terms at n=1,000. 0.5297 and 0.5691 sit only 3.0 and 6.9 pp above the 0.50 chance level, even though the difference between them is significant. Both conditions rise to roughly 0.58–0.59 at the larger scales.
+- The three subsets are nested, not disjoint. All use subset seed 200 and differ only in sample count: n=5,000 is entirely contained in n=10,000, and 999 of the 1,000 n=1,000 samples appear in n=10,000. The larger-scale runs therefore measure behaviour as data is added to the same pool; they are not out-of-sample replication, independent of how many times each was repeated.
 
-Higher reward-model accuracy means the preference relation is more consistently *recoverable* by the chosen architecture. It does **not** establish better agreement with human factuality judgments, more accurate labels, or better generated summaries.
+Higher reward-model accuracy means the preference relation is more consistently recoverable by the chosen architecture. It does not establish better agreement with human factuality judgments, more accurate labels, or better generated summaries.
 
 Full experimental history is in `progress-updates/` and `OPTIMIZATION_CAMPAIGN.md`.
 
-> **Canonical source.** The written thesis in [`thesis/`](thesis/) supersedes all earlier summaries in this repository. Where a `progress-updates/` entry or `reports/` file disagrees with it, the thesis is correct: those files are dated records of what was believed at the time, and several predate the statistical and dataset-nesting corrections above. In particular, `reports/reward_model_judging_results.md` is an April 2026 artefact (200 samples, margin=0.05, α=0.5, DPO-era) and should not be cited as a current result.
+> Canonical source. The written thesis in [`thesis/`](thesis/) supersedes all earlier summaries in this repository. Where a `progress-updates/` entry or `reports/` file disagrees with it, the thesis is correct: those files are dated records of what was believed at the time, and several predate the statistical and dataset-nesting corrections above. In particular, `reports/reward_model_judging_results.md` is an April 2026 artefact (200 samples, margin=0.05, α=0.5, DPO-era) and should not be cited as a current result.
 
 ---
 
@@ -149,7 +149,7 @@ Full experimental history is in `progress-updates/` and `OPTIMIZATION_CAMPAIGN.m
 │   ├── submit_gca_hpsearch.sh #  RM hyperparameter search
 │   └── mode_nli_seed_confirm.sh #  Seed-validation reruns for the locked `nli` judge mode
 ├── analysis/                 # GCA formula optimisation & disagreement analysis scripts
-├── progress-updates/         # Biweekly meeting reports (chronological — see 16-7-2026/ for final results)
+├── progress-updates/         # Biweekly meeting reports (chronological — see 11-08-2026/ for final results)
 ├── proposal/                 # Thesis proposal
 ├── data/                     # Generated data artifacts (gitignored)
 ├── outputs/                  # Metrics, plots, run metadata (gitignored)
