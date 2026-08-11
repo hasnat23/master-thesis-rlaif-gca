@@ -201,9 +201,9 @@
         \end{footnotesize}
       \end{tabular}\\
     \renewcommand{\arraystretch}{1.0} %reset arraystretch to default
-    \vspace*{1.75cm}
+    \vspace*{1.0cm}
     \begin{huge}
-      \textbf{\thetitle}\\[1.75cm]
+      \textbf{\thetitle}\\[1.0cm]
       \ifbachelor%
         \ifenglish%
           Bachelor's Thesis
@@ -290,7 +290,7 @@
       \fi
     \end{large}
     \begin{Large}
-      \theauthor\\[3.79cm]
+      \theauthor\\[1.25cm]
     \end{Large}
    	\end{center}
     \begin{tabular}{ll}
@@ -326,9 +326,9 @@
             Mentor:
           \fi
           & \mentor\\
-          \empty & \mentorinfo\\[2cm]
+          \empty & \mentorinfo\\[1cm]
         \else
-          \\[2cm]
+          \\[1cm]
         \fi
       \fi
       \ifdate%

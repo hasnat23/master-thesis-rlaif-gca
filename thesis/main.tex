@@ -1,4 +1,4 @@
-\documentclass[english,m,master,binding,twoside,palatino,scrreprt]{WeSTthesis}
+\documentclass[english,m,master,binding,twoside,palatino,scrreprt,nogermanabstract]{WeSTthesis}
 % Please read README.md for additional information on WeSTthesis parameters.
 
 \usepackage[english,ngerman]{babel}      % English and new German spelling
@@ -41,8 +41,7 @@
 % The class typesets \theauthor in \Large on the title page; the second line drops
 % back to \normalsize so the matriculation number sits under the name without
 % competing with it.
-\author{Muhammad Hasnat\\[.15cm]{\normalsize (Matriculation Number: 221100612)}%
-        \vspace*{-2.0cm}}
+\author{Muhammad Hasnat\\[.15cm]{\normalsize (Matriculation Number: 221100612)}}
 
 \title{Benchmarking Holistic vs Sentence-Level Reward-Model Preferences for Factual Summarization via Granular Credit Assignment (GCA)}
 
@@ -98,61 +97,6 @@ more consistently recoverable by the chosen architecture. It does not by itself
 establish that GCA labels agree better with human factuality judgments, nor that
 summarization models trained on such preferences produce more factually consistent
 summaries; both questions are left to future work.
-}
-\germanabstract{
-Die präferenzbasierte Ausrichtung abstraktiver Zusammenfassungsmodelle stützt sich
-zunehmend auf automatisch erzeugte Präferenzlabels anstelle menschlicher
-Bewertungen. Unklar bleibt, ob ein einzelnes ganzheitliches Urteil über eine
-mehrsätzige Zusammenfassung das verfügbare Supervisionssignal ebenso wirksam nutzt
-wie ein Urteil, das aus satzweiser Evidenz zusammengesetzt wird. Diese Arbeit
-untersucht diese Frage als kontrollierten Vergleich zweier Verfahren der
-Präferenzkonstruktion. In der ganzheitlichen Bedingung wird eine vollständige
-Kandidatenzusammenfassung gegen den Quellartikel bewertet, und aus den Bewertungen
-wird eine paarweise Präferenz gebildet. In der Bedingung Granular Credit
-Assignment (GCA) wird jede Zusammenfassung in Sätze zerlegt, jeder Satz einzeln
-bewertet, und die Satzbewertungen werden zu einer Präferenz auf
-Zusammenfassungsebene aggregiert. Die Kandidatenzusammenfassungen, das
-Bewertungsmodell (AlignScore), die Bradley--Terry-Architektur des
-Belohnungsmodells sowie das Trainingsverfahren bleiben unverändert, sodass die
-Granularität des Feedbacks die zentrale experimentelle Variable bildet.
-
-Die abhängige Variable ist die Erlernbarkeit der Präferenzen, gemessen als
-paarweise Validierungsgenauigkeit eines auf den jeweiligen Präferenzpaaren
-trainierten Belohnungsmodells. Eine erste Kampagne von sechs wiederholten Läufen
-bei $n=1.000$ ergab ein richtungskonsistentes, aber statistisch unterpotentes
-Ergebnis (GCA in fünf von sechs Läufen vorne, durchschnittlicher Vorteil 3,08
-Prozentpunkte; Wilcoxon-Test auf Laufebene $p=0{,}0625$ -- bei sechs gepaarten
-Beobachtungen der kleinstmögliche zweiseitige Wert). Diese Kampagne wurde
-anschließend auf zwanzig unabhängig geseedete Läufe unter einem korrigierten,
-vollständig deterministischen Trainingsverfahren erweitert. GCA lag in allen
-zwanzig Läufen vorne, mit einem durchschnittlichen Vorteil von 3,95
-Prozentpunkten (Bootstrap-95\%-Konfidenzintervall $[+3{,}19, +4{,}70]$ Punkte)
-und einem Wilcoxon-Test auf Laufebene von $p<0{,}001$, der das konventionelle
-Signifikanzniveau erreicht. Zwanzigfach wiederholte Kampagnen bei $n=5.000$ und
-$n=10.000$ unter demselben korrigierten Verfahren zeigen, dass dieser Vorteil
-bei größerem Datenumfang nicht bestehen bleibt: Die mittleren Differenzen
-betragen $-0{,}22$ bzw. $-0{,}11$ Prozentpunkte und sind statistisch nicht von
-Null zu unterscheiden (95\%-Konfidenzintervalle $[-0{,}66, +0{,}21]$ und
-$[-0{,}39, +0{,}18]$ Punkte), wobei keines der beiden Intervalle das
-$n=1.000$-Ergebnis überschneidet. Die absolute Genauigkeit steigt in beiden
-Bedingungen mit zunehmendem Datenumfang, während ihre Differenz verschwindet.
-Ein explorativer Vergleich der Bewertungsmodi legt nahe, dass eine externe
-satzweise Zerlegung vor allem dann nützlich sein könnte, wenn das
-Bewertungsmodell nicht bereits intern eine vergleichbare Zerlegung vornimmt.
-
-Die Ergebnisse charakterisieren, unter welchen Bedingungen granulares
-Faktizitäts-Feedback die Struktur eines Präferenzlernsignals verändert, und
-belegen nicht, dass GCA allgemein vorzuziehen ist. Eine höhere Genauigkeit des
-Belohnungsmodells zeigt an, dass eine Präferenzrelation von der gewählten
-Architektur konsistenter rekonstruiert werden kann. Sie belegt für sich genommen
-weder, dass GCA-Labels besser mit menschlichen Faktizitätsurteilen übereinstimmen,
-noch dass auf solchen Präferenzen trainierte Zusammenfassungsmodelle faktisch
-konsistentere Texte erzeugen; beide Fragen bleiben künftiger Arbeit vorbehalten.
-%
-% The class typesets the German and English abstracts in one continuous flow, so a
-% long Zusammenfassung strands the "Abstract" heading at the foot of this page.
-% Break here so that heading starts at the top of its own page.
-\clearpage
 }
 
 \begin{document}
