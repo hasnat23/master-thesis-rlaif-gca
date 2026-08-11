@@ -49,7 +49,7 @@ same evaluation step, so the only thing that ever differs between them is
 how the factuality score for each summary is produced. This matches
 Figure 5.1 in the thesis (`thesis/chapters/05_implementation.tex`).
 
-**Step 1. An AI judge scores the summaries.** For each news article, two
+Step 1. An AI judge scores the summaries. For each news article, two
 candidate summaries were generated. A separate AI model, AlignScore, checks
 each summary against the original article and produces a factuality score.
 This scoring is done in two different ways:
@@ -64,12 +64,12 @@ Both methods use the exact same AI judge and the exact same summaries. The
 only difference is whether the judge looks at the summary as a whole or
 sentence by sentence.
 
-**Step 2. The judge's scores become training data.** Whichever summary
+Step 2. The judge's scores become training data. Whichever summary
 scores higher is marked as the preferred one. This gives two separate sets
 of preference labels, one built from holistic scores and one built from GCA
 scores.
 
-**Step 3. A reward model is trained on each set and compared.** A reward
+Step 3. A reward model is trained on each set and compared. A reward
 model is a smaller model trained to predict which of two summaries a human
 (or in this case, the AI judge) would prefer. One reward model is trained on
 the holistic preferences, a second on the GCA preferences. Both are trained
@@ -221,28 +221,16 @@ results are statistically indistinguishable from no difference at all.
 
 ## Conclusions
 
-- At 1,000 training examples, GCA produces a clearly better training signal
-  than holistic scoring. Every one of 20 runs favoured GCA, and the
-  difference is large enough that chance is a very unlikely explanation.
-- At 5,000 and 10,000 examples, that advantage is gone. Not just "not seen
-  this time" — the numbers actively rule out any real difference bigger
-  than about half a percentage point at those sizes.
-- So the honest answer to "does GCA help?" is: it depends on how much
-  training data there is. It helps when data is scarce, and stops
-  mattering once there is enough of it.
-- Both reward models, at every size, are still far from reliable in
-  absolute terms — roughly 53-59% correct against 50% for guessing. This
-  measures how learnable the preference is, not how factually correct it
-  is.
-- We checked one obvious alternative explanation for the results — that the
-  reward model might just be learning to prefer longer or shorter
-  summaries rather than anything about factuality — and ruled it out.
-  Summary length predicts almost nothing about which summary was
-  preferred.
-- Put together, this answers the concern this meeting was called about:
-  the reward-model training and evaluation step has been done, repeated
-  enough times to trust the result, and it shows a real but scale-limited
-  benefit from GCA rather than a universal one.
+- GCA clearly helps at 1,000 training examples: every one of 20 runs
+  favoured it, unlikely to be chance.
+- That advantage is gone at 5,000 and 10,000 examples — ruled out, not
+  just unseen.
+- So GCA helps when training data is scarce, and stops mattering once
+  there is enough of it.
+- Both reward models stay far from reliable overall, roughly 53-59%
+  against 50% for guessing.
+- Checked whether summary length was secretly driving the results — it
+  wasn't.
 
 ---
 
