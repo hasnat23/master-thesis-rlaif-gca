@@ -219,6 +219,33 @@ results are statistically indistinguishable from no difference at all.
 
 ---
 
+## Conclusions
+
+- At 1,000 training examples, GCA produces a clearly better training signal
+  than holistic scoring. Every one of 20 runs favoured GCA, and the
+  difference is large enough that chance is a very unlikely explanation.
+- At 5,000 and 10,000 examples, that advantage is gone. Not just "not seen
+  this time" — the numbers actively rule out any real difference bigger
+  than about half a percentage point at those sizes.
+- So the honest answer to "does GCA help?" is: it depends on how much
+  training data there is. It helps when data is scarce, and stops
+  mattering once there is enough of it.
+- Both reward models, at every size, are still far from reliable in
+  absolute terms — roughly 53-59% correct against 50% for guessing. This
+  measures how learnable the preference is, not how factually correct it
+  is.
+- We checked one obvious alternative explanation for the results — that the
+  reward model might just be learning to prefer longer or shorter
+  summaries rather than anything about factuality — and ruled it out.
+  Summary length predicts almost nothing about which summary was
+  preferred.
+- Put together, this answers the concern this meeting was called about:
+  the reward-model training and evaluation step has been done, repeated
+  enough times to trust the result, and it shows a real but scale-limited
+  benefit from GCA rather than a universal one.
+
+---
+
 ## Questions for Tuesday
 
 1. Does this fully answer the concern about reward model training and
