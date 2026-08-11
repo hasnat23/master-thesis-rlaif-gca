@@ -19,7 +19,14 @@ and \url{src/eval/} and \url{src/analysis/} (evaluation and statistics).
 generation, and judging. \url{slurm/} holds the batch scripts submitted on MOGON
 NHR, including \url{slurm/train_rm_1000.sh}, which produced the headline
 $n=1{,}000$ result. \url{analysis/} holds the standalone scripts used for the
-formula sweep, the judge-mode sweep, and the holistic-versus-GCA comparison.
+formula sweep, the judge-mode sweep, and the holistic-versus-GCA comparison,
+together with \url{analysis/aggregate_campaigns.py}, which computes the
+run-level means, bootstrap intervals and Wilcoxon tests for each seed campaign,
+and \url{analysis/effect_sizes_and_equivalence.py}, which computes the effect
+sizes, equivalence tests and minimum detectable effects reported in
+Chapter~\ref{ch:results}, Section~\ref{sec:results-effect-sizes}. Both read the
+per-run JSON summaries under \url{outputs/} directly, so every reported figure
+can be regenerated from the stored run artifacts without retraining.
 \url{progress-updates/} contains the dated working notes kept over the course of
 the project.
 

@@ -338,8 +338,12 @@ ahead. Figure~\ref{fig:per-run-gaps} plots the per-run gaps against the pooled
 mean, which makes the spread easier to judge than the table alone: the individual
 runs range from $-0.010$ to $+0.060$, a spread wide enough that any single run,
 taken on its own, would have been weak evidence in either direction. Averaging
-over all 30 fold-level readings gives the central estimate of this thesis, shown
-in Table~\ref{tab:pooled-headline}: a mean gap of $+3.08$ percentage points.
+over all 30 fold-level readings gives the estimate this campaign supported,
+shown in Table~\ref{tab:pooled-headline}: a mean gap of $+3.08$ percentage
+points. This was superseded by the twenty-run campaign of
+Section~\ref{sec:results-extended-campaign}, which is the headline result of
+this thesis; the six-run figures are retained here as the record of what the
+original campaign established and of why it had to be extended.
 
 \begin{figure}[htbp]
 \centering
@@ -684,6 +688,85 @@ the design originally did, would have left the alternative --- that the
 larger-scale movement was itself just noise --- open. Both possibilities are
 now closed by the repeated-run evidence.
 
+\section{Effect Sizes, Equivalence, and Statistical Power}
+\label{sec:results-effect-sizes}
+
+The tests reported so far establish whether each gap is distinguishable from
+zero. Two further questions bear directly on how the results should be read, and
+neither is answered by a $p$-value. How large is the $n=1{,}000$ effect in
+standardised terms? And at $n=5{,}000$ and $n=10{,}000$, does the failure to
+reject the null reflect a genuinely negligible effect, or merely insufficient
+data to detect one? The second question matters because the claim made in
+Section~\ref{sec:results-scale} --- that the advantage is \emph{absent} at the
+larger scales rather than merely unconfirmed --- is an assertion about absence,
+and a non-significant result does not by itself support one.
+Table~\ref{tab:effect-sizes} reports the relevant quantities, computed over the
+run-level differences by \url{analysis/effect_sizes_and_equivalence.py}.
+
+\begin{table}[htbp]
+\centering
+\caption[Effect sizes, equivalence tests, and detectable effects]{Effect sizes, equivalence tests, and minimum detectable effects across
+the three twenty-run campaigns. Cohen's $d$ and the rank-biserial correlation
+$r_{\text{rb}}$ are computed over run-level gaps. The TOST column gives the
+larger of the two one-sided $p$-values at an equivalence bound of
+$\pm1.0$ percentage points; a value below $0.05$ establishes equivalence at that
+bound. The tightest bound is the smallest $\delta$ at which equivalence still
+holds ($p<0.05$). MDE is the smallest true effect detectable at 80\% power given
+each campaign's observed standard deviation.}
+\label{tab:effect-sizes}
+\begin{tabular}{rrrrrrrr}
+\toprule
+$n$ & Mean gap & SD & Cohen's $d$ & $r_{\text{rb}}$ & TOST $p$ ($\pm1$pp) &
+  Tightest bound & MDE \\
+\midrule
+1{,}000  & $+3.95$pp & 1.78pp & $+2.22$ & $+1.00$ & --      & --          & 1.12pp \\
+5{,}000  & $-0.22$pp & 1.03pp & $-0.21$ & $-0.24$ & $0.0015$ & $\pm0.61$pp & 0.64pp \\
+10{,}000 & $-0.11$pp & 0.67pp & $-0.16$ & $-0.14$ & $<0.0001$ & $\pm0.36$pp & 0.42pp \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The $n=1{,}000$ effect is large in standardised terms.} Cohen's
+$d=+2.22$ places the mean gap more than two standard deviations of the
+run-to-run spread above zero, which is a large effect by any conventional
+reading of the scale \citep{cohen1988statistical}. The rank-biserial
+correlation reaches its maximum value of $+1.00$, reflecting that all twenty
+runs favour GCA without exception. These two figures should be read together
+with the absolute accuracies, however, and they measure different things: the
+effect is large \emph{relative to the variability of the measurement}, while
+remaining small in absolute terms, since it moves a reward model from roughly
+0.53 to roughly 0.57 pairwise accuracy against a chance level of 0.5
+(Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-weak-signal}). A large $d$
+here indicates a highly reproducible difference, not a practically decisive one.
+
+\paragraph{The larger-scale nulls are positive evidence of absence.} At both
+$n=5{,}000$ and $n=10{,}000$, the two one-sided tests reject the hypothesis that
+the true effect is as large as $\pm1$ percentage point in either direction
+($p=0.0015$ and $p<0.0001$ respectively). The effect at these scales is
+therefore not merely undetected; it is positively bounded. Tightening the bound
+until equivalence just fails gives the strongest statement the data support: at
+$n=5{,}000$ any true effect larger than $\pm0.61$ percentage points can be
+ruled out, and at $n=10{,}000$ any effect larger than $\pm0.36$ percentage
+points. Both bounds are far below the $+3.95$-point advantage measured at
+$n=1{,}000$, and below the $\pm1$-point threshold at which an effect would begin
+to be practically interesting at all. This is what licenses the language of
+confirmed absence used in Section~\ref{sec:results-scale}, which a
+non-significant Wilcoxon result alone would not.
+
+\paragraph{The design had ample power to detect the effect it did not find.}
+Given each campaign's observed run-to-run standard deviation, a paired test over
+twenty runs detects an effect of $1.12$ percentage points at $n=1{,}000$,
+$0.64$ points at $n=5{,}000$, and $0.42$ points at $n=10{,}000$, each at 80\%
+power and $\alpha=0.05$. Had an effect of the size observed at $n=1{,}000$ been
+present at either larger scale, it would have exceeded the detection threshold
+there by a factor of more than six. The larger-scale campaigns are therefore not
+underpowered with respect to the effect they were testing for, which is the
+claim Section~\ref{sec:results-scale} makes and this analysis substantiates.
+Note that the smaller standard deviations at the larger scales --- 1.03 and 0.67
+points, against 1.78 at $n=1{,}000$ --- also mean those campaigns are
+intrinsically more sensitive, not less, so the failure to find an effect there
+cannot be attributed to noisier measurement.
+
 \section{Summary of Results}
 \label{sec:results-summary}
 
@@ -703,15 +786,17 @@ Full interpretation is left to Chapter~\ref{ch:discussion}.
 RQ1 &
   At $n=1{,}000$, GCA leads in all 20 runs of the extended campaign
   (Section~\ref{sec:results-extended-campaign}) with a mean difference of
-  $+3.95$ percentage points, a run-level two-sided Wilcoxon $p<0.001$, and a
-  bootstrap 95\% CI entirely above zero. An earlier six-run campaign gave a
+  $+3.95$ percentage points, a run-level two-sided Wilcoxon $p<0.001$, a
+  bootstrap 95\% CI entirely above zero, and a large standardised effect
+  ($d=+2.22$, $r_{\text{rb}}=+1.00$). An earlier six-run campaign gave a
   consistent but structurally underpowered estimate ($+3.08$pp,
   $p=0.0625$). Twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$
   (Section~\ref{sec:results-scale}), the same resolution as $n=1{,}000$,
   confirm the advantage is genuinely absent at those scales, not merely
   unreproduced: mean gaps of $-0.22$pp ($p=0.3410$) and $-0.11$pp
   ($p=0.5882$), with confidence intervals that do not overlap the
-  $n=1{,}000$ result. \\
+  $n=1{,}000$ result, and equivalence tests excluding effects larger than
+  $\pm0.61$pp and $\pm0.36$pp (Section~\ref{sec:results-effect-sizes}). \\
 RQ2 &
   Aggregation strategy and evaluator mode are associated with substantial
   outcome differences. The evaluator-mode comparison is exploratory, because
@@ -720,10 +805,11 @@ RQ2 &
 RQ3 &
   Stable at fixed scale, not stable across scale. All 20 runs at $n=1{,}000$
   favour GCA (SD 1.78pp); twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$
-  are similarly consistent around a mean of approximately zero. The advantage
-  is confirmed present at $n=1{,}000$ and confirmed absent at the two larger,
-  nested dataset sizes, with non-overlapping confidence intervals at every
-  comparison. \\
+  are similarly consistent around a mean of approximately zero (SD 1.03pp and
+  0.67pp). The advantage is confirmed present at $n=1{,}000$ and confirmed
+  absent at the two larger, nested dataset sizes, with non-overlapping
+  confidence intervals at every comparison and equivalence established at both
+  larger scales (Section~\ref{sec:results-effect-sizes}). \\
 \bottomrule
 \end{tabularx}
 \end{table}

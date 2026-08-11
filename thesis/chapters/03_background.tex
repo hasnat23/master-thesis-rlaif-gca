@@ -256,18 +256,51 @@ Wilcoxon signed-rank test \citep{wilcoxon1945individual} is reported on the same
 paired $t$-test it does not assume normality, which is appropriate given the small
 number of observations and the fact that fold accuracies are bounded proportions.
 
-\textbf{An important qualification.} Both procedures assume that the observations
-they are applied to are independent, and in this thesis they are not. The
-fold-level differences are pooled across runs, but the five folds within a run
-partition a single dataset and therefore share most of their training data.
-Applying either procedure to 30 such observations treats correlated measurements
-as independent replications, which understates uncertainty and produces intervals
-that are too narrow and $p$-values that are too small. Every interval and
-$p$-value reported in Chapter~\ref{ch:results} is therefore anti-conservative and
-is presented as an exploratory summary of the spread rather than as a
-confirmatory hypothesis test. Chapter~\ref{ch:discussion},
-Section~\ref{sec:disc-stats-caveat} discusses what a more conservative treatment
-would permit and what the results support independently of any threshold.
+\textbf{An important qualification: the unit of replication.} Both procedures
+assume that the observations they are applied to are independent, and this
+determines which level the tests may legitimately be applied at. Fold-level
+differences are \emph{not} independent: the five folds within a run partition a
+single dataset and therefore share most of their training data, so applying
+either procedure to 30 such observations treats correlated measurements as
+independent replications, which understates uncertainty and produces intervals
+that are too narrow and $p$-values that are too small. Run-level differences,
+by contrast, come from separately seeded training runs and satisfy the
+assumption.
+
+This thesis therefore reports two kinds of figure, and the distinction should be
+kept in view when reading Chapter~\ref{ch:results}. Fold-level intervals and
+$p$-values, which appear only for the early six-run campaign
+(Section~\ref{sec:results-final-campaign}), are anti-conservative and are
+presented as exploratory summaries of spread, never as hypothesis tests. All
+confirmatory statistics --- the twenty-run campaigns at each dataset size, their
+bootstrap intervals, Wilcoxon tests, effect sizes, and equivalence tests --- are
+computed over run-level differences, where the independence assumption holds.
+Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-stats-caveat} traces how the
+analysis moved from the former to the latter.
+
+\textbf{Effect size.} A $p$-value indicates whether a difference is
+distinguishable from zero, not how large it is, so both are reported. For paired
+differences $\{d_1, \ldots, d_n\}$ the standardised effect size is Cohen's $d =
+\bar{d} / s_d$, the mean difference expressed in units of its own standard
+deviation \citep{cohen1988statistical}. Alongside it, the matched-pairs
+rank-biserial correlation is reported as the effect size native to the Wilcoxon
+test: it is the difference between the sums of positive and negative signed
+ranks, divided by their total, and therefore ranges from $-1$ (every run favours
+one condition) to $+1$ (every run favours the other), capturing consistency of
+direction independently of magnitude.
+
+\textbf{Equivalence testing.} A non-significant result does not by itself
+establish that an effect is absent; it may equally reflect insufficient data.
+Establishing absence requires reversing the burden of proof, which is what the
+two one-sided tests (TOST) procedure does \citep{lakens2017equivalence}. Given an
+equivalence bound $\pm\delta$ representing the smallest effect that would be
+practically meaningful, TOST tests the two null hypotheses that the true effect
+is at least $+\delta$ and at most $-\delta$. Rejecting both places the true
+effect inside $(-\delta, +\delta)$ with the stated confidence, which is positive
+evidence of a negligible effect rather than mere failure to detect one. This
+procedure is applied in Chapter~\ref{ch:results},
+Section~\ref{sec:results-effect-sizes} to the $n=5{,}000$ and $n=10{,}000$
+campaigns, where the substantive claim is precisely that no advantage remains.
 
 Pooling across runs rather than reporting a single run is nonetheless deliberate,
 and responds to an early observation

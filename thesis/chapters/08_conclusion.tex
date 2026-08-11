@@ -53,15 +53,19 @@ and aggregation choice, rather than following from finer granularity as such.
 scoring?) is answered \emph{yes at small scale, no at larger scale, both with
 statistical support}. An average advantage of $+3.95$ percentage points is
 observed across twenty independent runs at $n=1{,}000$, favouring GCA in all
-twenty, with a run-level Wilcoxon $p<0.001$ and a bootstrap confidence interval
-that does not cross zero. Twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$,
-the same resolution as $n=1{,}000$, give mean gaps statistically
-indistinguishable from zero ($p=0.3410$ and $p=0.5882$), with confidence
-intervals that do not overlap the $n=1{,}000$
-result. The answer is therefore not merely configuration-dependent in an
-unresolved sense: it is a confirmed advantage at one dataset scale and a
-confirmed absence of advantage at two larger ones, with both conclusions now
-resting on repeated, properly powered evidence rather than single runs.
+twenty, with a run-level Wilcoxon $p<0.001$, a bootstrap confidence interval
+that does not cross zero, and a large standardised effect ($d=+2.22$).
+Twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$, the same resolution as
+$n=1{,}000$, give mean gaps statistically indistinguishable from zero
+($p=0.3410$ and $p=0.5882$), with confidence intervals that do not overlap the
+$n=1{,}000$ result; equivalence tests at those scales additionally exclude any
+effect larger than $\pm0.61$ and $\pm0.36$ percentage points
+(Section~\ref{sec:results-effect-sizes}), so the absence is established
+positively rather than inferred from a failure to reject. The answer is
+therefore not merely configuration-dependent in an unresolved sense: it is a
+confirmed advantage at one dataset scale and a confirmed absence of advantage at
+two larger ones, with both conclusions resting on repeated, adequately powered
+evidence rather than single runs.
 
 \textbf{RQ2} (how do evaluator configuration and aggregation strategy affect
 relative learnability?) is answered \emph{associationally}. Both the aggregation
@@ -87,6 +91,41 @@ $n=1{,}000$ estimate (Section~\ref{sec:disc-scale}). Run-to-run stability at
 fixed scale is well established at all three sizes tested; stability across
 scale does not hold, and this absence is now itself a properly powered
 finding rather than an artefact of insufficient replication.
+
+\section{Status of the Working Hypotheses}
+\label{sec:concl-hypotheses}
+
+Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-rqs} stated three
+working hypotheses that guided the design. Their status against the evidence
+collected is as follows.
+
+\textbf{H1} (sentence-level aggregated preferences are more learnable than
+holistic preferences, because they localize the factuality signal within a long
+output) is \emph{supported at $n=1{,}000$ and refuted at larger scale}. The
+predicted direction holds decisively where training data are scarce, in all
+twenty runs, with a large standardised effect ($d=+2.22$). It does not hold at
+$n=5{,}000$ or $n=10{,}000$, where equivalence tests exclude effects larger than
+$\pm0.61$ and $\pm0.36$ percentage points respectively
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-effect-sizes}). The
+hypothesis as originally stated was unconditional and is therefore not supported
+in that form; what survives is a scale-bounded version of it.
+
+\textbf{H2} (the evaluator's configuration affects whether any such difference is
+observable) is \emph{supported, associationally}. Whether GCA leads at all
+depends on the AlignScore mode, and the two modes in which it does not lead are
+precisely the two in which the evaluator performs its own internal decomposition
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep}). Because each
+mode was run once, the association is established more securely than the
+mechanism behind it.
+
+\textbf{H3} (effects observed at one dataset scale need not persist at another)
+is \emph{supported, and is the hypothesis the evidence bears on most directly}.
+It was included as a methodological precaution rather than a substantive
+prediction, and it proved to be the one that determined the shape of the final
+result: an effect that is significant, large, and perfectly consistent at
+$n=1{,}000$ is confirmed absent at both larger scales. Had the study stopped at
+$n=1{,}000$, as the original design would have permitted, it would have reported
+an unqualified positive finding that the fuller evidence does not support.
 
 \section{Limitations}
 \label{sec:concl-limitations}

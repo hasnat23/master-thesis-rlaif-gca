@@ -8,8 +8,10 @@ The experiments support a narrow and conditional claim. Under one specific
 configuration, at one dataset size, preferences constructed by sentence-level
 aggregation are more consistently recoverable by a Bradley--Terry reward model
 than preferences constructed holistically from the same evaluator and the same
-candidate summaries. The difference averages roughly three percentage points over
-six repeated runs and is consistent in direction across five of them.
+candidate summaries. The difference averages $+3.95$ percentage points over
+twenty independently seeded runs and favours GCA in every one of them, with a
+run-level Wilcoxon $p<0.001$ (Chapter~\ref{ch:results},
+Section~\ref{sec:results-extended-campaign}).
 
 Four claims that might appear to follow do not. The results do not establish that
 GCA labels are factually more accurate, since no independent annotation was
@@ -162,6 +164,16 @@ threshold, and the effect size is close to the original six-run estimate,
 indicating that the earlier campaign's direction was not an artifact of having
 too few runs to trust, only too few to prove.
 
+Significance alone understates how consistent the difference is. Measured
+against the run-to-run spread it must be distinguished from, the effect is
+large: Cohen's $d = +2.22$, and the rank-biserial correlation attains its
+maximum of $+1.00$ because no run in the campaign favours holistic
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-effect-sizes}). The
+$p$-value and the effect size are answering different questions here, and both
+are needed. What is large is the difference relative to the noise in the
+measurement; what remains small, as the next section discusses, is the
+difference in absolute terms.
+
 Reaching significance changes what can be claimed, but it does not remove the
 need for the qualifications that surrounded the six-run result. Statistical
 significance at the run level establishes that GCA preferences are
@@ -239,7 +251,7 @@ rows use the 512-token cap; \texttt{max\_article\_chars} is the character budget
 before tokenization. The \texttt{deberta-v3-base} arms (512 and 1{,}024 tokens)
 were prepared but not completed; see Chapter~\ref{ch:conclusion}.}
 \label{tab:truncation-ablation}
-\begin{tabular}{rrrrr}
+\begin{tabular}{rrrr}
 \toprule
 Max article chars & Holistic & GCA & Gap (GCA $-$ Holistic) \\
 \midrule
@@ -275,10 +287,23 @@ from a null result. Neither overlaps the $n=1{,}000$ interval, $[+3.19,
 +4.70]$pp, and the margin is not close: the nearest edges are separated by more
 than two and a half percentage points at both scales. This is the pattern the
 genuine-scale-effect explanation predicted and the statistical-noise
-explanation did not. The GCA advantage observed at $n=1{,}000$ is therefore not
-an artifact that would have appeared at any scale if only enough runs had been
-collected; it is specific to the smaller dataset size, and it disappears, not
-merely shrinks, once training data becomes more plentiful.
+explanation did not.
+
+One further step is required before the language of absence is justified,
+because a non-significant test result is compatible both with a negligible
+effect and with an effect the design was too small to see. The distinction is
+settled by the equivalence tests reported in Chapter~\ref{ch:results},
+Section~\ref{sec:results-effect-sizes}, which reverse the burden of proof and
+ask whether effects above a given size can be \emph{excluded}. They can: at
+$n=5{,}000$ any true effect larger than $\pm0.61$ percentage points is ruled out
+at the 5\% level, and at $n=10{,}000$ any effect larger than $\pm0.36$ points.
+The design was also amply powered for the effect it was testing for, detecting
+$0.64$ and $0.42$ points respectively at 80\% power, against the $3.95$-point
+effect measured at $n=1{,}000$. The GCA advantage observed at $n=1{,}000$ is
+therefore not an artifact that would have appeared at any scale if only enough
+runs had been collected, nor an effect that persists below the resolution of
+these experiments; it is specific to the smaller dataset size, and it
+disappears, not merely shrinks, once training data becomes more plentiful.
 
 This resolves what could previously only be raised as a hypothesis. Because
 this thesis holds candidate pool, evaluator, and reward-model architecture
@@ -354,10 +379,11 @@ supports.
 
 No independent human validation of the factuality labels was collected in this
 study, and it is worth stating precisely what this does and does not leave open.
-The repeated runs in Chapter~\ref{ch:results},
-Section~\ref{sec:results-final-campaign} establish that the difference between the
-two preference sets is repeatedly observed: it survives changes in fold assignment
-and training stochasticity, so it is not confined to a single favourable run.
+The twenty repeated runs in Chapter~\ref{ch:results},
+Section~\ref{sec:results-extended-campaign} establish that the difference between
+the two preference sets is repeatedly observed: it survives changes in fold
+assignment and appears in every run of the campaign, so it is not confined to a
+single favourable run.
 
 Reproducibility and correctness are separate properties, however. That a
 preference relation is consistently recoverable says nothing about whether the
