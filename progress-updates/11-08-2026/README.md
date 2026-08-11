@@ -219,17 +219,6 @@ results are statistically indistinguishable from no difference at all.
 
 ---
 
-## Still open, not urgent
-
-There is one smaller, separate side-experiment, unrelated to the question
-above, that checks whether the reward model's low accuracy is caused by it
-not being shown enough of the article text. That check is partly done and
-partly blocked by a cluster server being down on the university's end. It
-does not affect the results above and does not need to be discussed on
-Tuesday unless there is time.
-
----
-
 ## Questions for Tuesday
 
 1. Does this fully answer the concern about reward model training and
