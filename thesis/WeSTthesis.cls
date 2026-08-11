@@ -140,6 +140,11 @@
 \newcommand{\secondreviewer}[1]{\def\secondreviewer{#1}}
 \newcommand{\secondreviewerinfo}[1]{\def\secondreviewerinfo{#1}}
 
+\newif\ifmentorset
+\mentorsetfalse
+\newcommand{\mentor}[1]{\mentorsettrue\def\mentor{#1}}
+\newcommand{\mentorinfo}[1]{\def\mentorinfo{#1}}
+
 \newcommand{\englishabstract}[1]{\def\englishabstract{#1}}
 \newcommand{\germanabstract}[1]{\def\germanabstract{#1}}
 
@@ -312,7 +317,19 @@
           Zweitgutachter: 
         \fi
         & \secondreviewer\\
-        \empty & \secondreviewerinfo\\[2cm]
+        \empty & \secondreviewerinfo%
+        \ifmentorset
+          \\[2.5mm]
+          \ifenglish
+            Mentor:
+          \else
+            Mentor:
+          \fi
+          & \mentor\\
+          \empty & \mentorinfo\\[2cm]
+        \else
+          \\[2cm]
+        \fi
       \fi
       \ifdate%
         Koblenz, \today &
