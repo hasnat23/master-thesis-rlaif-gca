@@ -18,7 +18,47 @@ confident we can be in them.
 
 ## How the experiment works
 
-There are three steps.
+There are three steps. The diagram below shows the full pipeline end to end,
+with what goes into each step and what comes out of it.
+
+```mermaid
+flowchart TD
+    A["1. Data loader<br/>Input: CNN/DailyMail dataset<br/>Output: N seeded article samples"]
+    B["2. Candidate generation (Mistral-7B)<br/>Input: article text<br/>Output: 2 candidate summaries, T=0.7 and T=1.0"]
+    C["3. Candidate pairing<br/>Input: 2 candidate summaries<br/>Output: Summary A / Summary B pair"]
+
+    D["4A. Holistic scoring (AlignScore)<br/>Input: article + full summary<br/>Output: 1 factuality score per summary"]
+    E["4B. Sentence segmentation<br/>Input: full summary<br/>Output: list of sentences"]
+
+    F["5A. Holistic preference<br/>Input: score(A), score(B)<br/>Output: chosen / rejected label"]
+    G["5B. Sentence-level scoring (AlignScore)<br/>Input: article + each sentence<br/>Output: 1 score per sentence"]
+
+    H["6B. GCA aggregation, alpha=0.0<br/>Input: all sentence scores for a summary<br/>Output: 1 aggregated score per summary"]
+
+    I["7B. GCA preference<br/>Input: aggregated score(A), aggregated score(B)<br/>Output: chosen / rejected label"]
+
+    J["8A. Train RM-Holistic<br/>Bradley-Terry, RoBERTa-base<br/>Input: holistic preference pairs<br/>Output: trained reward model, 5-fold CV accuracy"]
+    K["8B. Train RM-GCA<br/>Bradley-Terry, RoBERTa-base<br/>Input: GCA preference pairs<br/>Output: trained reward model, 5-fold CV accuracy"]
+
+    L["9. Evaluation and comparison<br/>Input: both accuracies, across 20 seeds<br/>Output: mean gap, 95% CI, Wilcoxon p-value"]
+
+    A --> B --> C
+    C --> D --> F --> J --> L
+    C --> E --> G --> H --> I --> K --> L
+
+    classDef shared fill:#eee,stroke:#999,color:#333;
+    classDef hol fill:#dbe9fb,stroke:#4a7fc9,color:#1a1a1a;
+    classDef gca fill:#fde3c7,stroke:#d98a3d,color:#1a1a1a;
+    class A,B,C,L shared;
+    class D,F,J hol;
+    class E,G,H,I,K gca;
+```
+
+Blue boxes are the holistic branch, orange boxes are the GCA branch. Both
+branches start from the exact same candidates (grey boxes) and end in the
+same evaluation step, so the only thing that ever differs between them is
+how the factuality score for each summary is produced. This matches
+Figure 5.1 in the thesis (`thesis/chapters/05_implementation.tex`).
 
 **Step 1. An AI judge scores the summaries.** For each news article, two
 candidate summaries were generated. A separate AI model, AlignScore, checks

@@ -75,6 +75,35 @@ sentence-alignment step, neither of which appears here.}
 \label{fig:pipeline}
 \end{figure}
 
+Table~\ref{tab:pipeline-io} states the input and output of every stage in
+Figure~\ref{fig:pipeline} explicitly. Stages 4A/5A form the holistic branch,
+stages 4B/5B/6B/7B form the GCA branch, and stage 9 is the only point at
+which the two branches are compared against each other.
+
+\begin{table}[htbp]
+\centering
+\caption[Input and output of each pipeline stage]{Input and output of each stage of the final pipeline shown in Figure~\ref{fig:pipeline}.}
+\label{tab:pipeline-io}
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+Stage & Input & Output \\
+\midrule
+1. Data Loader & CNN/DailyMail dataset & $N$ seeded article samples with content-derived IDs \\
+2. Candidate Generation & Article text & 2 candidate summaries per article ($T{=}0.7$, $T{=}1.0$) \\
+3. Candidate Pairing & 2 candidate summaries & Summary A / Summary B pair \\
+4A. Holistic Scoring & Article $+$ full summary & 1 AlignScore factuality score per summary \\
+4B. Sentence Segmentation & Full summary & List of sentences \\
+5A. Holistic Preference & Score(A), Score(B) & chosen/rejected label (or \texttt{no\_preference}) \\
+5B. Sentence-Level Scoring & Article $+$ each sentence & 1 AlignScore score per sentence \\
+6B. GCA Aggregation & All sentence scores for one summary & 1 aggregated score per summary ($\alpha{=}0.0$) \\
+7B. GCA Preference & Aggregated score(A), score(B) & chosen/rejected label (or \texttt{no\_preference}) \\
+8A. Train RM-Holistic & Holistic preference pairs & Trained Bradley--Terry RM, 5-fold CV accuracy \\
+8B. Train RM-GCA & GCA preference pairs & Trained Bradley--Terry RM, 5-fold CV accuracy \\
+9. Evaluation \& Comparison & Both conditions' accuracies, 20 seeds & Mean gap, bootstrap 95\% CI, Wilcoxon $p$-value \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 \section{Data}
 \label{sec:impl-data}
 
