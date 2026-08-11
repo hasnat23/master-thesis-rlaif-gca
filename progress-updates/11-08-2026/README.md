@@ -5,17 +5,6 @@ Meeting: Tuesday, 11 August 2026
 
 ---
 
-## The professor's question
-
-"I believe the steps of training reward models using holistic/GCA scores and
-evaluating those reward models haven't been done yet."
-
-This has been done. It is the main experiment of the thesis. This document
-walks through exactly how it was done, what the results are, and how
-confident we can be in them.
-
----
-
 ## How the experiment works
 
 There are three steps. The diagram below shows the full pipeline end to end,
