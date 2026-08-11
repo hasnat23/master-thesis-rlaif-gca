@@ -463,14 +463,33 @@ The candidate pairs differ in decoding temperature, and
 Chapter~\ref{ch:methodology}, Table~\ref{tab:temperature-asymmetry} shows the
 consequence is not small: the lower-temperature candidate is preferred in 68.5\%
 of holistic pairs and 63.0\% of GCA pairs on the data where this could be
-measured. Because temperature systematically affects surface properties such as
-length and lexical conservativeness, a reward model could recover a meaningful
-share of the preference relation from stylistic cues without representing
-factuality at all. The asymmetry also differs between conditions by roughly five
+measured. The asymmetry also differs between conditions by roughly five
 percentage points, so the two preference sets are not equivalent with respect to
-this confound, and part of the observed difference between them could in principle
-reflect that rather than granularity. Sampling both candidates at the same
-temperature would remove the confound and is the cleanest correction available.
+this confound.
+
+How much this threatens the reported comparison depends on whether the
+asymmetry is \emph{learnable} from the summary text, and that question has now
+been examined rather than left open. The reward model never observes decoding
+temperature or candidate position; it sees only (article, summary) pairs
+(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}). For the
+temperature skew to inflate its accuracy, some textual correlate of temperature
+would have to be recoverable from the summary. The surface-feature baselines in
+Chapter~\ref{ch:methodology}, Table~\ref{tab:surface-baselines} show that the
+two most obvious such correlates do not qualify: classifiers deciding purely
+from summary length or sentence count reach 0.465--0.535 accuracy against the
+judge's own decisions, which is chance, and the mean length difference between
+chosen and rejected summaries is 2 characters under holistic scoring and $-6$
+under GCA. Whatever the reward models are fitting, it is not summary length.
+
+This weakens the confound but does not dispose of it. Lexical and stylistic
+correlates of temperature beyond length --- word-frequency profiles, hedging,
+named-entity density --- were not tested, and a reward model with a
+pretrained encoder is well placed to pick up exactly that kind of regularity.
+What can be said is that the simple and most frequently raised version of the
+objection, that the models are covertly learning to prefer longer or shorter
+summaries, is empirically excluded. Sampling both candidates at the same
+temperature would remove the confound at source and remains the cleanest
+correction available.
 
 The reward model also sees only a truncated prefix of each source article
 (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}), while

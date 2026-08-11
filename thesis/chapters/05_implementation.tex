@@ -6,7 +6,8 @@
 
 Figure~\ref{fig:pipeline} shows the final pipeline. It differs from the pipeline
 described in the original proposal in exactly the ways described in
-Chapter~\ref{ch:methodology}: there is no DPO fine-tuning stage, no MoDPO branch,
+Chapter~\ref{ch:methodology}: there is no DPO fine-tuning stage, no MoDPO
+\citep{zhou2024modpo} branch,
 and no cross-summary sentence-alignment step. The pipeline has four stages. First,
 a fixed number of CNN/DailyMail articles are selected deterministically
 (Section~\ref{sec:impl-data}). Second, two candidate summaries are generated per

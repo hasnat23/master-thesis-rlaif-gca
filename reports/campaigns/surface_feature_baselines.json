@@ -1,0 +1,50 @@
+{
+  "holistic": {
+    "n_pairs": 154,
+    "length_baseline": {
+      "prefer_larger_acc": 0.4935064935064935,
+      "prefer_smaller_acc": 0.5064935064935066,
+      "best_acc": 0.5064935064935066,
+      "ties": 0
+    },
+    "sentence_count_baseline": {
+      "prefer_larger_acc": 0.5194805194805194,
+      "prefer_smaller_acc": 0.48051948051948057,
+      "best_acc": 0.5194805194805194,
+      "ties": 24
+    },
+    "position_baseline": {
+      "always_a_acc": 0.7077922077922078,
+      "a_wins": 109,
+      "n": 154
+    },
+    "mean_length_chosen": 865.5519480519481,
+    "mean_length_rejected": 863.5064935064935,
+    "mean_sentences_chosen": 6.935064935064935,
+    "mean_sentences_rejected": 6.928571428571429
+  },
+  "gca": {
+    "n_pairs": 157,
+    "length_baseline": {
+      "prefer_larger_acc": 0.46496815286624205,
+      "prefer_smaller_acc": 0.535031847133758,
+      "best_acc": 0.535031847133758,
+      "ties": 0
+    },
+    "sentence_count_baseline": {
+      "prefer_larger_acc": 0.4745222929936306,
+      "prefer_smaller_acc": 0.5254777070063694,
+      "best_acc": 0.5254777070063694,
+      "ties": 25
+    },
+    "position_baseline": {
+      "always_a_acc": 0.6178343949044586,
+      "a_wins": 97,
+      "n": 157
+    },
+    "mean_length_chosen": 840.452229299363,
+    "mean_length_rejected": 846.1656050955414,
+    "mean_sentences_chosen": 6.426751592356688,
+    "mean_sentences_rejected": 6.707006369426751
+  }
+}

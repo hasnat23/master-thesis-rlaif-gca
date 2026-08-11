@@ -179,7 +179,10 @@ an unqualified positive finding that the fuller evidence does not support.
     two candidates differ in decoding temperature, and the lower-temperature
     candidate is preferred substantially more often under both conditions and to
     differing degrees (Chapter~\ref{ch:methodology},
-    Section~\ref{sec:methodology-ethics}), so temperature-correlated features may
+    Section~\ref{sec:methodology-ethics}). Summary length and sentence count are
+    excluded as carriers of this information, both performing at chance against
+    the evaluator's decisions (Table~\ref{tab:surface-baselines}), but subtler
+    temperature-correlated textual features were not tested and could still
     carry part of the label information.
   \item \textbf{Source-document truncation.} The reward model receives only a
     truncated prefix of each article, so evidence located later in the source is
@@ -206,11 +209,16 @@ an unqualified positive finding that the fuller evidence does not support.
 \label{sec:concl-future}
 
 \begin{itemize}
-  \item \textbf{Remove the temperature confound.} Generating both candidates at a
-    single decoding temperature, and comparing the resulting preference sets
-    against the current ones, would establish how much of the observed structure
-    is attributable to temperature-correlated surface features rather than to
-    factuality (Section~\ref{sec:disc-confounds}).
+  \item \textbf{Remove the temperature confound at source.} Summary length and
+    sentence count have been ruled out as carriers of the preference signal:
+    classifiers using them reach chance accuracy against the evaluator's own
+    decisions (Chapter~\ref{ch:methodology},
+    Table~\ref{tab:surface-baselines}). Subtler temperature correlates, such as
+    word-frequency profiles, hedging, or named-entity density, were not tested
+    and remain open. Generating both candidates at a single decoding
+    temperature, and comparing the resulting preference sets against the current
+    ones, would settle the question for all such features at once rather than
+    one at a time (Section~\ref{sec:disc-confounds}).
   \item \textbf{Measure the effect of source truncation.} A preliminary ablation
     varied the retained article length under the RoBERTa-base backbone
     (500 / 1{,}000 / 2{,}000 characters, three seeds each) and found accuracy

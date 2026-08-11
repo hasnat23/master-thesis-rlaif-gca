@@ -22,8 +22,9 @@ before the study narrowed to reward-model comparison
 (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-evolution}). They are
 reported here as context for that change, not as findings of the present study.
 
-A FLAN-T5 baseline on a 20-sample pilot gave
-ROUGE-1 0.3278, ROUGE-2 0.1201, ROUGE-L 0.2341, and BERTScore F1 0.8612. On a
+A FLAN-T5 \citep{chung2022flant5} baseline on a 20-sample pilot gave
+ROUGE-1 0.3278, ROUGE-2 0.1201, ROUGE-L 0.2341 \citep{lin2004rouge}, and
+BERTScore F1 0.8612 \citep{zhang2020bertscore}. On a
 200-sample subset (subset seed 42), the original AlignScore-based preference
 construction, using the proposal-era margin of 0.05 and $\alpha = 0.5$, produced 154
 usable holistic pairs out of 200 (77.0\%, mean scores 0.7324 for the low-temperature
@@ -32,7 +33,9 @@ candidate and 0.6530 for the high-temperature one) and 157 usable GCA pairs
 decisions (60.5\%).
 
 Mistral-7B-Instruct-v0.3 was then fine-tuned with DPO on both preference sets
-(Chapter~\ref{ch:background}, Section~\ref{sec:bg-dpo}): training loss reached
+(Chapter~\ref{ch:background}, Section~\ref{sec:bg-dpo}), using LoRA adapters
+\citep{hu2021lora} on the attention and feed-forward projections rather than
+full fine-tuning: training loss reached
 0.6902 for the holistic condition and 0.6913 for the GCA condition, each in
 roughly 134.5 seconds on an A100. On 200 held-out articles, baseline AlignScore was
 0.7965, DPO-Holistic reached 0.8017, and DPO-GCA reached 0.7996. Only DPO-GCA's
@@ -48,7 +51,8 @@ stage, which is why the final study measures the preference data directly.
 \label{sec:results-rm-baseline}
 
 The first Bradley--Terry reward-model result used the $n=495$ set (subset seed
-100) with a \texttt{microsoft/deberta-v3-base} backbone, predating the
+100) with a \texttt{microsoft/deberta-v3-base} backbone
+\citep{he2021deberta}, predating the
 standardization on \texttt{FacebookAI/roberta-base}
 (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}). Under 5-fold
 cross-validation, the holistic reward model reached 58.1\% mean pairwise accuracy

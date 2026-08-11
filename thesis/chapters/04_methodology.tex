@@ -119,10 +119,11 @@ the sense defined here.
 \section{Reward-Model Evaluation Protocol}
 \label{sec:methodology-rm-eval}
 
-Reward-model accuracy is evaluated by 5-fold cross-validation rather than a single
-fixed held-out split. At the dataset sizes used here, a fixed split would leave
-either too little data for training or too little for a stable accuracy estimate,
-whereas cross-validation uses the full dataset for both and yields five accuracy
+Reward-model accuracy is evaluated by 5-fold cross-validation
+\citep{kohavi1995crossvalidation} rather than a single fixed held-out split. At
+the dataset sizes used here, a fixed split would leave either too little data
+for training or too little for a stable accuracy estimate, whereas
+cross-validation uses the full dataset for both and yields five accuracy
 readings per run.
 
 Cross-validation alone does not account for variance introduced by the reward
@@ -409,9 +410,63 @@ These figures come from the $n=200$ set scored under the earlier evaluator
 configuration and need not hold exactly at the final one. They are reported as
 evidence that the confound is real and measurable, not as a quantification of its
 effect on the reported results. Controlling candidate generation more explicitly,
-for instance by sampling both candidates at one temperature, or testing whether
-simple candidate-level features such as length predict the labels, is left to
-future work (Chapter~\ref{ch:conclusion}).
+by sampling both candidates at one temperature, would remove the confound at
+source and is left to future work (Chapter~\ref{ch:conclusion}).
+
+\paragraph{How much label information do surface features actually carry?} The
+concern above is only as serious as the amount of label information that
+temperature-correlated surface features actually carry, and that is measurable
+directly on the same stored data. Table~\ref{tab:surface-baselines} reports the
+accuracy of the cheapest possible classifiers --- ones that ignore the article
+entirely and decide from a single surface property of the two candidate
+summaries --- against the same decisions the evaluator
+made.\footnote{Computed by \url{analysis/surface_feature_baselines.py} from the
+same two preference files as Table~\ref{tab:temperature-asymmetry}, restricted
+to the pairs carrying an A/B decision (154 holistic, 157 GCA).}
+
+\begin{table}[htbp]
+\centering
+\caption[Surface-feature baselines against the judge's decisions]{Accuracy of surface-feature classifiers against the evaluator's own
+decisions, $n=200$ preference set (mode \texttt{nli\_sp}, $\alpha=0.5$). Each
+row states the accuracy of the better of the two opposing rules (prefer
+longer/shorter, prefer more/fewer sentences). Mean lengths are in characters.}
+\label{tab:surface-baselines}
+\begin{tabular}{lrr}
+\toprule
+Predictor & Holistic & GCA \\
+\midrule
+Prefer the longer summary        & 0.494 & 0.465 \\
+Prefer the shorter summary       & 0.506 & 0.535 \\
+Prefer more sentences            & 0.519 & 0.475 \\
+Prefer fewer sentences           & 0.481 & 0.525 \\
+\addlinespace
+Mean length, chosen              & 865.6 & 840.5 \\
+Mean length, rejected            & 863.5 & 846.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+None of these predictors performs meaningfully above chance. The mean length of
+the chosen summary differs from that of the rejected summary by 2 characters
+under holistic scoring and by $-6$ characters under GCA, on summaries averaging
+roughly 850 characters, and sentence counts differ by 0.01 and $-0.28$
+respectively. Length and sentence count, the two most obvious surface proxies
+for decoding temperature, therefore do not carry the preference signal, and a
+reward model cannot be recovering its accuracy from them.
+
+This narrows the confound without eliminating it, and the distinction matters.
+The 68.5\% and 63.0\% asymmetries in
+Table~\ref{tab:temperature-asymmetry} are not themselves a shortcut available to
+the reward model: the model is trained on (article, chosen) and (article,
+rejected) text pairs and never observes which candidate came from which
+temperature, or which position it occupied
+(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}). For the
+asymmetry to inflate reward-model accuracy, some \emph{textual} property
+correlated with temperature would have to be learnable from the summary itself.
+Table~\ref{tab:surface-baselines} rules out the two most likely candidates for
+such a property. Subtler lexical or stylistic correlates are not ruled out, and
+testing them would require the feature-level analysis recorded as future work,
+but the simple version of the objection does not hold.
 
 \paragraph{Threats to validity.} Table~\ref{tab:threats-to-validity} summarizes
 the threats considered and how each is handled.
@@ -441,7 +496,9 @@ Configuration selected on observed results & Acknowledged, not remedied; the
 Scale sensitivity & Examined explicitly rather than assumed away
   (Section~\ref{sec:results-scale}). \\
 Decoding-temperature confound & Quantified where data permit; not controlled for
-  in the design (see above). \\
+  in the design. Length and sentence count are excluded as carriers of the
+  signal (Table~\ref{tab:surface-baselines}); subtler lexical correlates remain
+  untested (see above). \\
 Source-document truncation & Documented in Chapter~\ref{ch:implementation},
   Section~\ref{sec:impl-rm-training}; discussed as a limitation. \\
 Weak absolute accuracy & Both conditions remain near chance

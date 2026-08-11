@@ -89,7 +89,7 @@ GCA takes sentence-level factuality scores and aggregates them into a single sum
 | RM training | epochs=5, lr=2e-5, batch=8, max_length=512, 5-fold CV |
 | Primary metric | RM pairwise validation accuracy (Holistic vs GCA) |
 | Stats | Bootstrap resampling (10,000), 95% CI, Wilcoxon signed-rank test |
-| Superseded (early prototype only) | DPO+QLoRA fine-tuning, ROUGE-1/2/L, BERTScore F1, SummaC, QAFactEval, FineSurE |
+| Superseded (early prototype only) | DPO+LoRA fine-tuning, ROUGE-1/2/L, BERTScore F1, SummaC, QAFactEval, FineSurE |
 
 ---
 
@@ -241,4 +241,4 @@ squeue -u muhhas01
 | Infrastructure | MOGON NHR (A100-SXM4-40GB, Slurm, partition `a100dl`) |
 | Judge | `yzha/AlignScore`, mode `nli` (locked final config) |
 | Reward model | Bradley-Terry, `FacebookAI/roberta-base` backbone |
-| Early-prototype only (superseded) | DPO + QLoRA (TRL), SummaC, QAFactEval, FineSurE, ROUGE-1/2/L, BERTScore F1 |
+| Early-prototype only (superseded) | DPO + LoRA (TRL/PEFT), SummaC, QAFactEval, FineSurE, ROUGE-1/2/L, BERTScore F1 |

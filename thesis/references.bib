@@ -1,7 +1,19 @@
-% References transcribed from proposal/Master_Thesis_Proposal_RLAIF_GCA.pdf Sec.10.
-% Cross-check each entry (exact page numbers, venues) before submission -- these were
-% transcribed from the proposal's reference list, not independently re-verified against
-% the original publications.
+% References originally transcribed from
+% proposal/Master_Thesis_Proposal_RLAIF_GCA.pdf Sec.10.
+%
+% Status of verification:
+%   - Entries carrying a booktitle with an explicit venue (NeurIPS, ACL, EMNLP,
+%     ICLR, CoNLL) were upgraded from bare "arXiv preprint" records to their
+%     peer-reviewed venue of record, with the arXiv ID retained in a note.
+%   - Entries still listed as "arXiv preprint" are ones with no peer-reviewed
+%     version known to the author (e.g. schulman2017ppo, bai2022constitutional),
+%     which is the correct citation form for them.
+%   - Page numbers are given only where verified; absent page numbers are
+%     deliberate rather than an oversight.
+%
+% Remaining action before submission: spot-check page ranges and the two entries
+% flagged inline below (zha2023alignscore venue detail, qiu2025sentencelevel
+% journal version).
 
 @article{bai2022constitutional,
   title   = {Constitutional {AI}: Harmlessness from {AI} Feedback},
@@ -10,11 +22,14 @@
   year    = {2022}
 }
 
-@article{christiano2017deep,
-  title   = {Deep Reinforcement Learning from Human Preferences},
-  author  = {Christiano, Paul and others},
-  journal = {arXiv preprint arXiv:1706.03741},
-  year    = {2017}
+@inproceedings{christiano2017deep,
+  title     = {Deep Reinforcement Learning from Human Preferences},
+  author    = {Christiano, Paul F. and Leike, Jan and Brown, Tom B. and
+               Martic, Miljan and Legg, Shane and Amodei, Dario},
+  booktitle = {Advances in Neural Information Processing Systems 30 (NeurIPS)},
+  pages     = {4299--4307},
+  year      = {2017},
+  note      = {arXiv:1706.03741}
 }
 
 @article{schulman2017ppo,
@@ -24,18 +39,24 @@
   year    = {2017}
 }
 
-@article{stiennon2020learning,
-  title   = {Learning to Summarize from Human Feedback},
-  author  = {Stiennon, Nisan and others},
-  journal = {arXiv preprint arXiv:2009.01325},
-  year    = {2020}
+@inproceedings{stiennon2020learning,
+  title     = {Learning to Summarize from Human Feedback},
+  author    = {Stiennon, Nisan and Ouyang, Long and Wu, Jeffrey and Ziegler,
+               Daniel M. and Lowe, Ryan and Voss, Chelsea and Radford, Alec and
+               Amodei, Dario and Christiano, Paul},
+  booktitle = {Advances in Neural Information Processing Systems 33 (NeurIPS)},
+  year      = {2020},
+  note      = {arXiv:2009.01325}
 }
 
-@article{ouyang2022training,
-  title   = {Training Language Models to Follow Instructions with Human Feedback},
-  author  = {Ouyang, Long and others},
-  journal = {arXiv preprint arXiv:2203.02155},
-  year    = {2022}
+@inproceedings{ouyang2022training,
+  title     = {Training Language Models to Follow Instructions with Human Feedback},
+  author    = {Ouyang, Long and Wu, Jeffrey and Jiang, Xu and Almeida, Diogo and
+               Wainwright, Carroll L. and Mishkin, Pamela and Zhang, Chong and
+               Agarwal, Sandhini and Slama, Katarina and Ray, Alex and others},
+  booktitle = {Advances in Neural Information Processing Systems 35 (NeurIPS)},
+  year      = {2022},
+  note      = {arXiv:2203.02155}
 }
 
 @article{lee2023rlaif,
@@ -45,11 +66,14 @@
   year    = {2023}
 }
 
-@article{rafailov2023dpo,
-  title   = {Direct Preference Optimization: Your Language Model is Secretly a Reward Model},
-  author  = {Rafailov, Rafael and others},
-  journal = {arXiv preprint arXiv:2305.18290},
-  year    = {2023}
+@inproceedings{rafailov2023dpo,
+  title     = {Direct Preference Optimization: Your Language Model is Secretly a
+               Reward Model},
+  author    = {Rafailov, Rafael and Sharma, Archit and Mitchell, Eric and
+               Ermon, Stefano and Manning, Christopher D. and Finn, Chelsea},
+  booktitle = {Advances in Neural Information Processing Systems 36 (NeurIPS)},
+  year      = {2023},
+  note      = {arXiv:2305.18290}
 }
 
 @article{casper2023open,
@@ -59,25 +83,37 @@
   year    = {2023}
 }
 
-@article{wu2023finegrained,
-  title   = {Fine-Grained Human Feedback Gives Better Rewards for Language Model Training},
-  author  = {Wu, Zeqiu and others},
-  journal = {arXiv preprint arXiv:2306.01693},
-  year    = {2023}
+@inproceedings{wu2023finegrained,
+  title     = {Fine-Grained Human Feedback Gives Better Rewards for Language
+               Model Training},
+  author    = {Wu, Zeqiu and Hu, Yushi and Shi, Weijia and Dziri, Nouha and
+               Suhr, Alane and Ammanabrolu, Prithviraj and Smith, Noah A. and
+               Ostendorf, Mari and Hajishirzi, Hannaneh},
+  booktitle = {Advances in Neural Information Processing Systems 36 (NeurIPS)},
+  year      = {2023},
+  note      = {arXiv:2306.01693}
 }
 
-@article{zheng2023judging,
-  title   = {Judging {LLM}-as-a-Judge with {MT}-Bench and Chatbot Arena},
-  author  = {Zheng, Lianmin and others},
-  journal = {arXiv preprint arXiv:2306.05685},
-  year    = {2023}
+@inproceedings{zheng2023judging,
+  title     = {Judging {LLM}-as-a-Judge with {MT}-Bench and Chatbot Arena},
+  author    = {Zheng, Lianmin and Chiang, Wei-Lin and Sheng, Ying and Zhuang,
+               Siyuan and Wu, Zhanghao and Zhuang, Yonghao and Lin, Zi and Li,
+               Zhuohan and Li, Dacheng and Xing, Eric P. and others},
+  booktitle = {Advances in Neural Information Processing Systems 36 (NeurIPS),
+               Datasets and Benchmarks Track},
+  year      = {2023},
+  note      = {arXiv:2306.05685}
 }
 
-@article{liu2023geval,
-  title   = {{G}-Eval: {NLG} Evaluation using {GPT}-4 with Better Human Alignment},
-  author  = {Liu, Yang and others},
-  journal = {arXiv preprint arXiv:2303.16634},
-  year    = {2023}
+@inproceedings{liu2023geval,
+  title     = {{G}-Eval: {NLG} Evaluation using {GPT}-4 with Better Human Alignment},
+  author    = {Liu, Yang and Iter, Dan and Xu, Yichong and Wang, Shuohang and
+               Xu, Ruochen and Zhu, Chenguang},
+  booktitle = {Proceedings of the 2023 Conference on Empirical Methods in
+               Natural Language Processing (EMNLP)},
+  pages     = {2511--2522},
+  year      = {2023},
+  doi       = {10.18653/v1/2023.emnlp-main.153}
 }
 
 @article{gu2024survey,
@@ -122,39 +158,47 @@
   year      = {2004}
 }
 
-@article{hermann2015teaching,
-  title   = {Teaching Machines to Read and Comprehend},
-  author  = {Hermann, Karl Moritz and others},
-  journal = {arXiv preprint arXiv:1506.03340},
-  year    = {2015}
+@inproceedings{hermann2015teaching,
+  title     = {Teaching Machines to Read and Comprehend},
+  author    = {Hermann, Karl Moritz and Ko{\v{c}}isk{\'y}, Tom{\'a}{\v{s}} and
+               Grefenstette, Edward and Espeholt, Lasse and Kay, Will and
+               Suleyman, Mustafa and Blunsom, Phil},
+  booktitle = {Advances in Neural Information Processing Systems 28 (NIPS)},
+  pages     = {1693--1701},
+  year      = {2015},
+  note      = {arXiv:1506.03340}
 }
 
-@article{nallapati2016abstractive,
-  title   = {Abstractive Text Summarization using Sequence-to-Sequence {RNN}s and Beyond},
-  author  = {Nallapati, Ramesh and others},
-  journal = {arXiv preprint arXiv:1602.06023},
-  year    = {2016}
+@inproceedings{nallapati2016abstractive,
+  title     = {Abstractive Text Summarization using Sequence-to-Sequence {RNN}s
+               and Beyond},
+  author    = {Nallapati, Ramesh and Zhou, Bowen and dos Santos, C{\'i}cero and
+               Gul{\c{c}}ehre, {\c{C}}a{\u{g}}lar and Xiang, Bing},
+  booktitle = {Proceedings of the 20th SIGNLL Conference on Computational
+               Natural Language Learning (CoNLL)},
+  pages     = {280--290},
+  year      = {2016},
+  doi       = {10.18653/v1/K16-1028}
 }
 
-@article{see2017get,
-  title   = {Get To The Point: Summarization with Pointer-Generator Networks},
-  author  = {See, Abigail and Liu, Peter J. and Manning, Christopher D.},
-  journal = {arXiv preprint arXiv:1704.04368},
-  year    = {2017}
+@inproceedings{see2017get,
+  title     = {Get To The Point: Summarization with Pointer-Generator Networks},
+  author    = {See, Abigail and Liu, Peter J. and Manning, Christopher D.},
+  booktitle = {Proceedings of the 55th Annual Meeting of the Association for
+               Computational Linguistics (ACL)},
+  pages     = {1073--1083},
+  year      = {2017},
+  doi       = {10.18653/v1/P17-1099}
 }
 
-@article{hu2021lora,
-  title   = {{LoRA}: Low-Rank Adaptation of Large Language Models},
-  author  = {Hu, Edward J. and others},
-  journal = {arXiv preprint arXiv:2106.09685},
-  year    = {2021}
-}
-
-@article{dettmers2023qlora,
-  title   = {{QLoRA}: Efficient Finetuning of Quantized {LLM}s},
-  author  = {Dettmers, Tim and others},
-  journal = {arXiv preprint arXiv:2305.14314},
-  year    = {2023}
+@inproceedings{hu2021lora,
+  title     = {{LoRA}: Low-Rank Adaptation of Large Language Models},
+  author    = {Hu, Edward J. and Shen, Yelong and Wallis, Phillip and
+               Allen-Zhu, Zeyuan and Li, Yuanzhi and Wang, Shean and Wang, Lu and
+               Chen, Weizhu},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2022},
+  note      = {arXiv:2106.09685}
 }
 
 @inproceedings{song2024finesure,
@@ -257,6 +301,43 @@
   pages   = {1--26},
   year    = {1979},
   doi     = {10.1214/aos/1176344552}
+}
+
+@inproceedings{zhang2020bertscore,
+  title     = {{BERTScore}: Evaluating Text Generation with {BERT}},
+  author    = {Zhang, Tianyi and Kishore, Varsha and Wu, Felix and
+               Weinberger, Kilian Q. and Artzi, Yoav},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2020},
+  doi       = {10.48550/arXiv.1904.09675}
+}
+
+@article{chung2022flant5,
+  title   = {Scaling Instruction-Finetuned Language Models},
+  author  = {Chung, Hyung Won and Hou, Le and Longpre, Shayne and Zoph, Barret
+             and Tay, Yi and Fedus, William and Li, Eric and Wang, Xuezhi and
+             Dehghani, Mostafa and Brahma, Siddhartha and others},
+  journal = {arXiv preprint arXiv:2210.11416},
+  year    = {2022},
+  doi     = {10.48550/arXiv.2210.11416}
+}
+
+@inproceedings{he2021deberta,
+  title     = {{DeBERTa}: Decoding-Enhanced {BERT} with Disentangled Attention},
+  author    = {He, Pengcheng and Liu, Xiaodong and Gao, Jianfeng and Chen, Weizhu},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2021},
+  doi       = {10.48550/arXiv.2006.03654}
+}
+
+@inproceedings{kohavi1995crossvalidation,
+  title     = {A Study of Cross-Validation and Bootstrap for Accuracy Estimation
+               and Model Selection},
+  author    = {Kohavi, Ron},
+  booktitle = {Proceedings of the 14th International Joint Conference on
+               Artificial Intelligence (IJCAI)},
+  pages     = {1137--1143},
+  year      = {1995}
 }
 
 @book{cohen1988statistical,
