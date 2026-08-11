@@ -1,19 +1,26 @@
 % References originally transcribed from
 % proposal/Master_Thesis_Proposal_RLAIF_GCA.pdf Sec.10.
 %
-% Status of verification:
+% Status of verification (last checked August 2026, via web search against
+% ACL Anthology / OpenReview / NeurIPS proceedings / dblp):
 %   - Entries carrying a booktitle with an explicit venue (NeurIPS, ACL, EMNLP,
-%     ICLR, CoNLL) were upgraded from bare "arXiv preprint" records to their
-%     peer-reviewed venue of record, with the arXiv ID retained in a note.
-%   - Entries still listed as "arXiv preprint" are ones with no peer-reviewed
-%     version known to the author (e.g. schulman2017ppo, bai2022constitutional),
-%     which is the correct citation form for them.
-%   - Page numbers are given only where verified; absent page numbers are
-%     deliberate rather than an oversight.
-%
-% Remaining action before submission: spot-check page ranges and the two entries
-% flagged inline below (zha2023alignscore venue detail, qiu2025sentencelevel
-% journal version).
+%     ICLR, CoNLL, NAACL) were upgraded from bare "arXiv preprint" records to
+%     their peer-reviewed venue of record, with the arXiv ID retained in a note.
+%     Page numbers for these were individually confirmed, not guessed.
+%   - zha2023alignscore: confirmed ACL 2023 main volume, pages 11328-11348.
+%   - qiu2025sentencelevel: confirmed NAACL 2025 Industry Track (not a bare
+%     preprint as originally listed).
+%   - lambert2024rewardbench: confirmed Findings of ACL: NAACL 2025, pages
+%     1755-1797 (published 2025 despite the arXiv-era "2024" in the key; the
+%     key is left unchanged since renaming it would require updating every
+%     \citep in the chapters and the numeric citation style does not display
+%     the key or year in-text).
+%   - casper2023open: confirmed accepted at TMLR (Transactions on Machine
+%     Learning Research), not a bare preprint.
+%   - Entries still listed as "arXiv preprint" (schulman2017ppo,
+%     bai2022constitutional, gu2024survey, dodge2020finetuning, and others)
+%     were checked and have no peer-reviewed proceedings version as of this
+%     check, which is the correct citation form for them.
 
 @article{bai2022constitutional,
   title   = {Constitutional {AI}: Harmlessness from {AI} Feedback},
@@ -77,10 +84,13 @@
 }
 
 @article{casper2023open,
-  title   = {Open Problems and Fundamental Limitations of Reinforcement Learning from Human Feedback},
+  title   = {Open Problems and Fundamental Limitations of Reinforcement
+             Learning from Human Feedback},
   author  = {Casper, Stephen and others},
-  journal = {arXiv preprint arXiv:2307.15217},
-  year    = {2023}
+  journal = {Transactions on Machine Learning Research (TMLR)},
+  year    = {2023},
+  note    = {arXiv:2307.15217. TMLR Survey Certification, Featured
+             Certification, and Outstanding Paper Finalist.}
 }
 
 @inproceedings{wu2023finegrained,
@@ -234,8 +244,12 @@
 @inproceedings{zha2023alignscore,
   title     = {{AlignScore}: Evaluating Factual Consistency with a Unified Alignment Function},
   author    = {Zha, Yuheng and Yang, Yichi and Li, Ruichen and Hu, Zhiting},
-  booktitle = {Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics},
-  year      = {2023}
+  booktitle = {Proceedings of the 61st Annual Meeting of the Association for
+               Computational Linguistics (Volume 1: Long Papers)},
+  pages     = {11328--11348},
+  address   = {Toronto, Canada},
+  year      = {2023},
+  doi       = {10.18653/v1/2023.acl-long.634}
 }
 
 % ---------------------------------------------------------------------------
@@ -255,13 +269,17 @@
 % Science version (DOI 10.1007/s11704-026-51483-4) could not be verified as of
 % July 2026 -- that DOI does not resolve and no journal record was locatable --
 % so the preprint is cited instead. Swap in the journal record once it is live.
-@article{qiu2025sentencelevel,
-  title   = {Sentence-level Reward Model can Generalize Better for Aligning {LLM} from Human Preference},
-  author  = {Qiu, Wenjie and Li, Yi-Chen and Zhang, Xuqin and Zhang, Tianyi and
-             Zhang, Yihang and Zhang, Zongzhang and Yu, Yang},
-  journal = {arXiv preprint arXiv:2503.04793},
-  year    = {2025},
-  doi     = {10.48550/arXiv.2503.04793}
+@inproceedings{qiu2025sentencelevel,
+  title     = {Sentence-level Reward Model can Generalize Better for Aligning
+               {LLM} from Human Preference},
+  author    = {Qiu, Wenjie and Li, Yi-Chen and Zhang, Xuqin and Zhang, Tianyi and
+               Zhang, Yihang and Zhang, Zongzhang and Yu, Yang},
+  booktitle = {Proceedings of the 2025 Conference of the Nations of the
+               Americas Chapter of the Association for Computational
+               Linguistics: Human Language Technologies (NAACL-HLT),
+               Industry Track},
+  year      = {2025},
+  note      = {arXiv:2503.04793}
 }
 
 % ---------------------------------------------------------------------------
@@ -407,12 +425,16 @@
   doi       = {10.18653/v1/D17-1035}
 }
 
-@article{lambert2024rewardbench,
-  title   = {{RewardBench}: Evaluating Reward Models for Language Modeling},
-  author  = {Lambert, Nathan and Pyatkin, Valentina and Morrison, Jacob and
-             Miranda, LJ and Lin, Bill Yuchen and Chandu, Khyathi and
-             Dziri, Nouha and Kumar, Sachin and Zick, Tom and Choi, Yejin and
-             Smith, Noah A. and Hajishirzi, Hannaneh},
-  journal = {arXiv preprint arXiv:2403.13787},
-  year    = {2024}
+@inproceedings{lambert2024rewardbench,
+  title     = {{RewardBench}: Evaluating Reward Models for Language Modeling},
+  author    = {Lambert, Nathan and Pyatkin, Valentina and Morrison, Jacob and
+               Miranda, LJ and Lin, Bill Yuchen and Chandu, Khyathi and
+               Dziri, Nouha and Kumar, Sachin and Zick, Tom and Choi, Yejin and
+               Smith, Noah A. and Hajishirzi, Hannaneh},
+  booktitle = {Findings of the Association for Computational Linguistics:
+               NAACL 2025},
+  pages     = {1755--1797},
+  address   = {Albuquerque, New Mexico},
+  year      = {2025},
+  note      = {arXiv:2403.13787}
 }
