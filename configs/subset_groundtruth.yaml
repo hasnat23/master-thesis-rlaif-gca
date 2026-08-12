@@ -1,0 +1,29 @@
+# Ground-truth evaluation subset for the RM-precision check requested by
+# Lingxiao (meeting + email, 11 August 2026).
+#
+# Disjoint by construction from every training subset (n=1,000 / 5,000 /
+# 10,000), all of which are seed=200 draws from the test split and nested
+# inside the n=10,000 sample. See select_disjoint_subset in src/data/subset.py.
+# This uses the same test split and local cache (no new dataset download,
+# avoiding the flaky HF mirror), just a different, non-overlapping slice of it.
+
+n_samples: 500
+
+exclude_seed: 200
+exclude_n: 10000
+new_seed: 999
+
+split: "test"
+
+local_dataset_path: "data/cnn_dailymail_test_full"
+
+max_article_chars: 8000
+max_summary_chars: 2000
+
+output_dir: "data/subset"
+output_filename: "subset_groundtruth.jsonl"
+
+# Optional: if data/subset/subset_10000.jsonl exists locally, cross-check
+# zero overlap directly against its sample IDs (belt-and-braces on top of
+# the reconstruction-based exclusion above).
+check_against_subset: "data/subset/subset_10000.jsonl"
