@@ -1,0 +1,210 @@
+{
+  "ground_truth_path": "data/preferences_groundtruth/biased_ground_truth_top10.jsonl",
+  "n_pairs": 100,
+  "results": {
+    "holistic": {
+      "1": {
+        "n_pairs": 100,
+        "successes": 86,
+        "success_rate": 0.86
+      },
+      "2": {
+        "n_pairs": 100,
+        "successes": 64,
+        "success_rate": 0.64
+      },
+      "3": {
+        "n_pairs": 100,
+        "successes": 76,
+        "success_rate": 0.76
+      },
+      "4": {
+        "n_pairs": 100,
+        "successes": 83,
+        "success_rate": 0.83
+      },
+      "5": {
+        "n_pairs": 100,
+        "successes": 69,
+        "success_rate": 0.69
+      },
+      "6": {
+        "n_pairs": 100,
+        "successes": 77,
+        "success_rate": 0.77
+      },
+      "7": {
+        "n_pairs": 100,
+        "successes": 88,
+        "success_rate": 0.88
+      },
+      "8": {
+        "n_pairs": 100,
+        "successes": 83,
+        "success_rate": 0.83
+      },
+      "9": {
+        "n_pairs": 100,
+        "successes": 73,
+        "success_rate": 0.73
+      },
+      "10": {
+        "n_pairs": 100,
+        "successes": 83,
+        "success_rate": 0.83
+      },
+      "11": {
+        "n_pairs": 100,
+        "successes": 80,
+        "success_rate": 0.8
+      },
+      "12": {
+        "n_pairs": 100,
+        "successes": 86,
+        "success_rate": 0.86
+      },
+      "13": {
+        "n_pairs": 100,
+        "successes": 79,
+        "success_rate": 0.79
+      },
+      "14": {
+        "n_pairs": 100,
+        "successes": 71,
+        "success_rate": 0.71
+      },
+      "15": {
+        "n_pairs": 100,
+        "successes": 69,
+        "success_rate": 0.69
+      },
+      "16": {
+        "n_pairs": 100,
+        "successes": 81,
+        "success_rate": 0.81
+      },
+      "17": {
+        "n_pairs": 100,
+        "successes": 72,
+        "success_rate": 0.72
+      },
+      "18": {
+        "n_pairs": 100,
+        "successes": 87,
+        "success_rate": 0.87
+      },
+      "19": {
+        "n_pairs": 100,
+        "successes": 59,
+        "success_rate": 0.59
+      },
+      "20": {
+        "n_pairs": 100,
+        "successes": 69,
+        "success_rate": 0.69
+      }
+    },
+    "gca": {
+      "1": {
+        "n_pairs": 100,
+        "successes": 91,
+        "success_rate": 0.91
+      },
+      "2": {
+        "n_pairs": 100,
+        "successes": 79,
+        "success_rate": 0.79
+      },
+      "3": {
+        "n_pairs": 100,
+        "successes": 82,
+        "success_rate": 0.82
+      },
+      "4": {
+        "n_pairs": 100,
+        "successes": 86,
+        "success_rate": 0.86
+      },
+      "5": {
+        "n_pairs": 100,
+        "successes": 84,
+        "success_rate": 0.84
+      },
+      "6": {
+        "n_pairs": 100,
+        "successes": 80,
+        "success_rate": 0.8
+      },
+      "7": {
+        "n_pairs": 100,
+        "successes": 83,
+        "success_rate": 0.83
+      },
+      "8": {
+        "n_pairs": 100,
+        "successes": 82,
+        "success_rate": 0.82
+      },
+      "9": {
+        "n_pairs": 100,
+        "successes": 90,
+        "success_rate": 0.9
+      },
+      "10": {
+        "n_pairs": 100,
+        "successes": 87,
+        "success_rate": 0.87
+      },
+      "11": {
+        "n_pairs": 100,
+        "successes": 90,
+        "success_rate": 0.9
+      },
+      "12": {
+        "n_pairs": 100,
+        "successes": 90,
+        "success_rate": 0.9
+      },
+      "13": {
+        "n_pairs": 100,
+        "successes": 87,
+        "success_rate": 0.87
+      },
+      "14": {
+        "n_pairs": 100,
+        "successes": 83,
+        "success_rate": 0.83
+      },
+      "15": {
+        "n_pairs": 100,
+        "successes": 93,
+        "success_rate": 0.93
+      },
+      "16": {
+        "n_pairs": 100,
+        "successes": 87,
+        "success_rate": 0.87
+      },
+      "17": {
+        "n_pairs": 100,
+        "successes": 85,
+        "success_rate": 0.85
+      },
+      "18": {
+        "n_pairs": 100,
+        "successes": 87,
+        "success_rate": 0.87
+      },
+      "19": {
+        "n_pairs": 100,
+        "successes": 90,
+        "success_rate": 0.9
+      },
+      "20": {
+        "n_pairs": 100,
+        "successes": 84,
+        "success_rate": 0.84
+      }
+    }
+  }
+}
