@@ -47,6 +47,16 @@ def parse_seed_range(spec: str) -> list[int]:
 
 
 def load_ground_truth(path: Path, max_article_chars: int) -> list[dict]:
+    """Each pair's "low" side is scored against its own source article.
+
+    The same-article ground truth (evaluate_ground_truth's default input)
+    only ever has one "article" field, since both summaries come from the
+    same source. The biased/global ground truth
+    (build_biased_ground_truth.py) pools summaries across all articles, so
+    the high and low summaries can come from different source articles --
+    it supplies "article_low" explicitly for that case. Falling back to
+    "article" keeps this reader compatible with both files.
+    """
     pairs = []
     with open(path) as fh:
         for line in fh:
@@ -55,7 +65,8 @@ def load_ground_truth(path: Path, max_article_chars: int) -> list[dict]:
                 continue
             pairs.append({
                 "sample_id": rec["sample_id"],
-                "article": rec["article"][:max_article_chars],
+                "article_high": rec["article"][:max_article_chars],
+                "article_low": rec.get("article_low", rec["article"])[:max_article_chars],
                 "high": rec["chosen"],   # higher GCA-aggregated AlignScore
                 "low": rec["rejected"],  # lower GCA-aggregated AlignScore
             })
@@ -90,8 +101,8 @@ def evaluate_checkpoint(ckpt_dir: Path, pairs: list[dict], device: str,
                          max_length: int) -> dict:
     model, tokenizer = load_checkpoint_model(ckpt_dir, device)
 
-    high_texts = [f"{p['article']} [SEP] {p['high']}" for p in pairs]
-    low_texts = [f"{p['article']} [SEP] {p['low']}" for p in pairs]
+    high_texts = [f"{p['article_high']} [SEP] {p['high']}" for p in pairs]
+    low_texts = [f"{p['article_low']} [SEP] {p['low']}" for p in pairs]
 
     r_high = score_texts(model, tokenizer, high_texts, device, max_length)
     r_low = score_texts(model, tokenizer, low_texts, device, max_length)
