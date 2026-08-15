@@ -47,6 +47,10 @@ def main() -> None:
                      help="Fraction of the pooled summaries (by score) forming subset B (low).")
     ap.add_argument("--out", default="data/preferences_groundtruth/biased_ground_truth.jsonl")
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--all-pairs", action="store_true",
+                     help="Evaluate every high-vs-low combination instead of one "
+                          "random 1-1 pairing. Removes pairing-order noise at the "
+                          "cost of len(A)*len(B) pairs instead of min(len(A),len(B)).")
     args = ap.parse_args()
 
     pool = []  # (sample_id, article, summary_text, score)
@@ -72,30 +76,47 @@ def main() -> None:
     gap = subset_a[0][3] - subset_b[-1][3]
     print(f"Minimum gap between the two subsets: {gap:+.4f}")
 
-    rng = random.Random(args.seed)
-    a_shuf = subset_a[:]
-    b_shuf = subset_b[:]
-    rng.shuffle(a_shuf)
-    rng.shuffle(b_shuf)
-    n_pairs = min(len(a_shuf), len(b_shuf))
-
     records = []
-    for i in range(n_pairs):
-        sid_a, art_a, summ_a, score_a = a_shuf[i]
-        sid_b, art_b, summ_b, score_b = b_shuf[i]
-        # Each summary is scored against its OWN source article, matching how
-        # the reward model is used everywhere else; the pair need not share
-        # an article since this is a deliberately global, stark comparison.
-        records.append({
-            "sample_id": f"{sid_a}__vs__{sid_b}",
-            "article": art_a,
-            "article_low": art_b,
-            "chosen": summ_a,
-            "rejected": summ_b,
-            "chosen_score": score_a,
-            "rejected_score": score_b,
-            "decision": "A",
-        })
+    if args.all_pairs:
+        # Every high-vs-low combination: removes the noise of which particular
+        # A happened to be matched with which particular B in a single random
+        # draw, at the cost of len(A)*len(B) pairs instead of min(len(A),len(B)).
+        for sid_a, art_a, summ_a, score_a in subset_a:
+            for sid_b, art_b, summ_b, score_b in subset_b:
+                records.append({
+                    "sample_id": f"{sid_a}__vs__{sid_b}",
+                    "article": art_a,
+                    "article_low": art_b,
+                    "chosen": summ_a,
+                    "rejected": summ_b,
+                    "chosen_score": score_a,
+                    "rejected_score": score_b,
+                    "decision": "A",
+                })
+        print(f"All-pairs mode: {len(subset_a)} x {len(subset_b)} = {len(records)} pairs")
+    else:
+        rng = random.Random(args.seed)
+        a_shuf = subset_a[:]
+        b_shuf = subset_b[:]
+        rng.shuffle(a_shuf)
+        rng.shuffle(b_shuf)
+        n_pairs = min(len(a_shuf), len(b_shuf))
+        for i in range(n_pairs):
+            sid_a, art_a, summ_a, score_a = a_shuf[i]
+            sid_b, art_b, summ_b, score_b = b_shuf[i]
+            # Each summary is scored against its OWN source article, matching how
+            # the reward model is used everywhere else; the pair need not share
+            # an article since this is a deliberately global, stark comparison.
+            records.append({
+                "sample_id": f"{sid_a}__vs__{sid_b}",
+                "article": art_a,
+                "article_low": art_b,
+                "chosen": summ_a,
+                "rejected": summ_b,
+                "chosen_score": score_a,
+                "rejected_score": score_b,
+                "decision": "A",
+            })
 
     out_path = REPO / args.out
     out_path.parent.mkdir(parents=True, exist_ok=True)
