@@ -172,7 +172,7 @@ Mean gap (GCA minus holistic): +9.25 percentage points
 Wilcoxon signed-rank p (two-sided): 0.00043
 Cohen's d: 1.06 (large)
 
-This is the clearest result of the three ground-truth tests. On the most
+This is the clearest result of the ground-truth tests so far. On the most
 unambiguous comparisons available in the data, GCA reaches 86% mean
 accuracy against holistic's 77%, GCA is ahead in 17 of the 20 seeds, and
 the gap is significant well past the conventional threshold. Still not
@@ -183,46 +183,87 @@ extreme he actually meant.
 
 ---
 
+## Results — checking whether accuracy climbs further
+
+Two follow-up questions after the 86% result: does pushing the split even
+further (top/bottom 5% instead of 10%, minimum gap 0.79 instead of 0.66)
+push accuracy higher still, and how much of the 86% depended on which
+particular high summary happened to get randomly paired with which low
+one. Both were tested together: top/bottom 5% (50 summaries each side),
+evaluated on every high-vs-low combination rather than one random 1-1
+pairing (2,500 pairs instead of 100). Same 40 checkpoints again.
+
+| | Holistic RM | GCA RM |
+|---|---:|---:|
+| Mean success rate | 76.0% | 83.4% |
+| Runs favouring | — | 14 / 20 |
+
+Mean gap (GCA minus holistic): +7.38 percentage points
+95% confidence interval: [+3.22, +11.69] points
+Wilcoxon signed-rank p (two-sided): 0.0037
+Cohen's d: 0.74 (medium-to-large)
+
+Accuracy did not climb further — holistic is essentially unchanged (76.0%
+vs 76.8%) and GCA is if anything slightly lower (83.4% vs 86.0%), despite
+a larger score gap and a much larger, less noisy evaluation set. The gap
+between the two conditions remains large and highly significant. Taken
+together with the 10%-split result, this is a more trustworthy estimate
+of where these reward models actually plateau: not the exact number from
+either single run, but a range around roughly 76-86% for both, with GCA
+consistently 7-9 points ahead. It did not reach the ~100% Lingxiao
+expected even under the most extreme, most rigorously evaluated version
+of the test, which points more firmly at a genuine ceiling in the
+current reward models rather than an artifact of any one test's
+construction.
+
+---
+
 ## What this means for the thesis
 
-Four results now exist, at increasing levels of how starkly the compared
-summaries differ in quality, and all four are being reported together
+Five results now exist, at increasing levels of how starkly the compared
+summaries differ in quality, and all five are being reported together
 rather than picking the best one.
 
 - Same training data, tested in-distribution (11 August): GCA produces a
   significantly more learnable reward-model signal at small scale.
-- Independent ground truth, subtle comparison (18 August, same-article,
-  score gap ~0.04): no measurable precision advantage for GCA.
-- Independent ground truth, moderate comparison (18 August, top/bottom
-  25%, score gap >=0.36): GCA nominally ahead, not statistically
-  significant.
-- Independent ground truth, extreme comparison (18 August, top/bottom
-  10%, score gap >=0.66): GCA significantly and substantially ahead
-  (+9.25pp, p<0.001, large effect).
+- Independent ground truth, subtle comparison (same-article, score gap
+  ~0.04): no measurable precision advantage for GCA.
+- Independent ground truth, moderate comparison (top/bottom 25%, score
+  gap >=0.36): GCA nominally ahead, not statistically significant.
+- Independent ground truth, extreme comparison (top/bottom 10%, score
+  gap >=0.66): GCA significantly and substantially ahead (+9.25pp,
+  p<0.001, large effect).
+- Independent ground truth, most extreme comparison, all-pairs (top/bottom
+  5%, score gap >=0.79, 2,500 pairs): confirms the advantage
+  (+7.38pp, p=0.004) and shows accuracy plateaus around 76-86% for both
+  conditions rather than continuing to climb.
 
-A pattern emerges across the last three: GCA's advantage over holistic
+A clear pattern holds across the last four: GCA's advantage over holistic
 grows as the quality gap between compared summaries grows, from
-indistinguishable, to a hinted-at edge, to a large and clearly significant
-one. Put plainly: on close calls, neither reward model can tell much
-apart; on the clearest, most obviously different cases, the GCA-trained
-model separates them far more reliably than the holistic-trained one
-does. Combined with the 11 August result, sentence-level scoring produces
-both a more learnable training signal at small scale and, specifically on
-the clearest cases, a demonstrably more precise reward model by an
-independent standard.
+indistinguishable on close calls, to a hinted-at edge, to a large and
+robustly significant advantage on the clearest cases — one that holds up
+under the most extreme and most rigorously evaluated version of the test,
+without climbing toward 100%. Combined with the 11 August result,
+sentence-level scoring produces both a more learnable training signal at
+small scale and, specifically on the clearest cases, a demonstrably more
+precise reward model by an independent standard, bounded by an apparent
+ceiling in absolute accuracy that neither condition breaks through.
 
 ---
 
 ## Questions for Tuesday
 
-1. The precision advantage shows up clearly once the comparison is
-   extreme enough (top/bottom 10%, +9.25pp, p<0.001) but not at subtler
-   comparisons — does this scale-with-difficulty pattern answer the
-   precision question, or should the thesis also try to explain why the
-   advantage only appears on the clearest cases?
-2. Is it enough to report all four findings together (learnable; not
-   more precise on close calls; increasingly more precise as the quality
-   gap widens), or is further investigation needed given the deadline?
+1. The precision advantage shows up clearly and holds up under the most
+   rigorous version of the test (all-pairs, +7.38pp, p=0.004) once the
+   comparison is extreme enough, but not on subtler comparisons, and
+   accuracy plateaus around 76-86% rather than approaching 100% even
+   there — does this pattern answer the precision question, or should the
+   thesis try to explain the plateau and the scale-with-difficulty effect
+   directly?
+2. Is it enough to report all five findings together (learnable; not more
+   precise on close calls; increasingly more precise as the quality gap
+   widens, up to an apparent ceiling), or is further investigation needed
+   given the deadline?
 3. Is anything else needed before submission, given the 3 September
    deadline?
 

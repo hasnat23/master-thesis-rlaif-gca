@@ -1,0 +1,210 @@
+{
+  "ground_truth_path": "data/preferences_groundtruth/biased_ground_truth_top5_allpairs.jsonl",
+  "n_pairs": 2500,
+  "results": {
+    "holistic": {
+      "1": {
+        "n_pairs": 2500,
+        "successes": 2135,
+        "success_rate": 0.854
+      },
+      "2": {
+        "n_pairs": 2500,
+        "successes": 1531,
+        "success_rate": 0.6124
+      },
+      "3": {
+        "n_pairs": 2500,
+        "successes": 1878,
+        "success_rate": 0.7512
+      },
+      "4": {
+        "n_pairs": 2500,
+        "successes": 2148,
+        "success_rate": 0.8592
+      },
+      "5": {
+        "n_pairs": 2500,
+        "successes": 1825,
+        "success_rate": 0.73
+      },
+      "6": {
+        "n_pairs": 2500,
+        "successes": 1970,
+        "success_rate": 0.788
+      },
+      "7": {
+        "n_pairs": 2500,
+        "successes": 2077,
+        "success_rate": 0.8308
+      },
+      "8": {
+        "n_pairs": 2500,
+        "successes": 2067,
+        "success_rate": 0.8268
+      },
+      "9": {
+        "n_pairs": 2500,
+        "successes": 1719,
+        "success_rate": 0.6876
+      },
+      "10": {
+        "n_pairs": 2500,
+        "successes": 2122,
+        "success_rate": 0.8488
+      },
+      "11": {
+        "n_pairs": 2500,
+        "successes": 1946,
+        "success_rate": 0.7784
+      },
+      "12": {
+        "n_pairs": 2500,
+        "successes": 2296,
+        "success_rate": 0.9184
+      },
+      "13": {
+        "n_pairs": 2500,
+        "successes": 1918,
+        "success_rate": 0.7672
+      },
+      "14": {
+        "n_pairs": 2500,
+        "successes": 1658,
+        "success_rate": 0.6632
+      },
+      "15": {
+        "n_pairs": 2500,
+        "successes": 1632,
+        "success_rate": 0.6528
+      },
+      "16": {
+        "n_pairs": 2500,
+        "successes": 1889,
+        "success_rate": 0.7556
+      },
+      "17": {
+        "n_pairs": 2500,
+        "successes": 1839,
+        "success_rate": 0.7356
+      },
+      "18": {
+        "n_pairs": 2500,
+        "successes": 2100,
+        "success_rate": 0.84
+      },
+      "19": {
+        "n_pairs": 2500,
+        "successes": 1546,
+        "success_rate": 0.6184
+      },
+      "20": {
+        "n_pairs": 2500,
+        "successes": 1708,
+        "success_rate": 0.6832
+      }
+    },
+    "gca": {
+      "1": {
+        "n_pairs": 2500,
+        "successes": 2332,
+        "success_rate": 0.9328
+      },
+      "2": {
+        "n_pairs": 2500,
+        "successes": 1882,
+        "success_rate": 0.7528
+      },
+      "3": {
+        "n_pairs": 2500,
+        "successes": 1986,
+        "success_rate": 0.7944
+      },
+      "4": {
+        "n_pairs": 2500,
+        "successes": 2010,
+        "success_rate": 0.804
+      },
+      "5": {
+        "n_pairs": 2500,
+        "successes": 1982,
+        "success_rate": 0.7928
+      },
+      "6": {
+        "n_pairs": 2500,
+        "successes": 1744,
+        "success_rate": 0.6976
+      },
+      "7": {
+        "n_pairs": 2500,
+        "successes": 2200,
+        "success_rate": 0.88
+      },
+      "8": {
+        "n_pairs": 2500,
+        "successes": 2056,
+        "success_rate": 0.8224
+      },
+      "9": {
+        "n_pairs": 2500,
+        "successes": 2210,
+        "success_rate": 0.884
+      },
+      "10": {
+        "n_pairs": 2500,
+        "successes": 2015,
+        "success_rate": 0.806
+      },
+      "11": {
+        "n_pairs": 2500,
+        "successes": 2132,
+        "success_rate": 0.8528
+      },
+      "12": {
+        "n_pairs": 2500,
+        "successes": 2250,
+        "success_rate": 0.9
+      },
+      "13": {
+        "n_pairs": 2500,
+        "successes": 2143,
+        "success_rate": 0.8572
+      },
+      "14": {
+        "n_pairs": 2500,
+        "successes": 2007,
+        "success_rate": 0.8028
+      },
+      "15": {
+        "n_pairs": 2500,
+        "successes": 2260,
+        "success_rate": 0.904
+      },
+      "16": {
+        "n_pairs": 2500,
+        "successes": 2123,
+        "success_rate": 0.8492
+      },
+      "17": {
+        "n_pairs": 2500,
+        "successes": 2155,
+        "success_rate": 0.862
+      },
+      "18": {
+        "n_pairs": 2500,
+        "successes": 2022,
+        "success_rate": 0.8088
+      },
+      "19": {
+        "n_pairs": 2500,
+        "successes": 2255,
+        "success_rate": 0.902
+      },
+      "20": {
+        "n_pairs": 2500,
+        "successes": 1930,
+        "success_rate": 0.772
+      }
+    }
+  }
+}
