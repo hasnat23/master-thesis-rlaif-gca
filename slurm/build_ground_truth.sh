@@ -43,6 +43,16 @@ export HF_HUB_DOWNLOAD_TIMEOUT=120
 export HF_HUB_DISABLE_TELEMETRY=1
 export PYTHONUNBUFFERED=1
 
+# The HF mirror at HF_ENDPOINT is currently returning HTTP 500 (checked
+# directly: `curl $HF_ENDPOINT` -> 500). FacebookAI/roberta-base is already
+# fully cached locally (~/.cache/huggingface/hub/models--FacebookAI--roberta-base),
+# so force local-only lookup rather than waiting on a dead mirror for every
+# one of 500 samples, which silently SKIPs every sample instead of failing
+# loudly. AlignScore's own .ckpt is loaded from --alignscore-ckpt below,
+# independent of the HF hub entirely.
+export TRANSFORMERS_OFFLINE=1
+export HF_HUB_OFFLINE=1
+
 module load lang/Anaconda3/2024.06-1
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate thesis_env
@@ -62,7 +72,7 @@ python src/judging/build_reward_preferences.py \
     --judge-backend alignscore \
     --model-name yzha/AlignScore \
     --alignscore-backbone FacebookAI/roberta-base \
-    --alignscore-filename AlignScore-base.ckpt \
+    --alignscore-ckpt models/alignscore/AlignScore-base.ckpt \
     --alignscore-evaluation-mode nli \
     --margin 0 \
     --max-samples 500 \
