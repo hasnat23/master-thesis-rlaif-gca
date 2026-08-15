@@ -60,19 +60,65 @@ should get it.
 
 ## Results
 
-Pending — experiments are running on MOGON as of this write-up. This
-section will be filled in with the per-seed success rates, the mean gap
-between GCA and holistic, and the same statistical checks used for the 11
-August result (significance test, confidence interval, effect size) before
-Tuesday's meeting.
+All 500 ground-truth pairs were scored with zero ties. 20 holistic and 20
+GCA reward models were retrained and tested against the same 500 pairs.
+
+| | Holistic RM | GCA RM |
+|---|---:|---:|
+| Mean success rate | 55.2% | 55.3% |
+| Runs favouring | — | 9 / 20 |
+
+Mean gap (GCA minus holistic): +0.14 percentage points
+95% confidence interval: [-0.76, +1.06] points
+Wilcoxon signed-rank p (two-sided): 0.76
+Cohen's d: 0.07
+
+This does not match what Lingxiao's email predicted. The two reward models
+are indistinguishable on this test: GCA is ahead in 9 of 20 seeds, holistic
+in the other 11, essentially a coin flip, and the gap is nowhere near
+statistically significant.
+
+The same equivalence check used for the 5,000 and 10,000-example result on
+11 August was run here too: it rules out any real difference bigger than
+about 1 percentage point in either direction. So this is not a case of not
+enough data to see a difference — with 500 ground-truth pairs and 20 seeds
+per condition, the test could have detected a true gap as small as 1.3
+percentage points, and no such gap is there.
+
+How this fits with the 11 August result. That result measured each reward
+model's accuracy on examples drawn from the same preference-labelling
+process it was trained on, holistic tested against holistic-style labels,
+GCA against GCA-style labels. It found GCA clearly better at 1,000 training
+examples. This week's test asks a different, stricter question: when both
+reward models are scored against one shared, independent yardstick that
+neither was built around, does GCA still come out ahead. It does not.
+Put plainly: GCA preferences are easier for a reward model to learn
+consistently from a small training set, but that does not carry over into
+GCA producing a reward model that is a better judge of factuality by an
+outside standard.
+
+---
+
+## What this means for the thesis
+
+Both findings are real and both are being reported, not just the one that
+was expected. Taken together they say something more specific than either
+result alone: sentence-level scoring changes how learnable the preference
+data is, without changing how accurate the resulting reward model is
+against independent ground truth. Learnability and precision turn out to
+be different properties, and this thesis's main result was always about the
+former.
 
 ---
 
 ## Questions for Tuesday
 
-1. Does this ground-truth evaluation answer the precision question from the
-   11 August meeting?
-2. Is anything else needed before submission, given the 3 September
+1. The result is a genuine null, not a confirmation of the expected
+   direction — is this still a useful answer to the precision question, or
+   is there a different test you'd want run given the time remaining?
+2. Given the deadline, is it enough to report both findings honestly
+   (learnable but not more precise), or is further investigation needed?
+3. Is anything else needed before submission, given the 3 September
    deadline?
 
 ---

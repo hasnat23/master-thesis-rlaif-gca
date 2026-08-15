@@ -53,6 +53,37 @@ def rank_biserial(diffs):
     return (pos - neg) / (pos + neg) if (pos + neg) else 0.0
 
 
+def tost_p(diffs, bound_pp):
+    """Two one-sided t-test p-value for equivalence within +/- bound_pp."""
+    n = len(diffs)
+    mean = statistics.mean(diffs)
+    se = statistics.stdev(diffs) / math.sqrt(n)
+    t_lower = (mean + bound_pp) / se
+    p_lower = stats.t.sf(t_lower, n - 1)
+    t_upper = (mean - bound_pp) / se
+    p_upper = stats.t.cdf(t_upper, n - 1)
+    return max(p_lower, p_upper)
+
+
+def tightest_equivalence_bound(diffs, alpha=0.05):
+    lo, hi = 0.0, 10.0
+    if tost_p(diffs, hi) >= alpha:
+        return float("nan")
+    for _ in range(100):
+        mid = (lo + hi) / 2
+        if tost_p(diffs, mid) < alpha:
+            hi = mid
+        else:
+            lo = mid
+    return hi
+
+
+def min_detectable_effect(sd_pp, n, alpha=0.05, power=0.80):
+    z_a = stats.norm.ppf(1 - alpha / 2)
+    z_b = stats.norm.ppf(power)
+    return (z_a + z_b) * sd_pp / math.sqrt(n)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--in", dest="infile", default="reports/campaigns/ground_truth_eval.json")
@@ -90,6 +121,10 @@ def main():
 
     gca_ahead = sum(1 for x in diffs_pp if x > 0)
 
+    tost_1pp = tost_p(diffs_pp, 1.0)
+    tightest = tightest_equivalence_bound(diffs_pp)
+    mde = min_detectable_effect(sd_gap, len(diffs_pp))
+
     print(f"\nGround-truth ranking success rate")
     print(f"  Holistic RM: mean = {mean_hol:.4f}")
     print(f"  GCA RM:      mean = {mean_gca:.4f}")
@@ -100,6 +135,9 @@ def main():
     print(f"  Wilcoxon one-sided (GCA > Holistic) p: {p_greater:.4g}")
     print(f"  Cohen's d: {d:+.2f}")
     print(f"  Rank-biserial r: {r_rb:+.2f}")
+    print(f"  TOST equivalence p (+/-1pp): {tost_1pp:.4g}")
+    print(f"  Tightest equivalence bound: +/-{tightest:.2f}pp")
+    print(f"  Minimum detectable effect (80% power): {mde:.2f}pp")
 
     out = {
         "n_seeds": len(common_seeds),
@@ -114,6 +152,9 @@ def main():
         "wilcoxon_one_sided_greater_p": p_greater,
         "cohens_d": d,
         "rank_biserial": r_rb,
+        "tost_equivalence_p_at_1pp": tost_1pp,
+        "tightest_equivalence_bound_pp": tightest,
+        "min_detectable_effect_pp": mde,
         "per_seed_gaps_pp": diffs_pp,
     }
     out_path = REPO / args.out
