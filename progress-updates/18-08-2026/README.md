@@ -218,6 +218,20 @@ construction.
 
 ---
 
+## All four ground-truth results together
+
+![Ground-truth ranking accuracy: Holistic vs GCA across all four test conditions](ground_truth_results.png)
+
+![GCA's precision advantage grows with the quality gap between compared summaries](gap_vs_advantage.png)
+
+The second chart makes the pattern explicit: the advantage climbs sharply
+as the comparison gets more extreme, then eases slightly at the most
+rigorous setting (all-pairs, 5%) rather than continuing to climb — shown
+as-is rather than smoothed over, since that dip is itself part of the
+honest picture of where the effect plateaus.
+
+---
+
 ## What this means for the thesis
 
 Five results now exist, at increasing levels of how starkly the compared
@@ -277,4 +291,5 @@ Pipeline: `scripts/03_prepare_ground_truth_subset.py`,
 `slurm/generate_candidates_groundtruth.sh`, `slurm/build_ground_truth.sh`,
 `slurm/retrain_for_ground_truth.sh`, `analysis/build_biased_ground_truth.py`
 (the stark/global version), `analysis/evaluate_ground_truth.py`,
-`analysis/ground_truth_stats.py`.
+`analysis/ground_truth_stats.py`. Charts regenerated from the committed
+evaluation JSON via `make_charts.py` in this folder.
