@@ -61,41 +61,49 @@ sides.
 
 ## Results
 
-| Test | Score gap | Holistic | GCA | Gap | p-value |
-|---|---:|---:|---:|---:|---:|
-| In-distribution (11 Aug, for reference) | — | 53.0% | 56.9% | +3.9pp | <0.001 |
-| Same-article pairs (initial test) | ~0.04 | 55.2% | 55.3% | +0.1pp | 0.76 |
-| Top 25% vs bottom 25% | ≥0.36 | 71.9% | 75.2% | +3.2pp | 0.19 |
-| Top 10% vs bottom 10% | ≥0.66 | 76.8% | 86.0% | +9.3pp | <0.001 |
-| Top 5% vs bottom 5% (all-pairs) | ≥0.79 | 76.0% | 83.4% | +7.4pp | 0.004 |
+| Test | Summaries/side | Score gap | Holistic | GCA | Gap | p-value |
+|---|---:|---:|---:|---:|---:|---:|
+| In-distribution (11 Aug, for reference) | — | — | 53.0% | 56.9% | +3.9pp | <0.001 |
+| Same-article pairs (initial test) | 500 pairs | ~0.04 | 55.2% | 55.3% | +0.1pp | 0.76 |
+| Top 25% vs bottom 25% | 250 | ≥0.36 | 71.9% | 75.2% | +3.2pp | 0.19 |
+| Top 10% vs bottom 10% | 100 | ≥0.66 | 76.8% | 86.0% | +9.3pp | <0.001 |
+| Top 5% vs bottom 5% (all-pairs) | 50 | ≥0.79 | 76.0% | 83.4% | +7.4pp | 0.004 |
 
-20 holistic and 20 GCA reward models, retrained with checkpoints saved,
-evaluated at each split. The 5%/all-pairs row compares every high summary
-against every low summary (2,500 pairs) rather than one random pairing, to
-remove pairing-order noise.
+"Top X%" / "bottom X%" always refers to a slice of the same pool of 1,000
+candidate summaries (500 held-out articles, 2 candidates each), sorted by
+AlignScore-GCA score: top/bottom 25% is the best/worst 250 of that pool,
+10% is the best/worst 100, 5% is the best/worst 50. Narrower percentage =
+fewer summaries per side, but a bigger, more unambiguous quality gap
+between the two sides being compared. 20 holistic and 20 GCA reward
+models, retrained with checkpoints saved, were evaluated at each split.
 
 ![Ground-truth ranking accuracy: Holistic vs GCA across all four test conditions](ground_truth_results.png)
 
 ![GCA's precision advantage grows with the quality gap between compared summaries](gap_vs_advantage.png)
 
 **Run 0 — 11 August, for reference.** Models tested against their own
-training-style labels. GCA wins, significant (p<0.001).
+training-style labels, not this ground truth. GCA wins, significant
+(p<0.001).
 
-**Run 1 — same-article pairs.** Each article's own two candidates compared
-against each other. Both come from the same model at similar temperatures,
-so quality is naturally close — tied result (p=0.76), an equivalence check
+**Run 1 — same-article pairs.** Each article's own two candidates (500
+pairs, no pooling) compared directly. Same model, similar temperatures, so
+quality is naturally close — tied result (p=0.76), an equivalence check
 rules out any real difference above ~1pp.
 
-**Run 2 — top 25% vs bottom 25%.** All summaries pooled, best quarter vs
-worst quarter. GCA nominally ahead, not significant (p=0.19).
+**Run 2 — top 25% vs bottom 25%.** Changed to global pooling: all 1,000
+summaries sorted by score, best 250 vs worst 250 compared instead of
+per-article pairs. GCA nominally ahead, not significant (p=0.19).
 
-**Run 3 — top 10% vs bottom 10%.** Same pooling, narrower split, bigger
-quality gap. GCA clearly ahead, significant (p<0.001).
+**Run 3 — top 10% vs bottom 10%.** Same pooling method as run 2, narrowed
+from 250 to 100 summaries per side — a bigger quality gap (≥0.66 vs
+≥0.36). GCA clearly ahead, significant (p<0.001).
 
-**Run 4 — top 5% vs bottom 5%, all-pairs.** Narrowest split, every high
-summary checked against every low summary (2,500 pairs, not one random
-pairing). Confirms run 3: GCA still significantly ahead (p=0.004), and
-accuracy settles around 76–86% rather than climbing further.
+**Run 4 — top 5% vs bottom 5%, all-pairs.** Narrowed further to 50 per
+side (gap ≥0.79), and changed the evaluation itself: every high summary
+checked against every low summary (2,500 pairs) instead of one random 1-1
+pairing (50 pairs), to remove pairing-order noise. Confirms run 3: GCA
+still significantly ahead (p=0.004), and accuracy settles around 76-86%
+rather than climbing further.
 
 On close calls, no difference. On clear-cut ones, GCA wins consistently,
 confirmed under the most rigorous check. Neither model reaches 100%,
