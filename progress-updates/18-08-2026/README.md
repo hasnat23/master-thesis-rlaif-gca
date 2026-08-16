@@ -97,7 +97,19 @@ should get it.
 
 ---
 
-## Results
+## Results — first attempt (same-article pairs, superseded below)
+
+This section is the first version of the test, built before double-checking
+the exact construction Lingxiao asked for. It compares each article's own
+two generated candidates against each other (the two summaries already used
+everywhere else in the pipeline) rather than pooling and sorting summaries
+globally. Since both candidates come from the same model at similar
+temperatures, their quality is naturally close, making this a subtle,
+hard version of the test — kept here because it is still a real,
+informative result in its own right, and because the next section's "close
+to a coin flip" comparison refers back to it. The corrected version, which
+is what Lingxiao actually specified, starts at "Results — biased ground
+truth" below.
 
 All 500 ground-truth pairs were scored with zero ties. 20 holistic and 20
 GCA reward models were retrained and tested against the same 500 pairs.
