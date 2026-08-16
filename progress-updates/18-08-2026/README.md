@@ -78,23 +78,30 @@ remove pairing-order noise.
 
 ![GCA's precision advantage grows with the quality gap between compared summaries](gap_vs_advantage.png)
 
-**Same-article pairs.** The two candidates for one article come from the
-same model at similar temperatures, so their quality is naturally close —
-a subtle, hard comparison. Neither model can reliably tell them apart
-(55% either way), and an equivalence check rules out any real difference
-bigger than about 1 percentage point. This is a different, harder question
-than the 11 August result, which measured each model against its own
-training-style labels rather than an independent standard.
+**Run 0 — 11 August, for reference.** Models tested against their own
+training-style labels. GCA wins, significant (p<0.001).
 
-**Top/bottom splits.** Once the comparison uses summaries that are
-genuinely, unambiguously different in quality, both models score well
-above chance, and GCA's advantage grows with how extreme the split is —
-from a small, non-significant edge at 25%, to a large and significant one
-at 10% and 5%. Accuracy plateaus around 76–86% for both conditions rather
-than climbing toward 100%; a plausible reason is the 2,000-character
-article truncation used throughout the pipeline (thesis Chapter 5), which
-limits how much evidence either model can check against, regardless of
-how clear-cut the quality difference is.
+**Run 1 — same-article pairs.** Each article's own two candidates compared
+against each other. Both come from the same model at similar temperatures,
+so quality is naturally close — tied result (p=0.76), an equivalence check
+rules out any real difference above ~1pp.
+
+**Run 2 — top 25% vs bottom 25%.** All summaries pooled, best quarter vs
+worst quarter. GCA nominally ahead, not significant (p=0.19).
+
+**Run 3 — top 10% vs bottom 10%.** Same pooling, narrower split, bigger
+quality gap. GCA clearly ahead, significant (p<0.001).
+
+**Run 4 — top 5% vs bottom 5%, all-pairs.** Narrowest split, every high
+summary checked against every low summary (2,500 pairs, not one random
+pairing). Confirms run 3: GCA still significantly ahead (p=0.004), and
+accuracy settles around 76–86% rather than climbing further.
+
+On close calls, no difference. On clear-cut ones, GCA wins consistently,
+confirmed under the most rigorous check. Neither model reaches 100%,
+plausibly because of the 2,000-character article truncation used
+throughout the pipeline (thesis Chapter 5), which limits how much evidence
+either model can check against regardless of quality gap.
 
 ---
 
