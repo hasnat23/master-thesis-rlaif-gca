@@ -30,6 +30,45 @@ This update reports on Direction 2.
 Three steps, on top of the reward models already trained for the 11 August
 result.
 
+```mermaid
+flowchart TD
+    A["Held-out articles (500)<br/>Disjoint from every training set (n=1k/5k/10k)"]
+    B["Generate 2 candidate summaries per article<br/>(same Mistral-7B pipeline as before)"]
+    C["Score every summary<br/>AlignScore sentence-level, GCA aggregation (alpha=0.0)"]
+    D["Pool all 1,000 scored summaries<br/>(500 articles x 2 candidates each)"]
+    E["Sort by score, split into<br/>HIGH subset vs LOW subset<br/>(e.g. top 10% vs bottom 10%)"]
+    F["Retrain Holistic RM<br/>checkpoints saved this time"]
+    G["Retrain GCA RM<br/>checkpoints saved this time"]
+    H["Score every HIGH and LOW summary<br/>with each trained reward model"]
+    I["Success = RM scores HIGH above LOW<br/>Compare success rate: Holistic vs GCA"]
+
+    A --> B --> C --> D --> E
+    E --> H
+    F --> H
+    G --> H
+    H --> I
+
+    classDef shared fill:#eee,stroke:#999,color:#333;
+    classDef hol fill:#dbe9fb,stroke:#4a7fc9,color:#1a1a1a;
+    classDef gca fill:#fde3c7,stroke:#d98a3d,color:#1a1a1a;
+    class A,B,C,D,E,H,I shared;
+    class F hol;
+    class G gca;
+```
+
+> **What "top X%" and "bottom X%" mean, throughout this document.** All
+> 1,000 individual candidate summaries (500 held-out articles, 2 candidates
+> each) are pooled into one list and sorted by their AlignScore-GCA score,
+> from lowest to highest. "Top X%" is the highest-scoring X% of that pooled
+> list; "bottom X%" is the lowest-scoring X%. A smaller X means a smaller,
+> more extreme subset with a bigger quality gap between the two groups —
+> "top 10%" and "bottom 10%" are the 100 highest- and 100 lowest-scoring
+> summaries out of the 1,000; "top 5%"/"bottom 5%" are the 50 highest and
+> 50 lowest. This split is global, across all 500 articles pooled together,
+> not per-article — a summary can end up in the "high" group even if the
+> other candidate for the same article scored higher still, as long as it's
+> still within the global top slice.
+
 Step 1. Build an independent ground truth. 500 new CNN/DailyMail articles
 were selected, guaranteed to be ones neither reward model was trained or
 tested on before. Two candidate summaries were generated for each, exactly
@@ -99,7 +138,7 @@ outside standard.
 
 ---
 
-## Results — biased ground truth (Lingxiao's exact specification)
+## Results — biased ground truth (top 25% vs bottom 25%)
 
 The first result came back close to a coin flip because the "high" and
 "low" summaries in that test were too similar to each other: they were the
@@ -183,7 +222,7 @@ extreme he actually meant.
 
 ---
 
-## Results — checking whether accuracy climbs further
+## Results — checking whether accuracy climbs further (top 5% vs bottom 5%, all-pairs)
 
 Two follow-up questions after the 86% result: does pushing the split even
 further (top/bottom 5% instead of 10%, minimum gap 0.79 instead of 0.66)
@@ -240,17 +279,18 @@ rather than picking the best one.
 
 - Same training data, tested in-distribution (11 August): GCA produces a
   significantly more learnable reward-model signal at small scale.
-- Independent ground truth, subtle comparison (same-article, score gap
-  ~0.04): no measurable precision advantage for GCA.
-- Independent ground truth, moderate comparison (top/bottom 25%, score
-  gap >=0.36): GCA nominally ahead, not statistically significant.
-- Independent ground truth, extreme comparison (top/bottom 10%, score
-  gap >=0.66): GCA significantly and substantially ahead (+9.25pp,
-  p<0.001, large effect).
-- Independent ground truth, most extreme comparison, all-pairs (top/bottom
-  5%, score gap >=0.79, 2,500 pairs): confirms the advantage
-  (+7.38pp, p=0.004) and shows accuracy plateaus around 76-86% for both
-  conditions rather than continuing to climb.
+- Independent ground truth, subtle comparison (same-article pairs, score
+  gap ~0.04): no measurable precision advantage for GCA.
+- Independent ground truth, moderate comparison (top 25% vs bottom 25% of
+  the pooled summaries, 250 each side, score gap >=0.36): GCA nominally
+  ahead, not statistically significant.
+- Independent ground truth, extreme comparison (top 10% vs bottom 10%,
+  100 each side, score gap >=0.66): GCA significantly and substantially
+  ahead (+9.25pp, p<0.001, large effect).
+- Independent ground truth, most extreme comparison, all-pairs (top 5% vs
+  bottom 5%, 50 each side, score gap >=0.79, 2,500 pairs): confirms the
+  advantage (+7.38pp, p=0.004) and shows accuracy plateaus around 76-86%
+  for both conditions rather than continuing to climb.
 
 A clear pattern holds across the last four: GCA's advantage over holistic
 grows as the quality gap between compared summaries grows, from
