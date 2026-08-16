@@ -7,39 +7,33 @@ Meeting: Tuesday, 18 August 2026
 
 ## Context
 
-At the 11 August meeting, Lingxiao raised a question about how precise the
-reward models actually are, and followed up by email with two possible
-directions for the remaining weeks:
+The last meeting raised a question about how precise the reward models
+actually are, with two possible directions for the remaining weeks in a
+follow-up email:
 
-- Direction 1: fine-tune small LLMs directly on the AlignScore signal.
-- Direction 2: keep the existing trained reward models, and evaluate them
-  against an independent ground truth built from AlignScore.
+- Fine-tune small LLMs directly on the AlignScore signal.
+- Keep the existing trained reward models and evaluate them against an
+  independent ground truth built from AlignScore.
 
-Given the submission deadline, Direction 1 was ruled out. It is close to the
-DPO/policy fine-tuning approach that was already tried and dropped in June,
-for the same reason it would be risky now: it is hard to tell whether a
+The first option is close to the DPO/policy fine-tuning approach already
+tried and dropped in June, for the same reason: it's hard to tell whether a
 change in output comes from the preference data or from the fine-tuning
-itself.
-
-This update reports on Direction 2.
+itself. Given the deadline, this update follows the second option.
 
 ---
 
-## What this experiment does
-
-Three steps, on top of the reward models already trained for the 11 August
-result.
+## Method
 
 ```mermaid
 flowchart TD
     A["Held-out articles (500)<br/>Disjoint from every training set (n=1k/5k/10k)"]
     B["Generate 2 candidate summaries per article<br/>(same Mistral-7B pipeline as before)"]
-    C["Score every summary<br/>AlignScore sentence-level, GCA aggregation (alpha=0.0)"]
-    D["Pool all 1,000 scored summaries<br/>(500 articles x 2 candidates each)"]
-    E["Sort by score, split into<br/>HIGH subset vs LOW subset<br/>(e.g. top 10% vs bottom 10%)"]
-    F["Retrain Holistic RM<br/>checkpoints saved this time"]
-    G["Retrain GCA RM<br/>checkpoints saved this time"]
-    H["Score every HIGH and LOW summary<br/>with each trained reward model"]
+    C["Score every summary<br/>AlignScore sentence-level, GCA aggregation"]
+    D["Pool all 1,000 scored summaries"]
+    E["Sort by score, split into<br/>HIGH vs LOW subset<br/>(e.g. top 10% vs bottom 10%)"]
+    F["Retrain Holistic RM<br/>checkpoints saved"]
+    G["Retrain GCA RM<br/>checkpoints saved"]
+    H["Score every HIGH/LOW summary<br/>with each trained model"]
     I["Success = RM scores HIGH above LOW<br/>Compare success rate: Holistic vs GCA"]
 
     A --> B --> C --> D --> E
@@ -56,292 +50,93 @@ flowchart TD
     class G gca;
 ```
 
-> **What "top X%" and "bottom X%" mean, throughout this document.** All
-> 1,000 individual candidate summaries (500 held-out articles, 2 candidates
-> each) are pooled into one list and sorted by their AlignScore-GCA score,
-> from lowest to highest. "Top X%" is the highest-scoring X% of that pooled
-> list; "bottom X%" is the lowest-scoring X%. A smaller X means a smaller,
-> more extreme subset with a bigger quality gap between the two groups —
-> "top 10%" and "bottom 10%" are the 100 highest- and 100 lowest-scoring
-> summaries out of the 1,000; "top 5%"/"bottom 5%" are the 50 highest and
-> 50 lowest. This split is global, across all 500 articles pooled together,
-> not per-article — a summary can end up in the "high" group even if the
-> other candidate for the same article scored higher still, as long as it's
-> still within the global top slice.
-
-Step 1. Build an independent ground truth. 500 new CNN/DailyMail articles
-were selected, guaranteed to be ones neither reward model was trained or
-tested on before. Two candidate summaries were generated for each, exactly
-as before. Each summary was then scored with AlignScore's sentence-level
-scoring, aggregated the same way GCA aggregates it. For each article, the
-higher-scoring summary becomes the one that "should" be preferred, and the
-lower-scoring one the one that "should" be rejected.
-
-Step 2. Retrain reward models with their weights saved. The 11 August
-results only ever kept the accuracy numbers, not the trained models
-themselves, so there was nothing to test against a new set of articles.
-Both the holistic and the GCA reward model were retrained the same way as
-before, across 20 random seeds, this time saving the actual trained model
-for each run.
-
-Step 3. Test both reward models against the same ground truth. For every
-one of the 500 ground-truth pairs, each reward model is asked to score both
-the "should be preferred" and the "should be rejected" summary. A model
-succeeds on a pair if it scores the correct one higher. The success rate is
-recorded for every one of the 20 holistic models and every one of the 20
-GCA models.
-
-This directly answers Lingxiao's question: does the GCA reward model, more
-often than the holistic one, give the higher score to the summary that
-should get it.
+All 1,000 candidate summaries (500 articles, 2 candidates each) are pooled
+and sorted by AlignScore-GCA score. **"Top X%"** is the highest-scoring X%
+of that pool, **"bottom X%"** the lowest-scoring X% — a global split
+across all articles, not a per-article comparison. Smaller X means a
+smaller, more extreme subset with a bigger quality gap between the two
+sides.
 
 ---
 
-## Results — first attempt (same-article pairs, superseded below)
+## Results
 
-This section is the first version of the test, built before double-checking
-the exact construction Lingxiao asked for. It compares each article's own
-two generated candidates against each other (the two summaries already used
-everywhere else in the pipeline) rather than pooling and sorting summaries
-globally. Since both candidates come from the same model at similar
-temperatures, their quality is naturally close, making this a subtle,
-hard version of the test — kept here because it is still a real,
-informative result in its own right, and because the next section's "close
-to a coin flip" comparison refers back to it. The corrected version, which
-is what Lingxiao actually specified, starts at "Results — biased ground
-truth" below.
+| Test | Score gap | Holistic | GCA | Gap | p-value |
+|---|---:|---:|---:|---:|---:|
+| In-distribution (11 Aug, for reference) | — | 53.0% | 56.9% | +3.9pp | <0.001 |
+| Same-article pairs (initial test) | ~0.04 | 55.2% | 55.3% | +0.1pp | 0.76 |
+| Top 25% vs bottom 25% | ≥0.36 | 71.9% | 75.2% | +3.2pp | 0.19 |
+| Top 10% vs bottom 10% | ≥0.66 | 76.8% | 86.0% | +9.3pp | <0.001 |
+| Top 5% vs bottom 5% (all-pairs) | ≥0.79 | 76.0% | 83.4% | +7.4pp | 0.004 |
 
-All 500 ground-truth pairs were scored with zero ties. 20 holistic and 20
-GCA reward models were retrained and tested against the same 500 pairs.
-
-| | Holistic RM | GCA RM |
-|---|---:|---:|
-| Mean success rate | 55.2% | 55.3% |
-| Runs favouring | — | 9 / 20 |
-
-Mean gap (GCA minus holistic): +0.14 percentage points
-95% confidence interval: [-0.76, +1.06] points
-Wilcoxon signed-rank p (two-sided): 0.76
-Cohen's d: 0.07
-
-This does not match what Lingxiao's email predicted. The two reward models
-are indistinguishable on this test: GCA is ahead in 9 of 20 seeds, holistic
-in the other 11, essentially a coin flip, and the gap is nowhere near
-statistically significant.
-
-The same equivalence check used for the 5,000 and 10,000-example result on
-11 August was run here too: it rules out any real difference bigger than
-about 1 percentage point in either direction. So this is not a case of not
-enough data to see a difference — with 500 ground-truth pairs and 20 seeds
-per condition, the test could have detected a true gap as small as 1.3
-percentage points, and no such gap is there.
-
-How this fits with the 11 August result. That result measured each reward
-model's accuracy on examples drawn from the same preference-labelling
-process it was trained on, holistic tested against holistic-style labels,
-GCA against GCA-style labels. It found GCA clearly better at 1,000 training
-examples. This week's test asks a different, stricter question: when both
-reward models are scored against one shared, independent yardstick that
-neither was built around, does GCA still come out ahead. It does not.
-Put plainly: GCA preferences are easier for a reward model to learn
-consistently from a small training set, but that does not carry over into
-GCA producing a reward model that is a better judge of factuality by an
-outside standard.
-
----
-
-## Results — biased ground truth (top 25% vs bottom 25%)
-
-The first result came back close to a coin flip because the "high" and
-"low" summaries in that test were too similar to each other: they were the
-two candidates for the same article, generated by the same model at nearby
-temperatures, so their AlignScore-GCA scores were naturally close together
-(often less than 0.05 apart). Lingxiao's actual instruction was to sort all
-summaries by score globally and compare the clearly-good ones against the
-clearly-bad ones, expecting accuracy close to 100% as a sanity check. That
-version was built and run.
-
-All 1,000 individual candidate summaries from the 500 ground-truth
-articles were pooled and sorted by their GCA-aggregated AlignScore score.
-The top quarter (250 summaries, scores 0.72-0.99) became subset A; the
-bottom quarter (250 summaries, scores 0.005-0.36) became subset B. Every
-compared pair has a score gap of at least 0.36, a large, unambiguous
-quality difference, against roughly 0.04 in the first test. The same 20
-already-trained holistic and GCA reward models were reused, no retraining
-needed, and evaluated on 250 A-vs-B pairs each.
-
-| | Holistic RM | GCA RM |
-|---|---:|---:|
-| Mean success rate | 71.9% | 75.2% |
-| Runs favouring | — | 13 / 20 |
-
-Mean gap (GCA minus holistic): +3.24 percentage points
-95% confidence interval: [-0.40, +7.36] points
-Wilcoxon signed-rank p (two-sided): 0.19
-Cohen's d: 0.36
-
-Two things stand out. Both reward models are now clearly and comfortably
-above chance (50%), at roughly 72-75% versus about 55% on the harder,
-same-article test. That confirms the reward models, and the AlignScore
-judge behind the ground truth, are measuring something real: a summary
-AlignScore rates as much more faithful gets a noticeably higher
-reward-model score most of the time. But accuracy is not close to 100%
-even on this deliberately stark comparison. GCA is ahead of holistic on
-average and in a majority of seeds (13 of 20), but the gap is not
-statistically significant at this sample size (p=0.19), and the spread
-across seeds is wide (SD 9.1pp), so this particular result is suggestive
-rather than conclusive — it neither confirms nor rules out a real GCA
-advantage the way the two tests done on 11 and 18 August did in their own
-settings.
-
-A likely reason accuracy tops out short of 100% at this quartile split:
-the reward model only ever sees a 2,000-character prefix of each article
-(discussed in the thesis, Chapter 5), so some claims it needs to verify
-may simply not be in its input, regardless of how clear-cut the quality
-gap is. The top/bottom-quartile split also still includes pairs close to
-its own boundary, which are less extreme than the name "top quarter vs
-bottom quarter" suggests. Both point at the same fix: make the comparison
-even more extreme.
-
----
-
-## Results — most extreme comparison (top 10% vs bottom 10%)
-
-The same 1,000 pooled summaries were re-split at the top and bottom 10%
-instead of 25% (100 summaries each side, scores 0.88-0.99 versus
-0.005-0.22), pushing the minimum score gap from 0.36 up to 0.66. Same 40
-already-trained checkpoints, no retraining, evaluated on the resulting 100
-pairs each.
-
-| | Holistic RM | GCA RM |
-|---|---:|---:|
-| Mean success rate | 76.8% | 86.0% |
-| Runs favouring | — | 17 / 20 |
-
-Mean gap (GCA minus holistic): +9.25 percentage points
-95% confidence interval: [+5.70, +13.15] points
-Wilcoxon signed-rank p (two-sided): 0.00043
-Cohen's d: 1.06 (large)
-
-This is the clearest result of the ground-truth tests so far. On the most
-unambiguous comparisons available in the data, GCA reaches 86% mean
-accuracy against holistic's 77%, GCA is ahead in 17 of the 20 seeds, and
-the gap is significant well past the conventional threshold. Still not
-100%, so the same truncation-related ceiling discussed above likely still
-applies to some degree, but the direction Lingxiao expected is now
-strongly and significantly present, once the comparison is pushed to the
-extreme he actually meant.
-
----
-
-## Results — checking whether accuracy climbs further (top 5% vs bottom 5%, all-pairs)
-
-Two follow-up questions after the 86% result: does pushing the split even
-further (top/bottom 5% instead of 10%, minimum gap 0.79 instead of 0.66)
-push accuracy higher still, and how much of the 86% depended on which
-particular high summary happened to get randomly paired with which low
-one. Both were tested together: top/bottom 5% (50 summaries each side),
-evaluated on every high-vs-low combination rather than one random 1-1
-pairing (2,500 pairs instead of 100). Same 40 checkpoints again.
-
-| | Holistic RM | GCA RM |
-|---|---:|---:|
-| Mean success rate | 76.0% | 83.4% |
-| Runs favouring | — | 14 / 20 |
-
-Mean gap (GCA minus holistic): +7.38 percentage points
-95% confidence interval: [+3.22, +11.69] points
-Wilcoxon signed-rank p (two-sided): 0.0037
-Cohen's d: 0.74 (medium-to-large)
-
-Accuracy did not climb further — holistic is essentially unchanged (76.0%
-vs 76.8%) and GCA is if anything slightly lower (83.4% vs 86.0%), despite
-a larger score gap and a much larger, less noisy evaluation set. The gap
-between the two conditions remains large and highly significant. Taken
-together with the 10%-split result, this is a more trustworthy estimate
-of where these reward models actually plateau: not the exact number from
-either single run, but a range around roughly 76-86% for both, with GCA
-consistently 7-9 points ahead. It did not reach the ~100% Lingxiao
-expected even under the most extreme, most rigorously evaluated version
-of the test, which points more firmly at a genuine ceiling in the
-current reward models rather than an artifact of any one test's
-construction.
-
----
-
-## All four ground-truth results together
+20 holistic and 20 GCA reward models, retrained with checkpoints saved,
+evaluated at each split. The 5%/all-pairs row compares every high summary
+against every low summary (2,500 pairs) rather than one random pairing, to
+remove pairing-order noise.
 
 ![Ground-truth ranking accuracy: Holistic vs GCA across all four test conditions](ground_truth_results.png)
 
 ![GCA's precision advantage grows with the quality gap between compared summaries](gap_vs_advantage.png)
 
-The second chart makes the pattern explicit: the advantage climbs sharply
-as the comparison gets more extreme, then eases slightly at the most
-rigorous setting (all-pairs, 5%) rather than continuing to climb — shown
-as-is rather than smoothed over, since that dip is itself part of the
-honest picture of where the effect plateaus.
+**Same-article pairs.** The two candidates for one article come from the
+same model at similar temperatures, so their quality is naturally close —
+a subtle, hard comparison. Neither model can reliably tell them apart
+(55% either way), and an equivalence check rules out any real difference
+bigger than about 1 percentage point. This is a different, harder question
+than the 11 August result, which measured each model against its own
+training-style labels rather than an independent standard.
+
+**Top/bottom splits.** Once the comparison uses summaries that are
+genuinely, unambiguously different in quality, both models score well
+above chance, and GCA's advantage grows with how extreme the split is —
+from a small, non-significant edge at 25%, to a large and significant one
+at 10% and 5%. Accuracy plateaus around 76–86% for both conditions rather
+than climbing toward 100%; a plausible reason is the 2,000-character
+article truncation used throughout the pipeline (thesis Chapter 5), which
+limits how much evidence either model can check against, regardless of
+how clear-cut the quality difference is.
 
 ---
 
-## What this means for the thesis
+## Summary
 
-Five results now exist, at increasing levels of how starkly the compared
-summaries differ in quality, and all five are being reported together
-rather than picking the best one.
-
-- Same training data, tested in-distribution (11 August): GCA produces a
-  significantly more learnable reward-model signal at small scale.
-- Independent ground truth, subtle comparison (same-article pairs, score
-  gap ~0.04): no measurable precision advantage for GCA.
-- Independent ground truth, moderate comparison (top 25% vs bottom 25% of
-  the pooled summaries, 250 each side, score gap >=0.36): GCA nominally
-  ahead, not statistically significant.
-- Independent ground truth, extreme comparison (top 10% vs bottom 10%,
-  100 each side, score gap >=0.66): GCA significantly and substantially
-  ahead (+9.25pp, p<0.001, large effect).
-- Independent ground truth, most extreme comparison, all-pairs (top 5% vs
-  bottom 5%, 50 each side, score gap >=0.79, 2,500 pairs): confirms the
-  advantage (+7.38pp, p=0.004) and shows accuracy plateaus around 76-86%
-  for both conditions rather than continuing to climb.
-
-A clear pattern holds across the last four: GCA's advantage over holistic
-grows as the quality gap between compared summaries grows, from
-indistinguishable on close calls, to a hinted-at edge, to a large and
-robustly significant advantage on the clearest cases — one that holds up
-under the most extreme and most rigorously evaluated version of the test,
-without climbing toward 100%. Combined with the 11 August result,
-sentence-level scoring produces both a more learnable training signal at
-small scale and, specifically on the clearest cases, a demonstrably more
-precise reward model by an independent standard, bounded by an apparent
-ceiling in absolute accuracy that neither condition breaks through.
+Sentence-level scoring produces a more learnable training signal at small
+scale (11 August) and a more precise reward model specifically on clear,
+large quality differences (this update) — but not on subtle ones, and not
+without an apparent ceiling in absolute accuracy that neither condition
+breaks through.
 
 ---
 
-## Questions for Tuesday
+## In progress
 
-1. The precision advantage shows up clearly and holds up under the most
-   rigorous version of the test (all-pairs, +7.38pp, p=0.004) once the
-   comparison is extreme enough, but not on subtler comparisons, and
-   accuracy plateaus around 76-86% rather than approaching 100% even
-   there — does this pattern answer the precision question, or should the
-   thesis try to explain the plateau and the scale-with-difficulty effect
-   directly?
-2. Is it enough to report all five findings together (learnable; not more
-   precise on close calls; increasingly more precise as the quality gap
-   widens, up to an apparent ceiling), or is further investigation needed
-   given the deadline?
-3. Is anything else needed before submission, given the 3 September
-   deadline?
+Checking whether this precision advantage also depends on training-set
+size, the way the 11 August learnability result did (significant at
+n=1,000, absent at n=5,000/10,000). Reward models are being retrained at
+n=5,000 and n=10,000 with checkpoints saved, to test against the same
+held-out ground truth. Results to follow.
+
+---
+
+## Questions
+
+1. GCA's precision advantage is real and significant on clear-cut
+   comparisons but not on subtle ones, plateauing around 76–86% rather
+   than approaching 100% — is this pattern a sufficient answer, or should
+   the plateau itself be investigated further?
+2. Is it enough to report all findings together (learnable; not more
+   precise on close calls; more precise as the quality gap widens, up to
+   a ceiling), or is more work needed before submission?
+3. Anything else needed before the 3 September deadline?
 
 ---
 
 ## For reference
 
-Full code is on GitHub: https://github.com/hasnat23/master-thesis-rlaif-gca
+Full code: https://github.com/hasnat23/master-thesis-rlaif-gca
 
 Pipeline: `scripts/03_prepare_ground_truth_subset.py`,
 `slurm/generate_candidates_groundtruth.sh`, `slurm/build_ground_truth.sh`,
-`slurm/retrain_for_ground_truth.sh`, `analysis/build_biased_ground_truth.py`
-(the stark/global version), `analysis/evaluate_ground_truth.py`,
-`analysis/ground_truth_stats.py`. Charts regenerated from the committed
-evaluation JSON via `make_charts.py` in this folder.
+`slurm/retrain_for_ground_truth*.sh`, `analysis/build_biased_ground_truth.py`,
+`analysis/evaluate_ground_truth.py`, `analysis/ground_truth_stats.py`.
+Charts regenerated from committed evaluation data via `make_charts.py`.
