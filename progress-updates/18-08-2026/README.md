@@ -123,13 +123,34 @@ breaks through.
 
 ---
 
-## In progress
+## Scale comparison
 
-Checking whether this precision advantage also depends on training-set
-size, the way the 11 August learnability result did (significant at
-n=1,000, absent at n=5,000/10,000). Reward models are being retrained at
-n=5,000 and n=10,000 with checkpoints saved, to test against the same
-held-out ground truth. Results to follow.
+The next question: does this precision advantage hold as the training set
+grows, the way the 11 August learnability result didn't (significant at
+n=1,000, absent at n=5,000/10,000)? Reward models were retrained at
+n=5,000 with checkpoints saved and tested against the same held-out
+ground truth. n=10,000 is still running; results to follow.
+
+As before, "top X%" / "bottom X%" is a global split of the pooled 1,000
+held-out candidate summaries by AlignScore-GCA score — top/bottom 25% is
+the best/worst 250 of that pool, 10% the best/worst 100, 5% the best/worst
+50. Same four conditions, same held-out set, only the training-set size
+changes.
+
+| Test | n=1,000 gap | n=5,000 gap | p-value (n=5,000) |
+|---|---:|---:|---:|
+| Same-article pairs | +0.1pp | -0.4pp | 0.29 |
+| Top/bottom 25% | +3.2pp | -0.4pp | 0.69 |
+| Top/bottom 10% | +9.3pp | +0.1pp | 0.94 |
+| Top/bottom 5% (all-pairs) | +7.4pp | +0.7pp | 0.55 |
+
+![GCA's precision advantage shrinks as the training set grows](scale_comparison.png)
+
+The advantage that was large and significant at n=1,000 (up to +9.3pp,
+p<0.001) is gone at n=5,000 — every gap is within noise, none significant.
+Same pattern as the 11 August learnability result: real at small scale,
+absent once the training set grows. n=10,000 will confirm whether it
+stays absent or reappears.
 
 ---
 
@@ -152,6 +173,7 @@ Full code: https://github.com/hasnat23/master-thesis-rlaif-gca
 
 Pipeline: `scripts/03_prepare_ground_truth_subset.py`,
 `slurm/generate_candidates_groundtruth.sh`, `slurm/build_ground_truth.sh`,
-`slurm/retrain_for_ground_truth*.sh`, `analysis/build_biased_ground_truth.py`,
-`analysis/evaluate_ground_truth.py`, `analysis/ground_truth_stats.py`.
+`slurm/retrain_for_ground_truth*.sh`, `slurm/evaluate_ground_truth_scale.sh`,
+`analysis/build_biased_ground_truth.py`, `analysis/evaluate_ground_truth.py`,
+`analysis/ground_truth_stats.py`.
 Charts regenerated from committed evaluation data via `make_charts.py`.

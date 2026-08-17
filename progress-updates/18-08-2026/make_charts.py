@@ -104,3 +104,41 @@ print()
 for label, hm, gm, sd_h, sd_g, gap in zip(labels, hol_means, gca_means, hol_sd, gca_sd, gaps_pp):
     print(f"{label.splitlines()[0]:<26s} holistic={hm*100:5.1f}% (sd {sd_h*100:.1f})  "
           f"gca={gm*100:5.1f}% (sd {sd_g*100:.1f})  gap={gap:+.2f}pp")
+
+# ---------------------------------------------------------------------------
+# Chart 3: does the GCA advantage hold as the training set grows?
+# Compares the gap (GCA - Holistic) per condition at n=1,000 vs n=5,000.
+# ---------------------------------------------------------------------------
+conditions_5000 = [
+    ("Same-article\n(gap ~0.04)", "ground_truth_eval_5000.json"),
+    ("Top/bottom 25%\n(gap >=0.36)", "biased_ground_truth_eval_5000.json"),
+    ("Top/bottom 10%\n(gap >=0.66)", "biased_top10_eval_5000.json"),
+    ("Top/bottom 5%,\nall-pairs (gap >=0.79)", "biased_top5_allpairs_eval_5000.json"),
+]
+gaps_pp_5000 = []
+for _, fname in conditions_5000:
+    hol, gca = load_eval(fname)
+    gaps_pp_5000.append((statistics.mean(gca) - statistics.mean(hol)) * 100)
+
+fig3, ax3 = plt.subplots(figsize=(7.5, 4.5), dpi=150)
+ax3.plot(score_gaps, gaps_pp, marker="o", color=GCA_COLOR, linewidth=2,
+         markersize=8, label="n=1,000")
+ax3.plot(score_gaps, gaps_pp_5000, marker="s", color="#7a7a7a", linewidth=2,
+         markersize=8, linestyle="--", label="n=5,000")
+ax3.axhline(0, color="gray", linestyle=":", linewidth=1)
+
+ax3.set_xlabel("Minimum AlignScore-GCA score gap between compared summaries")
+ax3.set_ylabel("GCA minus Holistic (percentage points)")
+ax3.set_title("GCA's precision advantage shrinks as the training set grows")
+ax3.set_ylim(-3, 12)
+ax3.legend(loc="upper left")
+ax3.spines["top"].set_visible(False)
+ax3.spines["right"].set_visible(False)
+fig3.tight_layout()
+out3 = Path(__file__).parent / "scale_comparison.png"
+fig3.savefig(out3)
+print("wrote", out3)
+
+print()
+for label, gap1k, gap5k in zip(labels, gaps_pp, gaps_pp_5000):
+    print(f"{label.splitlines()[0]:<26s} n=1000 gap={gap1k:+.2f}pp   n=5000 gap={gap5k:+.2f}pp")
