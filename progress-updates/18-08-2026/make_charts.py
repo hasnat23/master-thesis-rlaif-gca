@@ -115,10 +115,47 @@ conditions_5000 = [
     ("Top/bottom 10%\n(gap >=0.66)", "biased_top10_eval_5000.json"),
     ("Top/bottom 5%,\nall-pairs (gap >=0.79)", "biased_top5_allpairs_eval_5000.json"),
 ]
-gaps_pp_5000 = []
+hol_means_5000, gca_means_5000, hol_sd_5000, gca_sd_5000, gaps_pp_5000 = [], [], [], [], []
 for _, fname in conditions_5000:
     hol, gca = load_eval(fname)
+    hol_means_5000.append(statistics.mean(hol))
+    gca_means_5000.append(statistics.mean(gca))
+    hol_sd_5000.append(statistics.stdev(hol))
+    gca_sd_5000.append(statistics.stdev(gca))
     gaps_pp_5000.append((statistics.mean(gca) - statistics.mean(hol)) * 100)
+
+# ---------------------------------------------------------------------------
+# Chart 3b: grouped bars, mean success rate per condition, n=5,000
+# (same layout as chart 1, so the two are directly comparable side by side)
+# ---------------------------------------------------------------------------
+fig3b, ax3b = plt.subplots(figsize=(8.5, 5), dpi=150)
+
+bars1b = ax3b.bar([i - width / 2 for i in x], hol_means_5000, width,
+                   yerr=hol_sd_5000, capsize=4, label="Holistic", color=HOL_COLOR)
+bars2b = ax3b.bar([i + width / 2 for i in x], gca_means_5000, width,
+                   yerr=gca_sd_5000, capsize=4, label="GCA", color=GCA_COLOR)
+
+ax3b.axhline(0.5, color="gray", linestyle="--", linewidth=1)
+ax3b.text(3.35, 0.505, "random guessing", fontsize=8, color="gray", ha="right")
+
+ax3b.set_xticks(list(x))
+ax3b.set_xticklabels(labels, fontsize=9)
+ax3b.set_ylabel("Mean success rate (20 seeds)")
+ax3b.set_ylim(0.45, 1.0)
+ax3b.set_title("Ground-truth ranking accuracy at n=5,000: Holistic vs GCA")
+ax3b.legend(loc="upper left")
+
+for bars, means in [(bars1b, hol_means_5000), (bars2b, gca_means_5000)]:
+    for bar, m in zip(bars, means):
+        ax3b.text(bar.get_x() + bar.get_width() / 2, m + 0.015,
+                   f"{m*100:.1f}%", ha="center", fontsize=9)
+
+ax3b.spines["top"].set_visible(False)
+ax3b.spines["right"].set_visible(False)
+fig3b.tight_layout()
+out3b = Path(__file__).parent / "ground_truth_results_5000.png"
+fig3b.savefig(out3b)
+print("wrote", out3b)
 
 fig3, ax3 = plt.subplots(figsize=(7.5, 4.5), dpi=150)
 ax3.plot(score_gaps, gaps_pp, marker="o", color=GCA_COLOR, linewidth=2,

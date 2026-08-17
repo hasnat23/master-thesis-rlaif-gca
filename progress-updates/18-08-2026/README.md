@@ -144,6 +144,8 @@ changes.
 | Top/bottom 10% | +9.3pp | +0.1pp | 0.94 |
 | Top/bottom 5% (all-pairs) | +7.4pp | +0.7pp | 0.55 |
 
+![Ground-truth ranking accuracy at n=5,000: Holistic vs GCA across all four test conditions](ground_truth_results_5000.png)
+
 ![GCA's precision advantage shrinks as the training set grows](scale_comparison.png)
 
 The advantage that was large and significant at n=1,000 (up to +9.3pp,
