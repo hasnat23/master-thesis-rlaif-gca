@@ -157,17 +157,66 @@ out3b = Path(__file__).parent / "ground_truth_results_5000.png"
 fig3b.savefig(out3b)
 print("wrote", out3b)
 
+conditions_10000 = [
+    ("Same-article\n(gap ~0.04)", "ground_truth_eval_10000.json"),
+    ("Top/bottom 25%\n(gap >=0.36)", "biased_ground_truth_eval_10000.json"),
+    ("Top/bottom 10%\n(gap >=0.66)", "biased_top10_eval_10000.json"),
+    ("Top/bottom 5%,\nall-pairs (gap >=0.79)", "biased_top5_allpairs_eval_10000.json"),
+]
+hol_means_10000, gca_means_10000, hol_sd_10000, gca_sd_10000, gaps_pp_10000 = [], [], [], [], []
+for _, fname in conditions_10000:
+    hol, gca = load_eval(fname)
+    hol_means_10000.append(statistics.mean(hol))
+    gca_means_10000.append(statistics.mean(gca))
+    hol_sd_10000.append(statistics.stdev(hol))
+    gca_sd_10000.append(statistics.stdev(gca))
+    gaps_pp_10000.append((statistics.mean(gca) - statistics.mean(hol)) * 100)
+
+# ---------------------------------------------------------------------------
+# Chart 3c: grouped bars, mean success rate per condition, n=10,000
+# ---------------------------------------------------------------------------
+fig3c, ax3c = plt.subplots(figsize=(8.5, 5), dpi=150)
+
+bars1c = ax3c.bar([i - width / 2 for i in x], hol_means_10000, width,
+                   yerr=hol_sd_10000, capsize=4, label="Holistic", color=HOL_COLOR)
+bars2c = ax3c.bar([i + width / 2 for i in x], gca_means_10000, width,
+                   yerr=gca_sd_10000, capsize=4, label="GCA", color=GCA_COLOR)
+
+ax3c.axhline(0.5, color="gray", linestyle="--", linewidth=1)
+ax3c.text(3.35, 0.505, "random guessing", fontsize=8, color="gray", ha="right")
+
+ax3c.set_xticks(list(x))
+ax3c.set_xticklabels(labels, fontsize=9)
+ax3c.set_ylabel("Mean success rate (20 seeds)")
+ax3c.set_ylim(0.45, 1.0)
+ax3c.set_title("Ground-truth ranking accuracy at n=10,000: Holistic vs GCA")
+ax3c.legend(loc="upper left")
+
+for bars, means in [(bars1c, hol_means_10000), (bars2c, gca_means_10000)]:
+    for bar, m in zip(bars, means):
+        ax3c.text(bar.get_x() + bar.get_width() / 2, m + 0.015,
+                   f"{m*100:.1f}%", ha="center", fontsize=9)
+
+ax3c.spines["top"].set_visible(False)
+ax3c.spines["right"].set_visible(False)
+fig3c.tight_layout()
+out3c = Path(__file__).parent / "ground_truth_results_10000.png"
+fig3c.savefig(out3c)
+print("wrote", out3c)
+
 fig3, ax3 = plt.subplots(figsize=(7.5, 4.5), dpi=150)
 ax3.plot(score_gaps, gaps_pp, marker="o", color=GCA_COLOR, linewidth=2,
          markersize=8, label="n=1,000")
 ax3.plot(score_gaps, gaps_pp_5000, marker="s", color="#7a7a7a", linewidth=2,
          markersize=8, linestyle="--", label="n=5,000")
+ax3.plot(score_gaps, gaps_pp_10000, marker="^", color="#c0392b", linewidth=2,
+         markersize=8, linestyle=":", label="n=10,000")
 ax3.axhline(0, color="gray", linestyle=":", linewidth=1)
 
 ax3.set_xlabel("Minimum AlignScore-GCA score gap between compared summaries")
 ax3.set_ylabel("GCA minus Holistic (percentage points)")
-ax3.set_title("GCA's precision advantage shrinks as the training set grows")
-ax3.set_ylim(-3, 12)
+ax3.set_title("GCA's precision advantage reverses as the training set grows")
+ax3.set_ylim(-4, 12)
 ax3.legend(loc="upper left")
 ax3.spines["top"].set_visible(False)
 ax3.spines["right"].set_visible(False)
@@ -177,5 +226,5 @@ fig3.savefig(out3)
 print("wrote", out3)
 
 print()
-for label, gap1k, gap5k in zip(labels, gaps_pp, gaps_pp_5000):
-    print(f"{label.splitlines()[0]:<26s} n=1000 gap={gap1k:+.2f}pp   n=5000 gap={gap5k:+.2f}pp")
+for label, gap1k, gap5k, gap10k in zip(labels, gaps_pp, gaps_pp_5000, gaps_pp_10000):
+    print(f"{label.splitlines()[0]:<26s} n=1000 gap={gap1k:+.2f}pp   n=5000 gap={gap5k:+.2f}pp   n=10000 gap={gap10k:+.2f}pp")

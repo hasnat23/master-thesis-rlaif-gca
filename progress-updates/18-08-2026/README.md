@@ -113,23 +113,13 @@ either model can check against regardless of quality gap.
 
 ---
 
-## Summary
-
-Sentence-level scoring produces a more learnable training signal at small
-scale (11 August) and a more precise reward model specifically on clear,
-large quality differences (this update) — but not on subtle ones, and not
-without an apparent ceiling in absolute accuracy that neither condition
-breaks through.
-
----
-
 ## Scale comparison
 
 The next question: does this precision advantage hold as the training set
 grows, the way the 11 August learnability result didn't (significant at
 n=1,000, absent at n=5,000/10,000)? Reward models were retrained at
-n=5,000 with checkpoints saved and tested against the same held-out
-ground truth. n=10,000 is still running; results to follow.
+n=5,000 and n=10,000 with checkpoints saved and tested against the same
+held-out ground truth.
 
 As before, "top X%" / "bottom X%" is a global split of the pooled 1,000
 held-out candidate summaries by AlignScore-GCA score — top/bottom 25% is
@@ -137,34 +127,53 @@ the best/worst 250 of that pool, 10% the best/worst 100, 5% the best/worst
 50. Same four conditions, same held-out set, only the training-set size
 changes.
 
-| Test | n=1,000 gap | n=5,000 gap | p-value (n=5,000) |
-|---|---:|---:|---:|
-| Same-article pairs | +0.1pp | -0.4pp | 0.29 |
-| Top/bottom 25% | +3.2pp | -0.4pp | 0.69 |
-| Top/bottom 10% | +9.3pp | +0.1pp | 0.94 |
-| Top/bottom 5% (all-pairs) | +7.4pp | +0.7pp | 0.55 |
+| Test | n=1,000 gap | n=5,000 gap | n=10,000 gap | p-value (n=10,000) |
+|---|---:|---:|---:|---:|
+| Same-article pairs | +0.1pp | -0.4pp | -1.5pp | 0.010 |
+| Top/bottom 25% | +3.2pp | -0.4pp | -2.1pp | 0.036 |
+| Top/bottom 10% | +9.3pp | +0.1pp | -2.0pp | 0.058 |
+| Top/bottom 5% (all-pairs) | +7.4pp | +0.7pp | -2.1pp | 0.025 |
 
 ![Ground-truth ranking accuracy at n=5,000: Holistic vs GCA across all four test conditions](ground_truth_results_5000.png)
 
-![GCA's precision advantage shrinks as the training set grows](scale_comparison.png)
+![Ground-truth ranking accuracy at n=10,000: Holistic vs GCA across all four test conditions](ground_truth_results_10000.png)
 
-The advantage that was large and significant at n=1,000 (up to +9.3pp,
-p<0.001) is gone at n=5,000 — every gap is within noise, none significant.
-Same pattern as the 11 August learnability result: real at small scale,
-absent once the training set grows. n=10,000 will confirm whether it
-stays absent or reappears.
+![GCA's precision advantage reverses as the training set grows](scale_comparison.png)
+
+This isn't just "the advantage fades" — it flips. At n=1,000, GCA was
+ahead by up to +9.3pp (p<0.001). At n=5,000, the gap is gone (all within
+noise). At n=10,000, Holistic is now significantly ahead of GCA on three
+of the four conditions (p=0.010 to 0.036), with the fourth (top/bottom
+10%) just short of significance (p=0.058) but pointing the same way.
+
+Same direction as the 11 August learnability result (real at n=1,000,
+gone by n=5,000/10,000), but here it goes one step further: past a
+certain point, more training data doesn't just erase GCA's edge, it
+turns into a small but real edge for Holistic instead.
+
+---
+
+## Summary
+
+GCA's precision advantage is real but narrow: it only shows up when the
+two summaries being compared are clearly different in quality, and only
+when the reward model was trained on a small amount of data. Add more
+training data and the advantage first disappears (n=5,000), then reverses
+into a small, significant edge for Holistic (n=10,000). The same
+small-data-only pattern already seen for learnability (11 August) holds
+here too, and goes one step further.
 
 ---
 
 ## Questions
 
-1. GCA's precision advantage is real and significant on clear-cut
-   comparisons but not on subtle ones, plateauing around 76–86% rather
-   than approaching 100% — is this pattern a sufficient answer, or should
-   the plateau itself be investigated further?
-2. Is it enough to report all findings together (learnable; not more
-   precise on close calls; more precise as the quality gap widens, up to
-   a ceiling), or is more work needed before submission?
+1. GCA's precision advantage only holds at n=1,000 and reverses in
+   Holistic's favor by n=10,000 — is that reversal itself worth digging
+   into further, or is reporting the full three-scale pattern enough?
+2. Is it enough to report all findings together (learnable at small
+   scale; more precise on clear-cut comparisons at small scale; both
+   advantages fade and then reverse as training data grows), or is more
+   work needed before submission?
 3. Anything else needed before the 3 September deadline?
 
 ---
