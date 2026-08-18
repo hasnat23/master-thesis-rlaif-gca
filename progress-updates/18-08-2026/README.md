@@ -134,7 +134,25 @@ changes.
 | Top/bottom 10% | +9.3pp | +0.1pp | -2.0pp | 0.058 |
 | Top/bottom 5% (all-pairs) | +7.4pp | +0.7pp | -2.1pp | 0.025 |
 
+**n=5,000, full breakdown:**
+
+| Test | Summaries/side | Score gap | Holistic | GCA | Gap | p-value |
+|---|---:|---:|---:|---:|---:|---:|
+| Same-article pairs | 500 pairs | ~0.04 | 55.0% | 54.6% | -0.4pp | 0.29 |
+| Top 25% vs bottom 25% | 250 | ≥0.36 | 75.1% | 74.6% | -0.4pp | 0.69 |
+| Top 10% vs bottom 10% | 100 | ≥0.66 | 83.3% | 83.4% | +0.1pp | 0.94 |
+| Top 5% vs bottom 5% (all-pairs) | 50 | ≥0.79 | 82.0% | 82.7% | +0.7pp | 0.55 |
+
 ![Ground-truth ranking accuracy at n=5,000: Holistic vs GCA across all four test conditions](ground_truth_results_5000.png)
+
+**n=10,000, full breakdown:**
+
+| Test | Summaries/side | Score gap | Holistic | GCA | Gap | p-value |
+|---|---:|---:|---:|---:|---:|---:|
+| Same-article pairs | 500 pairs | ~0.04 | 58.1% | 56.7% | -1.5pp | 0.010 |
+| Top 25% vs bottom 25% | 250 | ≥0.36 | 81.2% | 79.0% | -2.1pp | 0.036 |
+| Top 10% vs bottom 10% | 100 | ≥0.66 | 92.0% | 90.0% | -2.0pp | 0.058 |
+| Top 5% vs bottom 5% (all-pairs) | 50 | ≥0.79 | 90.8% | 88.7% | -2.1pp | 0.025 |
 
 ![Ground-truth ranking accuracy at n=10,000: Holistic vs GCA across all four test conditions](ground_truth_results_10000.png)
 
