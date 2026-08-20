@@ -1,0 +1,20 @@
+# CNN/DailyMail subset for 2000-sample curve-point experiment
+#
+# Same seed=200 draw as subset_1000/5000/10000 -- verified empirically that
+# n=2000 at seed=200 is an exact subset of the n=5000/10000 draws, so
+# preferences_2000 is built by filtering preferences_10000 by sample_id,
+# not by regenerating candidates or rescoring.
+
+n_samples: 2000
+
+seed: 200
+
+split: "test"
+
+local_dataset_path: "data/cnn_dailymail_test_full"
+
+max_article_chars: 8000
+max_summary_chars: 2000
+
+output_dir: "data/subset"
+output_filename: "subset_2000.jsonl"
