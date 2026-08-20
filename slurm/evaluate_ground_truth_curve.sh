@@ -23,6 +23,7 @@
 set -euo pipefail
 
 : "${SCALE:?Must set SCALE=2000 or SCALE=3000 via --export}"
+SEEDS="${SEEDS:-1-5}"
 
 module load lang/Anaconda3/2024.06-1
 source "$(conda info --base)/etc/profile.d/conda.sh"
@@ -39,32 +40,32 @@ mkdir -p slurm/logs
 
 CKPT_ROOT="outputs/ground_truth_eval_${SCALE}"
 
-echo "=== Ground-truth evaluation, scale=${SCALE} (5 seeds) ==="
+echo "=== Ground-truth evaluation, scale=${SCALE} (seeds=${SEEDS}) ==="
 echo "Checkpoints: ${CKPT_ROOT}"
 echo "Date: $(date)"
 
 python analysis/evaluate_ground_truth.py \
     --ground-truth data/preferences_groundtruth/gca_reward_preferences_groundtruth.jsonl \
     --checkpoints-root "$CKPT_ROOT" \
-    --seeds "1-5" \
+    --seeds "$SEEDS" \
     --out "reports/campaigns/ground_truth_eval_${SCALE}.json"
 
 python analysis/evaluate_ground_truth.py \
     --ground-truth data/preferences_groundtruth/biased_ground_truth.jsonl \
     --checkpoints-root "$CKPT_ROOT" \
-    --seeds "1-5" \
+    --seeds "$SEEDS" \
     --out "reports/campaigns/biased_ground_truth_eval_${SCALE}.json"
 
 python analysis/evaluate_ground_truth.py \
     --ground-truth data/preferences_groundtruth/biased_ground_truth_top10.jsonl \
     --checkpoints-root "$CKPT_ROOT" \
-    --seeds "1-5" \
+    --seeds "$SEEDS" \
     --out "reports/campaigns/biased_top10_eval_${SCALE}.json"
 
 python analysis/evaluate_ground_truth.py \
     --ground-truth data/preferences_groundtruth/biased_ground_truth_top5_allpairs.jsonl \
     --checkpoints-root "$CKPT_ROOT" \
-    --seeds "1-5" \
+    --seeds "$SEEDS" \
     --out "reports/campaigns/biased_top5_allpairs_eval_${SCALE}.json"
 
 echo "=== Done, scale=${SCALE} ==="
