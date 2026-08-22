@@ -141,10 +141,12 @@ three of four ground-truth constructions ($-1.45$ to $-2.12$ percentage points,
 $p=0.010$--$0.036$). The advantage does not merely fail to persist as training
 data grow, as the learnability result also shows; it reverses. Supplementary
 five-seed checks at $n=2{,}000$ and $n=3{,}000$ locate this crossover between
-$n=3{,}000$ and $n=5{,}000$. One candidate explanation, that GCA's training pairs
-contain disproportionately more near-zero-margin comparisons than holistic's, was
-tested directly against the stored training data and rejected; the mechanism
-behind the reversal remains open.
+$n=3{,}000$ and $n=5{,}000$. Two candidate explanations for the reversal were
+tested directly and both rejected: that GCA's training pairs contain
+disproportionately more near-zero-margin comparisons than holistic's, and that
+GCA increasingly relies on a summary-length or sentence-count shortcut relative
+to holistic as training data grow. The mechanism behind the reversal remains
+open.
 }
 
 \begin{document}
