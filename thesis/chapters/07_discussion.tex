@@ -193,12 +193,14 @@ measured.
 \section{Both Reward Models Are Weak in Absolute Terms}
 \label{sec:disc-weak-signal}
 
-A comparison between two conditions can be sound while both conditions perform
-poorly, and that is the situation here. At $n=1{,}000$, the holistic reward model
-reaches 0.5297 and the GCA reward model 0.5691 pairwise accuracy, against a chance
-level of 0.5. In absolute terms these models recover very little of the preference
-signal: the better of the two is correct on roughly 57 of every 100 held-out pairs,
-where guessing would be correct on 50.
+\begin{caveat}[A comparison can be sound while both conditions are weak]
+At $n=1{,}000$, the holistic reward model reaches 0.5297 and the GCA reward
+model 0.5691 pairwise accuracy, against a chance level of 0.5. In absolute
+terms these models recover very little of the preference signal: the better
+of the two is correct on roughly 57 of every 100 held-out pairs, where
+guessing would be correct on 50. The comparison between conditions remains
+valid; what it is a comparison \emph{of} is modest in absolute terms.
+\end{caveat}
 
 This materially qualifies what the thesis shows. The finding is that GCA
 preferences are \emph{more learnable} than holistic preferences under the selected

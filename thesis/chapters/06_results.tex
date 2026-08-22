@@ -573,11 +573,15 @@ from too few runs rather than genuine instability of the effect.}
 \label{fig:seed-campaign-20}
 \end{figure}
 
-This is the headline statistical result of the thesis: at $n=1{,}000$, under the
-locked \texttt{nli}-mode, $\alpha=0.0$, margin-0 configuration, GCA preference
-construction produces a more learnable reward-model signal than holistic
-construction, and the difference meets the conventional significance threshold
-at the run level. The mean gap under the extended campaign, $+3.95$ percentage
+\begin{keyfinding}[Headline learnability result (RQ1)]
+At $n=1{,}000$, under the locked \texttt{nli}-mode, $\alpha=0.0$, margin-0
+configuration, GCA preference construction produces a more learnable
+reward-model signal than holistic construction: mean gap $+3.95$ percentage
+points across twenty independently seeded runs, GCA ahead in all twenty,
+run-level Wilcoxon $p<0.001$, Cohen's $d=+2.22$.
+\end{keyfinding}
+
+The mean gap under the extended campaign, $+3.95$ percentage
 points, is close to the six-run estimate of $+3.08$ percentage points, so the
 additional runs refined the precision of the estimate rather than revealing a
 different effect. Section~\ref{sec:disc-stats-caveat} in the next chapter
@@ -952,12 +956,16 @@ Top/bottom 5\% (all-pairs) & $+7.38$pp & $+0.73$pp & $-2.12$pp & 0.025 \\
 The advantage found at $n=1{,}000$ does not merely fail to persist, as the
 learnability advantage did (Section~\ref{sec:results-scale}); it reverses.
 At $n=5{,}000$ every gap is within noise of zero, matching the learnability
-result at that scale. At $n=10{,}000$, holistic is significantly ahead of
-GCA on three of the four constructions ($p=0.010$ to $0.036$), with the
-fourth (top/bottom 10\%) narrowly short of the conventional threshold
-($p=0.058$) while pointing in the same direction. This is the first result
-in this thesis, on any metric, in which holistic significantly outperforms
-GCA rather than the two being indistinguishable.
+result at that scale.
+
+\begin{keyfinding}[The ground-truth reversal (RQ4)]
+At $n=10{,}000$, holistic is significantly ahead of GCA on three of the four
+ground-truth constructions ($p=0.010$ to $0.036$), with the fourth
+(top/bottom 10\%) narrowly short of the conventional threshold ($p=0.058$)
+while pointing the same way. This is the first result in this thesis, on any
+metric, in which holistic significantly outperforms GCA rather than the two
+being indistinguishable.
+\end{keyfinding}
 
 \subsection{Locating the Crossover: \texorpdfstring{$n=2{,}000$}{n=2,000} and \texorpdfstring{$n=3{,}000$}{n=3,000}}
 \label{sec:results-scale-curve}

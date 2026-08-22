@@ -38,6 +38,35 @@
   gcabar/.style={fill=orange!45, draw=orange!65!black, line width=0.4pt},
 }
 
+% Colored callout boxes for highlighting key findings, definitions, and
+% limitations, using the same restrained blue/orange/gray palette as the
+% charts above rather than introducing new colors.
+\usepackage[skins,breakable]{tcolorbox}
+\newtcolorbox{keyfinding}[1][]{
+  enhanced, breakable, colback=blue!6, colframe=blue!55!black,
+  boxrule=0.5pt, left=2mm, right=2mm, top=1mm, bottom=1mm,
+  fonttitle=\bfseries, coltitle=blue!30!black,
+  attach boxed title to top left={yshift=-2mm, xshift=2mm},
+  boxed title style={colback=white, boxrule=0pt, top=0.3mm, bottom=0.3mm},
+  title={#1}, before skip=3mm, after skip=3mm,
+}
+\newtcolorbox{caveat}[1][]{
+  enhanced, breakable, colback=orange!6, colframe=orange!65!black,
+  boxrule=0.5pt, left=2mm, right=2mm, top=1mm, bottom=1mm,
+  fonttitle=\bfseries, coltitle=orange!40!black,
+  attach boxed title to top left={yshift=-2mm, xshift=2mm},
+  boxed title style={colback=white, boxrule=0pt, top=0.3mm, bottom=0.3mm},
+  title={#1}, before skip=3mm, after skip=3mm,
+}
+\newtcolorbox{definitionbox}[1][]{
+  enhanced, breakable, colback=gray!6, colframe=gray!55!black,
+  boxrule=0.5pt, left=2mm, right=2mm, top=1mm, bottom=1mm,
+  fonttitle=\bfseries, coltitle=black,
+  attach boxed title to top left={yshift=-2mm, xshift=2mm},
+  boxed title style={colback=white, boxrule=0pt, top=0.3mm, bottom=0.3mm},
+  title={#1}, before skip=3mm, after skip=3mm,
+}
+
 % The class typesets \theauthor in \Large on the title page; the second line drops
 % back to \normalsize so the matriculation number sits under the name without
 % competing with it.

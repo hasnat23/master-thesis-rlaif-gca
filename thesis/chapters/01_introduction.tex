@@ -45,11 +45,13 @@ preference through a mechanism referred to as \emph{Granular Credit Assignment}
 (GCA), yield a more learnable preference signal for reward-model training than
 purely holistic judgments of the same candidate summaries.
 
-``More learnable'' is given a concrete, testable meaning throughout: the pairwise
-validation accuracy of a Bradley--Terry reward model trained on the resulting
-preference pairs (Chapter~\ref{ch:background}, Section~\ref{sec:bg-bradley-terry}).
-Given a held-out preference pair, how often does the trained reward model rank the
-summary the judge preferred above the alternative?
+\begin{definitionbox}[Learnability, as used throughout this thesis]
+The pairwise validation accuracy of a Bradley--Terry reward model trained on
+the resulting preference pairs (Chapter~\ref{ch:background},
+Section~\ref{sec:bg-bradley-terry}): given a held-out preference pair, how
+often does the trained reward model rank the summary the judge preferred
+above the alternative?
+\end{definitionbox}
 
 \section{Thesis Objective}
 \label{sec:intro-objective}
