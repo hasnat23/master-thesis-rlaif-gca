@@ -142,9 +142,18 @@ $n$ & Subset seed & Purpose & Notes \\
 495    & 100 & First Bradley--Terry RM training set & Drawn with a different seed
   from the $n=200$ set \\
 1{,}000 & 200 & Final repeated-run campaign & 6 RM training runs; seeds 42, 42, 7, 100,
-  314, 2026 \\
-5{,}000 & 200 & Scale-robustness check & Single training run \\
-10{,}000 & 200 & Scale-robustness check & Single training run \\
+  314, 2026; later extended to 20 (Section~\ref{sec:results-extended-campaign}) \\
+5{,}000 & 200 & Scale-robustness check & Single training run; later extended to 20
+  (Section~\ref{sec:results-scale}) \\
+10{,}000 & 200 & Scale-robustness check & Single training run; later extended to 20
+  (Section~\ref{sec:results-scale}) \\
+2{,}000 & 200 & RQ4 crossover check & 5 training runs; exact subset of the
+  $n=10{,}000$ draw (Section~\ref{sec:results-scale-curve}) \\
+3{,}000 & 200 & RQ4 crossover check & 5 training runs; exact subset of the
+  $n=10{,}000$ draw (Section~\ref{sec:results-scale-curve}) \\
+500 & 999 & RQ4 held-out ground truth & Disjoint from the $n=10{,}000$ draw by
+  construction; never used to train any reward model
+  (Section~\ref{sec:methodology-ground-truth}) \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -218,15 +227,30 @@ python src/judging/build\_reward\_preferences.py\\
 Reward-model training is implemented in \url{src/reward_model/train.py}
 (\texttt{BradleyTerryRewardModel}, \texttt{bradley\_terry\_loss}) and orchestrated
 by \url{src/reward_model/run_training.py}, which trains the holistic and GCA
-conditions from a single invocation. All results reported in
-Chapter~\ref{ch:results} use $k$-fold cross-validation
+conditions from a single invocation. Two training modes are used in this thesis,
+selected by whether \texttt{run\_training.py} is invoked with \texttt{--kfold}.
+Every RQ1--RQ3 result (Chapter~\ref{ch:results}, Sections~\ref{sec:results-rm-baseline}
+to~\ref{sec:results-effect-sizes}) uses $k$-fold cross-validation
 (\texttt{\_kfold\_cv} in \texttt{run\_training.py}): the preference pairs are
 shuffled using a seeded \texttt{random.Random} instance, split into $k=5$
 contiguous folds, and for each fold a freshly initialized reward model is trained
-on the other four folds and evaluated on the held-out one. One implementation
+on the other four folds and evaluated on the held-out one; only each fold's
+accuracy is kept, and the trained weights are discarded. The RQ4 ground-truth
+evaluation (Chapter~\ref{ch:results}, Section~\ref{sec:results-ground-truth})
+instead omits \texttt{--kfold}, which routes through
+\texttt{train\_reward\_model} in \texttt{train.py}: a single model is trained on
+the full preference set for a given seed, and its checkpoint (encoder weights and
+reward head) is written to disk rather than discarded, since RQ4 needs the
+trained model itself, not only a cross-validation accuracy
+(Section~\ref{sec:methodology-ground-truth}). Both modes share the same
+architecture, loss, optimizer, and hyperparameters; they differ only in whether
+the data is split into folds and in whether the trained weights are kept. One
+implementation
 detail is worth stating precisely, since it affects how ``training seed'' should
 be interpreted. The \texttt{--seed} argument is passed to Python's
-\texttt{random} module, which governs the fold-assignment shuffle. PyTorch's own
+\texttt{random} module, which governs the fold-assignment shuffle in the
+$k$-fold path (and the train/seed initialization in the non-$k$-fold path).
+PyTorch's own
 generator is not seeded anywhere in the cross-validation path
 (\texttt{\_kfold\_cv}), so every source of stochasticity drawn from it is
 uncontrolled: the randomly initialized reward head, the shuffling of training

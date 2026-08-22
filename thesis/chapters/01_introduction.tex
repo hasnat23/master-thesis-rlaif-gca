@@ -100,13 +100,21 @@ against the evidence collected.
 
   \item \textbf{RQ3.} How stable are the observed differences across repeated
     reward-model training runs and dataset sizes?
+
+  \item \textbf{RQ4.} Does the learnability advantage measured in RQ1 also hold
+    when the trained reward models are evaluated against an independent,
+    held-out ground truth, rather than against their own training-style
+    labels, and does that hold as the training-set size grows?
 \end{itemize}
 
 RQ1 is the confirmatory question and is addressed by a repeated-run comparison.
 RQ2 is addressed by an exploratory sweep, and therefore supports statements about
 association between configuration and outcome rather than about causal mechanism.
 RQ3 motivates both the repeated runs at a single dataset size and the
-multi-scale check at $n=5{,}000$ and $n=10{,}000$.
+multi-scale check at $n=5{,}000$ and $n=10{,}000$. RQ4 was added after that
+multi-scale check, to test the learnability finding against data the trained
+models never saw and never influenced their selection
+(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-ground-truth}).
 
 \section{Contributions}
 \label{sec:intro-contributions}
@@ -143,6 +151,16 @@ This work makes the following contributions:
     comparable internal decomposition, offered as a hypothesis motivated by the
     mode comparison rather than as an established mechanism
     (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation}).
+
+  \item An independent, held-out ground-truth evaluation (RQ4) showing that the
+    $n=1{,}000$ advantage is not an artefact of validating against the trained
+    models' own training-style labels: it holds, more sharply, against 500
+    articles disjoint from every training set used in this thesis, and it
+    reverses rather than merely vanishing as the training set grows, becoming a
+    significant advantage for holistic scoring at $n=10{,}000$
+    (Chapter~\ref{ch:results}, Section~\ref{sec:results-ground-truth}). A
+    leading candidate explanation for the reversal was tested directly against
+    the training data and rejected (Section~\ref{sec:results-gt-margin}).
 
   \item A transparent account of instability, stochastic variation across runs,
     methodological limitations, and the reproducibility of the pipeline
@@ -192,6 +210,9 @@ diverges from the original proposal, and why. Chapter~\ref{ch:implementation}
 describes the pipeline, codebase, and compute infrastructure. Chapter~\ref{ch:results}
 reports the full experimental campaign, from the initial reward-model baseline
 through the formula and judge-mode optimization to the final multi-seed and
-multi-scale validation. Chapter~\ref{ch:discussion} interprets these results, and
-Chapter~\ref{ch:conclusion} answers the research questions, states the limitations
-of this work, and outlines directions for future work.
+multi-scale validation, and then to the independent ground-truth precision
+evaluation that answers RQ4. Chapter~\ref{ch:discussion} interprets these
+results, including why the ground-truth result reverses rather than merely
+fading where the learnability result only fades, and
+Chapter~\ref{ch:conclusion} answers the research questions, states the
+limitations of this work, and outlines directions for future work.

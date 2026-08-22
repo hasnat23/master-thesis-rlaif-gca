@@ -99,6 +99,23 @@ more consistently recoverable by the chosen architecture. It does not by itself
 establish that GCA labels agree better with human factuality judgments, nor that
 summarization models trained on such preferences produce more factually consistent
 summaries; both questions are left to future work.
+
+A fourth question asks whether this learnability advantage also holds when the
+trained reward models are scored against an independent, held-out ground truth ---
+500 articles disjoint from every training set used above, scored by the same
+factuality judge but never used to train any reward model. It does, and more
+sharply than for learnability: at $n=1{,}000$, GCA is significantly more precise
+than holistic on comparisons with a genuine quality gap (up to $+9.25$ percentage
+points, $p<0.001$), the two are statistically indistinguishable at $n=5{,}000$,
+and at $n=10{,}000$ holistic is significantly \emph{more} precise than GCA on
+three of four ground-truth constructions ($-1.45$ to $-2.12$ percentage points,
+$p=0.010$--$0.036$). The advantage does not merely fail to persist as training
+data grow, as the learnability result also shows; it reverses. Supplementary
+five-seed checks at $n=2{,}000$ and $n=3{,}000$ locate this crossover between
+$n=3{,}000$ and $n=5{,}000$. One candidate explanation, that GCA's training pairs
+contain disproportionately more near-zero-margin comparisons than holistic's, was
+tested directly against the stored training data and rejected; the mechanism
+behind the reversal remains open.
 }
 
 \begin{document}
