@@ -1,0 +1,33 @@
+{
+  "n_seeds": 5,
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "mean_holistic_success_rate": 0.77,
+  "mean_gca_success_rate": 0.8039999999999999,
+  "mean_gap_pp": 3.3999999999999986,
+  "sd_gap_pp": 7.829431652425355,
+  "gca_ahead": 3,
+  "bootstrap_ci_pp": [
+    -2.6000000000000045,
+    9.399999999999999
+  ],
+  "wilcoxon_two_sided_p": 0.3125,
+  "wilcoxon_one_sided_greater_p": 0.15625,
+  "cohens_d": 0.4342588518474092,
+  "rank_biserial": 0.6,
+  "tost_equivalence_p_at_1pp": 0.7346351720565636,
+  "tightest_equivalence_bound_pp": NaN,
+  "min_detectable_effect_pp": 9.809549711537215,
+  "per_seed_gaps_pp": [
+    8.999999999999996,
+    -4.0000000000000036,
+    7.000000000000006,
+    -6.000000000000005,
+    10.999999999999998
+  ]
+}

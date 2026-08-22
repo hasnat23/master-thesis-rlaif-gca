@@ -1,0 +1,60 @@
+{
+  "ground_truth_path": "data/preferences_groundtruth/biased_ground_truth_top5_allpairs.jsonl",
+  "n_pairs": 2500,
+  "results": {
+    "holistic": {
+      "1": {
+        "n_pairs": 2500,
+        "successes": 2023,
+        "success_rate": 0.8092
+      },
+      "2": {
+        "n_pairs": 2500,
+        "successes": 2148,
+        "success_rate": 0.8592
+      },
+      "3": {
+        "n_pairs": 2500,
+        "successes": 1947,
+        "success_rate": 0.7788
+      },
+      "4": {
+        "n_pairs": 2500,
+        "successes": 2195,
+        "success_rate": 0.878
+      },
+      "5": {
+        "n_pairs": 2500,
+        "successes": 2151,
+        "success_rate": 0.8604
+      }
+    },
+    "gca": {
+      "1": {
+        "n_pairs": 2500,
+        "successes": 2071,
+        "success_rate": 0.8284
+      },
+      "2": {
+        "n_pairs": 2500,
+        "successes": 2260,
+        "success_rate": 0.904
+      },
+      "3": {
+        "n_pairs": 2500,
+        "successes": 1883,
+        "success_rate": 0.7532
+      },
+      "4": {
+        "n_pairs": 2500,
+        "successes": 2154,
+        "success_rate": 0.8616
+      },
+      "5": {
+        "n_pairs": 2500,
+        "successes": 2273,
+        "success_rate": 0.9092
+      }
+    }
+  }
+}

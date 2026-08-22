@@ -228,3 +228,59 @@ print("wrote", out3)
 print()
 for label, gap1k, gap5k, gap10k in zip(labels, gaps_pp, gaps_pp_5000, gaps_pp_10000):
     print(f"{label.splitlines()[0]:<26s} n=1000 gap={gap1k:+.2f}pp   n=5000 gap={gap5k:+.2f}pp   n=10000 gap={gap10k:+.2f}pp")
+
+# ---------------------------------------------------------------------------
+# Chart 4: crossover point -- gap (GCA - Holistic) vs training-set size,
+# one line per condition. This is the "find the curve point" chart:
+# n=2,000/3,000 are 5-seed supplementary checks (not 20), so noisier than
+# the 1,000/5,000/10,000 points, but they fill in exactly where the
+# crossover from GCA-ahead to Holistic-ahead happens.
+# ---------------------------------------------------------------------------
+
+
+def gap_at(n, fname):
+    hol, gca = load_eval(f"{fname.replace('.json', '')}_{n}.json" if n != 1000 else fname)
+    return (statistics.mean(gca) - statistics.mean(hol)) * 100
+
+
+scales = [1000, 2000, 3000, 5000, 10000]
+condition_files = [
+    ("Same-article", "ground_truth_eval.json"),
+    ("Top/bottom 25%", "biased_ground_truth_eval.json"),
+    ("Top/bottom 10%", "biased_top10_eval.json"),
+    ("Top/bottom 5% (all-pairs)", "biased_top5_allpairs_eval.json"),
+]
+condition_colors = ["#7a7a7a", "#4a7fc9", GCA_COLOR, "#c0392b"]
+condition_markers = ["o", "s", "^", "D"]
+
+fig4, ax4 = plt.subplots(figsize=(8.5, 5), dpi=150)
+crossover_table = {}
+for (clabel, cfile), color, marker in zip(condition_files, condition_colors, condition_markers):
+    gaps_by_scale = [gap_at(n, cfile) for n in scales]
+    crossover_table[clabel] = gaps_by_scale
+    ax4.plot(scales, gaps_by_scale, marker=marker, color=color, linewidth=2,
+             markersize=7, label=clabel)
+
+ax4.axhline(0, color="gray", linestyle=":", linewidth=1)
+ax4.axvspan(3000, 5000, color="gray", alpha=0.08)
+ax4.text(3900, 10.5, "crossover\nzone", fontsize=8, color="gray", ha="center")
+ax4.set_xscale("log")
+ax4.set_xticks(scales)
+ax4.set_xticklabels([f"{n:,}" for n in scales])
+ax4.set_xlabel("Reward-model training-set size (n)")
+ax4.set_ylabel("GCA minus Holistic (percentage points)")
+ax4.set_title("Where does GCA's advantage cross zero?")
+ax4.set_ylim(-4, 12)
+ax4.legend(loc="upper right", fontsize=8)
+ax4.spines["top"].set_visible(False)
+ax4.spines["right"].set_visible(False)
+fig4.tight_layout()
+out4 = Path(__file__).parent / "crossover_by_scale.png"
+fig4.savefig(out4)
+print("wrote", out4)
+
+print()
+print("Crossover table (gap in pp, GCA minus Holistic, by training-set size):")
+for clabel, gaps_by_scale in crossover_table.items():
+    row = "  ".join(f"n={n}: {g:+.2f}pp" for n, g in zip(scales, gaps_by_scale))
+    print(f"  {clabel:<26s} {row}")

@@ -1,0 +1,60 @@
+{
+  "ground_truth_path": "data/preferences_groundtruth/gca_reward_preferences_groundtruth.jsonl",
+  "n_pairs": 500,
+  "results": {
+    "holistic": {
+      "1": {
+        "n_pairs": 500,
+        "successes": 275,
+        "success_rate": 0.55
+      },
+      "2": {
+        "n_pairs": 500,
+        "successes": 286,
+        "success_rate": 0.572
+      },
+      "3": {
+        "n_pairs": 500,
+        "successes": 280,
+        "success_rate": 0.56
+      },
+      "4": {
+        "n_pairs": 500,
+        "successes": 282,
+        "success_rate": 0.564
+      },
+      "5": {
+        "n_pairs": 500,
+        "successes": 286,
+        "success_rate": 0.572
+      }
+    },
+    "gca": {
+      "1": {
+        "n_pairs": 500,
+        "successes": 282,
+        "success_rate": 0.564
+      },
+      "2": {
+        "n_pairs": 500,
+        "successes": 295,
+        "success_rate": 0.59
+      },
+      "3": {
+        "n_pairs": 500,
+        "successes": 276,
+        "success_rate": 0.552
+      },
+      "4": {
+        "n_pairs": 500,
+        "successes": 277,
+        "success_rate": 0.554
+      },
+      "5": {
+        "n_pairs": 500,
+        "successes": 291,
+        "success_rate": 0.582
+      }
+    }
+  }
+}
