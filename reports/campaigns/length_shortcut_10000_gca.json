@@ -1,0 +1,29 @@
+{
+  "checkpoints_root": "outputs/ground_truth_eval_10000",
+  "condition": "gca",
+  "n_items": 1000,
+  "per_seed": {
+    "1": {
+      "r_length": -0.1907744607059418,
+      "r_n_sentences": -0.2170395872879494
+    },
+    "2": {
+      "r_length": -0.2417349537499687,
+      "r_n_sentences": -0.307224540342453
+    },
+    "3": {
+      "r_length": -0.21883891868969652,
+      "r_n_sentences": -0.2565243077810288
+    },
+    "4": {
+      "r_length": -0.20552459404816045,
+      "r_n_sentences": -0.23708273928925808
+    },
+    "5": {
+      "r_length": -0.150514920022662,
+      "r_n_sentences": -0.2172219267041229
+    }
+  },
+  "mean_r_length": -0.2014775694432859,
+  "mean_r_n_sentences": -0.24701862028096244
+}

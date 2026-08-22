@@ -62,15 +62,20 @@ ground-truth constructions
 advantage does not merely fail to persist as training data grow, as the
 learnability result also showed; it reverses. Five-seed checks at
 $n=2{,}000$ and $n=3{,}000$ locate this crossover between $n=3{,}000$ and
-$n=5{,}000$. One candidate mechanism, that GCA's uniformly unfiltered
-training pairs contain disproportionately more near-zero-margin comparisons
-than holistic's, was tested directly against the stored training data and
-rejected: the near-tie fraction is statistically indistinguishable between
+$n=5{,}000$. Two candidate mechanisms were tested directly and both
+rejected. That GCA's uniformly unfiltered training pairs contain
+disproportionately more near-zero-margin comparisons than holistic's does
+not hold: the near-tie fraction is statistically indistinguishable between
 the two conditions at every scale, and is if anything \emph{higher} for GCA
 specifically at $n=1{,}000$, where GCA leads
-(Section~\ref{sec:results-gt-margin}). The mechanism behind the reversal
-remains open and is discussed as future work
-(Section~\ref{sec:concl-future}).
+(Section~\ref{sec:results-gt-margin}). That GCA increasingly relies on a
+summary-length or sentence-count shortcut relative to holistic as training
+data grow also does not hold: scoring the held-out ground truth with the
+already-trained checkpoints shows the GCA-minus-holistic gap in this
+correlation peaks at $n=3{,}000$ and nearly vanishes at $n=10{,}000$, the
+opposite of what the hypothesis predicts (Section~\ref{sec:results-gt-shortcut}).
+The mechanism behind the reversal remains open and is discussed as future
+work (Section~\ref{sec:concl-future}).
 
 \section{Answers to the Research Questions}
 \label{sec:conclusion-rqs}
@@ -272,12 +277,15 @@ an unqualified positive finding that the fuller evidence does not support.
     the total experiment volume tractable in the time remaining before
     submission. They locate the crossover to a region rather than a precise
     value.
-  \item \textbf{The reversal's mechanism is unexplained.} One candidate
-    explanation for why GCA's ground-truth precision reverses at large
-    training-set sizes, that its training pairs contain more near-zero-margin
-    comparisons than holistic's, was tested directly and rejected
-    (Section~\ref{sec:results-gt-margin}). No alternative mechanism was
-    confirmed; the leading untested candidate is discussed under future work.
+  \item \textbf{The reversal's mechanism is unexplained.} Two candidate
+    explanations for why GCA's ground-truth precision reverses at large
+    training-set sizes were tested directly and both rejected: that its
+    training pairs contain more near-zero-margin comparisons than
+    holistic's (Section~\ref{sec:results-gt-margin}), and that it increasingly
+    relies on a summary-length or sentence-count shortcut relative to
+    holistic as training data grow (Section~\ref{sec:results-gt-shortcut}).
+    No mechanism has been confirmed; remaining candidates are discussed
+    under future work.
 \end{enumerate}
 
 \section{Future Work}
@@ -322,20 +330,20 @@ an unqualified positive finding that the fuller evidence does not support.
     evaluator-independent reference this study still lacks and would indicate
     whether either construction procedure produces labels closer to human
     judgment.
-  \item \textbf{Explain the RQ4 reversal.} The near-tie-training-pair
-    explanation for why GCA's ground-truth precision reverses at large
-    training-set sizes was tested and rejected
-    (Section~\ref{sec:results-gt-margin}). A remaining candidate is that the
-    GCA reward model learns to rely on a surface shortcut, such as summary
-    length or sentence count, that happens to correlate with the training
-    labels and is exploited more heavily as more training data reinforce it,
-    but that does not transfer to the ground truth's cross-article
-    comparisons. This would not require retraining any model: it can be
-    tested by scoring the existing ground-truth summaries with the
-    already-trained checkpoints at each scale and checking whether the
-    correlation between predicted score and summary length or sentence count
-    is larger for GCA than for holistic, and whether it grows with training-set
-    size.
+  \item \textbf{Explain the RQ4 reversal.} Two candidate explanations for why
+    GCA's ground-truth precision reverses at large training-set sizes were
+    tested and rejected: near-zero-margin training pairs
+    (Section~\ref{sec:results-gt-margin}) and a length/sentence-count
+    shortcut (Section~\ref{sec:results-gt-shortcut}). A remaining, less
+    mechanical candidate is that GCA's sentence-level aggregation lets the
+    reward model fit article-specific, within-pair regularities during
+    training (for instance, patterns tied to how a specific article's two
+    candidate summaries happen to differ) that do not generalize to the
+    ground truth's cross-article comparisons, where the summaries being
+    ranked come from different source articles entirely. Testing this would
+    require comparing reward-model accuracy on held-out same-article pairs
+    against held-out cross-article pairs drawn from the training
+    distribution itself, which was not attempted here.
   \item \textbf{Downstream policy evaluation.} Training a summarization policy on
     each preference set and evaluating the factual consistency of its generations
     would test whether differences in preference learnability translate into

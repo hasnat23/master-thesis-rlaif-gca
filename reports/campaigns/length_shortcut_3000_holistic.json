@@ -1,0 +1,29 @@
+{
+  "checkpoints_root": "outputs/ground_truth_eval_3000",
+  "condition": "holistic",
+  "n_items": 1000,
+  "per_seed": {
+    "1": {
+      "r_length": -0.13435794532936682,
+      "r_n_sentences": -0.17962782036789127
+    },
+    "2": {
+      "r_length": -0.11926243898054958,
+      "r_n_sentences": -0.1892398139432365
+    },
+    "3": {
+      "r_length": 0.020256196777196655,
+      "r_n_sentences": -0.05310102284559866
+    },
+    "4": {
+      "r_length": -0.08390868542098007,
+      "r_n_sentences": -0.1471057823908128
+    },
+    "5": {
+      "r_length": -0.12880858591569164,
+      "r_n_sentences": -0.1824122375120331
+    }
+  },
+  "mean_r_length": -0.08921629177387828,
+  "mean_r_n_sentences": -0.15029733541191445
+}

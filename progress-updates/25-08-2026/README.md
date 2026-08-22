@@ -34,6 +34,42 @@ This mechanism does not explain the reversal.
 
 ---
 
+## Hypothesis test: length/sentence-count shortcut
+
+Second candidate: GCA-trained reward models learn to rely on summary length
+or sentence count as a shortcut for quality, and lean on it more heavily as
+training data grows, in a way that doesn't transfer to the ground truth's
+cross-article comparisons. Tested by scoring every ground-truth summary with
+the already-trained checkpoints at n=2,000, n=3,000, and n=10,000, and
+correlating each model's predicted score against summary length and
+sentence count -- no new training needed, only inference on checkpoints
+already on disk.
+
+| Scale | Holistic r(score, length) | GCA r(score, length) | Gap (GCA − Hol.) |
+|---|---:|---:|---:|
+| n=2,000 | −0.037 | −0.046 | −0.009 |
+| n=3,000 | −0.089 | −0.132 | −0.043 |
+| n=10,000 | −0.198 | −0.201 | −0.003 |
+
+(Same pattern for sentence count: gaps of −0.013, −0.032, −0.012 respectively.
+Negative throughout means both models score *shorter* summaries higher, not
+longer ones.)
+
+**Falsified.** If GCA increasingly relied on this shortcut more than
+Holistic as training data grew, the gap should be largest at n=10,000 —
+exactly where GCA starts losing. Instead the gap peaks at n=3,000 and nearly
+vanishes at n=10,000: the two models converge to almost identical
+length-reliance right at the scale where the reversal happens. What is real
+and worth noting separately: *both* models become substantially more
+correlated with summary length as training data grows (roughly 5× larger by
+n=10,000 for each), which may partly explain the low absolute ceiling
+neither model breaks, but it does not differentiate GCA from Holistic and
+so cannot be the reversal's mechanism.
+
+This is the second candidate mechanism tested and ruled out this week.
+
+---
+
 ## Crossover point
 
 Retrained at two intermediate scales, n=2,000 and n=3,000, to locate where
@@ -73,19 +109,21 @@ regime: reward models trained on a small amount of data (up to a few
 thousand examples), evaluated on comparisons with a clear, large quality
 gap. Outside that regime -- more training data, or subtler comparisons --
 the advantage shrinks, disappears, and past roughly n=3,000-5,000, reverses
-into a small Holistic advantage instead. The near-tie/noise mechanism tested
-this week does not explain why; what does remains an open question, noted
-below as future work.
+into a small Holistic advantage instead. Two candidate explanations for the
+reversal were tested this week and both were ruled out: near-tie training
+pairs, and a length/sentence-count shortcut. The underlying mechanism
+remains open, noted below as future work.
 
 ---
 
 ## Future work
 
-- The near-tie-pair hypothesis is ruled out; a remaining candidate is
-  whether GCA-trained reward models learn to exploit a length- or
-  sentence-count-based shortcut that does not transfer to the ground truth's
-  cross-article comparisons -- untested, would need a correlation check
-  against the existing checkpoints, no new training required.
+- Two candidate mechanisms for the reversal are now ruled out (near-tie
+  training pairs; length/sentence-count shortcut). Remaining candidates are
+  less mechanical and harder to test quickly: e.g. whether GCA's
+  sentence-level aggregation lets the reward model fit article-specific,
+  within-pair artifacts that do not generalize to the ground truth's
+  cross-article comparisons, as opposed to holistic's single coarser score.
 - The n=2,000/3,000 points used 5 seeds instead of 20; re-running them at
   20 seeds would tighten the crossover estimate if time allows.
 
@@ -93,12 +131,13 @@ below as future work.
 
 ## Questions
 
-1. Does the crossover point (n=3,000-5,000) combined with the ruled-out
-   near-tie hypothesis give enough of a closing story for this section of
-   the thesis, or is further investigation into the *why* expected before
-   submission?
-2. Is the future-work framing (length/sentence-count shortcut hypothesis,
-   untested) sufficient, or should it be attempted before the deadline?
+1. Does the crossover point (n=3,000-5,000) combined with the two ruled-out
+   hypotheses (near-tie pairs, length/sentence-count shortcut) give enough
+   of a closing story for this section of the thesis, or is further
+   investigation into the *why* expected before submission?
+2. Is it acceptable to close with "the effect is real, bounded, and we
+   ruled out two plausible mechanisms" without a confirmed explanation, or
+   should more candidates be tested before the deadline?
 3. Anything else needed before the 3 September submission?
 
 ---

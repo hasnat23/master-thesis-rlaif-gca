@@ -389,10 +389,26 @@ the more training examples reinforce it \citep{geirhos2020shortcut}. This is
 a different empirical question from the one Section~\ref{sec:disc-confounds}
 already answers, because it is about what the trained model does at
 inference time on unseen ground-truth summaries, not about what the label
-construction encodes, and it was not tested in this thesis. It is recorded as
-the leading candidate for future work (Chapter~\ref{ch:conclusion},
-Section~\ref{sec:concl-future}), together with the concrete, low-cost test
-that would confirm or refute it using checkpoints already trained for RQ4.
+construction encodes. Unlike the mode-interaction hypothesis of
+Section~\ref{sec:disc-interpretation}, this one required no new training to
+test: every RQ4 checkpoint was already on disk, so it could be scored
+directly against the held-out ground-truth summaries and its predicted
+reward correlated with each summary's length and sentence count
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-gt-shortcut}). The
+hypothesis predicts the GCA-minus-holistic gap in this correlation should be
+largest at $n=10{,}000$, where GCA loses; instead the gap peaks at
+$n=3{,}000$ and nearly vanishes at $n=10{,}000$, where the two conditions
+converge to almost identical length-reliance. This candidate is therefore
+also rejected. What does emerge is a symmetric pattern that affects both
+conditions rather than distinguishing them: both grow markedly more
+correlated with summary length as $n$ increases, a five-fold increase in
+magnitude from $n=2{,}000$ to $n=10{,}000$ for each. That pattern cannot
+explain the reversal, since it does not differentiate GCA from holistic, but
+it is a plausible contributor to the low absolute accuracy ceiling neither
+condition breaks (Section~\ref{sec:disc-weak-signal}). With both mechanical
+candidates ruled out, the mechanism behind the reversal remains open and is
+recorded as future work (Chapter~\ref{ch:conclusion},
+Section~\ref{sec:concl-future}).
 
 Whatever the mechanism, the practical implication is stronger than the
 learnability result alone would suggest. Section~\ref{sec:disc-scale}'s
