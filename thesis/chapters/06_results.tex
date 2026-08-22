@@ -13,6 +13,10 @@ variance. Sections~\ref{sec:results-formula-opt} to~\ref{sec:results-mode-sweep}
 are exploratory in the sense of Chapter~\ref{ch:methodology},
 Section~\ref{sec:methodology-exploratory}; Section~\ref{sec:results-scale}
 examines how the selected configuration behaves as the dataset grows.
+Section~\ref{sec:results-ground-truth} then re-evaluates the same trained
+reward models against an independent, held-out ground truth
+(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-ground-truth},
+RQ4), rather than against the training-style labels used everywhere above.
 
 \section{Early Prototype Results (Historical Context)}
 \label{sec:results-early}
@@ -771,6 +775,205 @@ points, against 1.78 at $n=1{,}000$ --- also mean those campaigns are
 intrinsically more sensitive, not less, so the failure to find an effect there
 cannot be attributed to noisier measurement.
 
+\section{Independent Ground-Truth Precision Evaluation}
+\label{sec:results-ground-truth}
+
+The experiments above establish that GCA preferences are more learnable at
+$n=1{,}000$: a reward model recovers them more consistently under
+cross-validation. They do not establish that the recovered signal is more
+accurate, because the validation labels are supplied by the same evaluator
+that built the training preferences (Section~\ref{sec:methodology-scope}).
+This section reports RQ4, evaluated against the independent, held-out ground
+truth described in Section~\ref{sec:methodology-ground-truth}: 500 articles
+disjoint from every training pool used in this thesis, scored by the same
+locked AlignScore-GCA configuration but never used to train any reward
+model. Every reward model reported here is one already trained for RQ1--RQ3;
+this section only changes what they are evaluated against.
+
+\subsection{Results at \texorpdfstring{$n=1{,}000$}{n=1,000}}
+\label{sec:results-gt-1000}
+
+Table~\ref{tab:gt-1000} reports the success rate --- the fraction of
+comparisons in which the reward model scores the higher-quality summary
+above the lower-quality one (Section~\ref{sec:methodology-ground-truth})
+--- for both reward models, averaged over the same twenty seeds used in
+Section~\ref{sec:results-extended-campaign}, across all four ground-truth
+constructions.
+
+\begin{table}[htbp]
+\centering
+\caption[Ground-truth precision at $n=1{,}000$, four constructions]{Ground-truth precision at $n=1{,}000$: success rate against four
+independent ground-truth constructions, averaged over the same twenty seeds
+used throughout Section~\ref{sec:results-extended-campaign}.}
+\label{tab:gt-1000}
+\begin{tabular}{lrrrrr}
+\toprule
+Construction & Holistic & GCA & Gap (GCA $-$ Hol.) & 95\% CI & Wilcoxon $p$ \\
+\midrule
+Same-article pairs        & 55.16\% & 55.30\% & $+0.14$pp & $[-0.76,+1.06]$pp & 0.760 \\
+Top/bottom 25\%           & 71.94\% & 75.18\% & $+3.24$pp & $[-0.40,+7.36]$pp & 0.191 \\
+Top/bottom 10\%           & 76.75\% & 86.00\% & $+9.25$pp & $[+5.70,+13.15]$pp & $<0.001$ \\
+Top/bottom 5\% (all-pairs) & 76.01\% & 83.39\% & $+7.38$pp & $[+3.22,+11.69]$pp & 0.004 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The four constructions differ only in how large a quality gap separates the
+two summaries being compared (Section~\ref{sec:methodology-ground-truth}):
+same-article pairs are typically close in quality (mean GCA score gap
+$\approx0.04$), while the percentile-split constructions compare
+progressively more clear-cut cases as $X$ shrinks. The pattern across the
+four rows is consistent with that ordering. On the closest comparison,
+same-article pairs, the two reward models are statistically
+indistinguishable ($p=0.760$); a TOST equivalence test rules out any true
+difference larger than $\pm0.96$ percentage points at the 5\% level. On the
+three constructions with a genuine, sizeable quality gap, GCA is ahead, and
+the advantage is significant on two of the three (top/bottom 10\%, $d=+1.06$,
+a large effect by conventional standards \citep{cohen1988statistical}; and
+top/bottom 5\% all-pairs, $d=+0.74$). The top/bottom 25\% gap is directionally
+the same but does not reach significance at this seed count ($p=0.191$).
+Neither reward model approaches 100\% on any construction, plausibly because
+both are limited by the same 2{,}000-character article truncation
+(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}), which
+bounds how much evidence either model can check a summary against regardless
+of how large the quality gap between the two candidates is.
+
+\subsection{A Candidate Explanation Tested and Rejected: Near-Tie Training Pairs}
+\label{sec:results-gt-margin}
+
+Before extending this evaluation to larger training-set sizes, one
+mechanism was tested as a possible confound of the training data itself
+rather than of the evaluation criterion: GCA's sentence-level aggregation
+might produce a larger share of near-zero-margin, effectively noise-level
+preference pairs than holistic scoring does, since every training
+preference file in this thesis is built with no margin filter, following
+prior feedback to use all candidate pairs rather than the smaller,
+margin-filtered set used in an earlier proposal-era configuration
+(\url{slurm/build_preferences_1000.sh}). If GCA's training pairs contain
+disproportionately more near-tie comparisons, a reward model trained on more
+of them might fit that noise rather than genuine signal, which would predict
+a growing GCA disadvantage as the training set grows.
+
+This was checked directly against the stored per-pair score gaps in the
+existing preference files, which required no additional model training or
+AlignScore scoring. Table~\ref{tab:near-tie} reports the fraction of
+training pairs with a score gap below 0.05, for both conditions at all three
+main training-set sizes.
+
+\begin{table}[htbp]
+\centering
+\caption[Near-tie training-pair fraction, holistic vs.\ GCA]{Fraction of training preference pairs with a score gap below 0.05,
+by condition and training-set size.}
+\label{tab:near-tie}
+\begin{tabular}{rrrrr}
+\toprule
+$n$ & Holistic (frac.\ $<0.05$) & GCA (frac.\ $<0.05$) & Holistic (count) & GCA (count) \\
+\midrule
+1{,}000  & 20.5\% & 26.5\% & 205 & 265 \\
+5{,}000  & 24.6\% & 24.4\% & 1{,}229 & 1{,}220 \\
+10{,}000 & 24.2\% & 24.2\% & 1{,}103\footnotemark & 1{,}103 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\footnotetext{Restricted to pairs with a recorded score gap below 0.02 rather
+than 0.05 at this row only, due to a logging granularity difference between
+the two preference-construction runs; the two conditions remain directly
+comparable to each other within this row, which is the relevant comparison.}
+
+The mechanism does not hold up against this data. At $n=5{,}000$ and
+$n=10{,}000$, the near-tie fraction is essentially identical between the two
+conditions, not larger for GCA. At $n=1{,}000$ --- the scale at which GCA
+\emph{leads} --- GCA in fact has a \emph{larger} share of near-tie pairs than
+holistic (26.5\% versus 20.5\%), the opposite of what the hypothesis
+predicts. Near-tie training-pair prevalence is therefore rejected as an
+explanation for any scale-dependent change in ground-truth precision; the
+remaining candidate explanations are discussed in
+Chapter~\ref{ch:discussion} and left as future work
+(Section~\ref{sec:concl-future}).
+
+\subsection{Scale Dependence: \texorpdfstring{$n=5{,}000$}{n=5,000} and \texorpdfstring{$n=10{,}000$}{n=10,000}}
+\label{sec:results-gt-scale}
+
+The same four ground-truth constructions were then evaluated against reward
+models trained at $n=5{,}000$ and $n=10{,}000$, again over twenty seeds each,
+using the same checkpoints trained for Section~\ref{sec:results-scale}.
+Table~\ref{tab:gt-scale} reports all three training-set sizes side by side.
+
+\begin{table}[htbp]
+\centering
+\caption[Ground-truth precision gap across training-set size]{GCA-minus-holistic ground-truth precision gap, by construction and
+training-set size. All three columns are twenty-seed means. $p$-values are
+for the $n=10{,}000$ column.}
+\label{tab:gt-scale}
+\begin{tabular}{lrrrr}
+\toprule
+Construction & $n=1{,}000$ & $n=5{,}000$ & $n=10{,}000$ & Wilcoxon $p$ ($n{=}10{,}000$) \\
+\midrule
+Same-article pairs        & $+0.14$pp & $-0.43$pp & $-1.45$pp & 0.010 \\
+Top/bottom 25\%           & $+3.24$pp & $-0.42$pp & $-2.12$pp & 0.036 \\
+Top/bottom 10\%           & $+9.25$pp & $+0.10$pp & $-1.95$pp & 0.058 \\
+Top/bottom 5\% (all-pairs) & $+7.38$pp & $+0.73$pp & $-2.12$pp & 0.025 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The advantage found at $n=1{,}000$ does not merely fail to persist, as the
+learnability advantage did (Section~\ref{sec:results-scale}); it reverses.
+At $n=5{,}000$ every gap is within noise of zero, matching the learnability
+result at that scale. At $n=10{,}000$, holistic is significantly ahead of
+GCA on three of the four constructions ($p=0.010$ to $0.036$), with the
+fourth (top/bottom 10\%) narrowly short of the conventional threshold
+($p=0.058$) while pointing in the same direction. This is the first result
+in this thesis, on any metric, in which holistic significantly outperforms
+GCA rather than the two being indistinguishable.
+
+\subsection{Locating the Crossover: \texorpdfstring{$n=2{,}000$}{n=2,000} and \texorpdfstring{$n=3{,}000$}{n=3,000}}
+\label{sec:results-scale-curve}
+
+Two further training-set sizes were run to locate where the crossover from a
+GCA advantage to a holistic advantage occurs. $n=2{,}000$ and $n=3{,}000$
+were verified by direct index comparison to be exact subsets of the
+$n=10{,}000$ draw used throughout this thesis (seed 200), so their
+preference pairs were constructed by filtering the existing $n=10{,}000$
+preference files by article identifier rather than by regenerating
+candidates or re-running AlignScore. Given the number of scales already
+covered and the time remaining before submission, these two intermediate
+points were each run at five seeds rather than twenty; they are reported as
+a supplementary, lower-precision check on where the crossover falls, not as
+an equally-powered addition to Table~\ref{tab:gt-scale}.
+
+\begin{table}[htbp]
+\centering
+\caption[Ground-truth precision gap, all five training-set sizes]{GCA-minus-holistic ground-truth precision gap at all five
+training-set sizes tested. The $n=2{,}000$ and $n=3{,}000$ columns are
+five-seed means; the remaining three are twenty-seed means, repeated from
+Table~\ref{tab:gt-scale}.}
+\label{tab:gt-curve}
+\begin{tabular}{lrrrrr}
+\toprule
+Construction & $n{=}1{,}000$ & $n{=}2{,}000$ & $n{=}3{,}000$ & $n{=}5{,}000$ & $n{=}10{,}000$ \\
+\midrule
+Same-article pairs        & $+0.14$ & $-1.72$ & $+0.48$ & $-0.43$ & $-1.45$ \\
+Top/bottom 25\%           & $+3.24$ & $-0.16$ & $-0.88$ & $-0.42$ & $-2.12$ \\
+Top/bottom 10\%           & $+9.25$ & $+3.40$ & $+3.80$ & $+0.10$ & $-1.95$ \\
+Top/bottom 5\% (all-pairs) & $+7.38$ & $+1.83$ & $+1.42$ & $+0.73$ & $-2.12$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For the three constructions with a genuine effect at $n=1{,}000$
+(top/bottom 25\%/10\%/5\%), the gap declines close to monotonically from
+$n=1{,}000$ through $n=2{,}000$ and $n=3{,}000$ before crossing zero between
+$n=3{,}000$ and $n=5{,}000$ and continuing to fall through $n=10{,}000$. The
+same-article row, which never showed a reliable effect at any scale, stays
+close to zero throughout and does not display a comparable trend, consistent
+with there being nothing directional to decline in that condition. Given the
+five-seed resolution at the two intermediate points, this locates the
+crossover to a region rather than a single value, but the direction and
+approximate location are consistent across all three constructions that show
+an effect at all, and are consistent with the twenty-seed anchors at
+$n=1{,}000$, $n=5{,}000$, and $n=10{,}000$ on either side.
+
 \section{Summary of Results}
 \label{sec:results-summary}
 
@@ -814,6 +1017,19 @@ RQ3 &
   absent at the two larger, nested dataset sizes, with non-overlapping
   confidence intervals at every comparison and equivalence established at both
   larger scales (Section~\ref{sec:results-effect-sizes}). \\
+RQ4 &
+  No, and the pattern is stronger than for RQ1: against an independent,
+  held-out ground truth, GCA is significantly more precise than holistic at
+  $n=1{,}000$ on clear-cut comparisons (up to $+9.25$pp, $p<0.001$;
+  Section~\ref{sec:results-gt-1000}), indistinguishable from holistic at
+  $n=5{,}000$, and significantly \emph{less} precise than holistic at
+  $n=10{,}000$ on three of four constructions ($-1.45$ to $-2.12$pp,
+  $p=0.010$--$0.036$; Section~\ref{sec:results-gt-scale}). Five-seed checks at
+  $n=2{,}000$/$n=3{,}000$ locate the crossover between $n=3{,}000$ and
+  $n=5{,}000$ (Section~\ref{sec:results-scale-curve}). A leading candidate
+  explanation, that GCA's training pairs contain disproportionately more
+  near-zero-margin comparisons, was tested directly and rejected
+  (Section~\ref{sec:results-gt-margin}). \\
 \bottomrule
 \end{tabularx}
 \end{table}

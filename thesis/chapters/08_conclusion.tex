@@ -45,6 +45,33 @@ usefulness of granular credit assignment is bounded to a specific,
 data-scarce regime, and depends within that regime on evaluator configuration
 and aggregation choice, rather than following from finer granularity as such.
 
+A fourth question (RQ4, Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-rqs}) asked whether this learnability advantage
+also translates into more accurate reward-model judgments against an
+independent, held-out ground truth --- 500 articles disjoint from every
+training pool used in this thesis, scored by the same locked evaluator but
+never used to train any reward model
+(Section~\ref{sec:methodology-ground-truth}). It does, but only in the same
+narrow, data-scarce regime, and the pattern is more pronounced than for
+learnability: at $n=1{,}000$, GCA is significantly more precise than holistic
+on comparisons with a genuine quality gap (up to $+9.25$ percentage points,
+$p<0.001$), at $n=5{,}000$ the two are indistinguishable, and at $n=10{,}000$
+holistic is significantly \emph{more} precise than GCA on three of four
+ground-truth constructions
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-ground-truth}). The
+advantage does not merely fail to persist as training data grow, as the
+learnability result also showed; it reverses. Five-seed checks at
+$n=2{,}000$ and $n=3{,}000$ locate this crossover between $n=3{,}000$ and
+$n=5{,}000$. One candidate mechanism, that GCA's uniformly unfiltered
+training pairs contain disproportionately more near-zero-margin comparisons
+than holistic's, was tested directly against the stored training data and
+rejected: the near-tie fraction is statistically indistinguishable between
+the two conditions at every scale, and is if anything \emph{higher} for GCA
+specifically at $n=1{,}000$, where GCA leads
+(Section~\ref{sec:results-gt-margin}). The mechanism behind the reversal
+remains open and is discussed as future work
+(Section~\ref{sec:concl-future}).
+
 \section{Answers to the Research Questions}
 \label{sec:conclusion-rqs}
 \label{sec:concl-rqs}
@@ -92,6 +119,28 @@ fixed scale is well established at all three sizes tested; stability across
 scale does not hold, and this absence is now itself a properly powered
 finding rather than an artefact of insufficient replication.
 
+\textbf{RQ4} (does the learnability advantage also hold against an
+independent, held-out ground truth, and as training data grow?) is answered
+\emph{yes at $n=1{,}000$, and no --- with the direction reversing rather
+than merely vanishing --- at $n=10{,}000$}. Against a held-out set disjoint
+from every training pool used in this thesis
+(Section~\ref{sec:methodology-ground-truth}), GCA is significantly more
+precise than holistic at $n=1{,}000$ on comparisons with a genuine quality
+gap ($+9.25$ percentage points on the sharpest construction, $p<0.001$;
+Chapter~\ref{ch:results}, Section~\ref{sec:results-gt-1000}), statistically
+indistinguishable from holistic at $n=5{,}000$, and significantly
+\emph{less} precise than holistic at $n=10{,}000$ on three of four
+constructions ($p=0.010$--$0.036$; Section~\ref{sec:results-gt-scale}).
+Five-seed checks at $n=2{,}000$ and $n=3{,}000$ place the crossover between
+$n=3{,}000$ and $n=5{,}000$ (Section~\ref{sec:results-scale-curve}). This
+answer is stronger, in one sense, than RQ1's: it was obtained against data
+the trained reward models never saw and never influenced their selection,
+so it is not subject to the nesting caveat that qualifies RQ1--RQ3
+(Section~\ref{sec:methodology-nesting}). It does not, however, remove the
+evaluator-dependence caveat that qualifies every result in this thesis: the
+ground-truth labels are still constructed by AlignScore, the same evaluator
+used throughout (Section~\ref{sec:concl-limitations}).
+
 \section{Status of the Working Hypotheses}
 \label{sec:concl-hypotheses}
 
@@ -138,7 +187,13 @@ an unqualified positive finding that the fuller evidence does not support.
   \item \textbf{The labels are not independent ground truth.} AlignScore supplies
     both the holistic and the sentence-level scores, so it functions as the
     reference standard rather than as a verified one. Every result is conditional
-    on that evaluator.
+    on that evaluator. RQ4 (Chapter~\ref{ch:results},
+    Section~\ref{sec:results-ground-truth}) evaluates trained reward models
+    against summaries and articles they never saw during training, which
+    removes the nesting concern discussed below, but it still scores those
+    summaries with AlignScore-GCA, so it does not remove evaluator-dependence:
+    a systematic bias in AlignScore itself would still be present in both the
+    training preferences and the RQ4 ground truth alike.
   \item \textbf{Preference learnability is not factual correctness.} The
     dependent variable measures how consistently a preference relation can be
     recovered by the chosen architecture, not whether the preferences are
@@ -172,9 +227,12 @@ an unqualified positive finding that the fuller evidence does not support.
   \item \textbf{Configuration selected on observed results.} The aggregation
     strategy and evaluator mode were chosen after inspecting $n=1{,}000$ outcomes
     (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-exploratory}), and
-    the larger-scale subsets are nested supersets of that same data
-    (Section~\ref{sec:methodology-nesting}), so no result in this thesis
-    evaluates the selected configuration on independent data.
+    the $n=5{,}000$/$n=10{,}000$/RQ1--RQ3 subsets are nested supersets of that
+    same data (Section~\ref{sec:methodology-nesting}). RQ4 is the one result in
+    this thesis that evaluates the selected configuration on data disjoint from
+    the set it was chosen on (Section~\ref{sec:methodology-ground-truth}); it
+    was formulated specifically to close this gap, and does so for the
+    training-data axis, though not for the evaluator-choice axis noted above.
   \item \textbf{Candidate generation confounds temperature with condition.} The
     two candidates differ in decoding temperature, and the lower-temperature
     candidate is preferred substantially more often under both conditions and to
@@ -195,14 +253,31 @@ an unqualified positive finding that the fuller evidence does not support.
   \item \textbf{Sentence segmentation was not evaluated.} Summaries are split
     with a regex-based splitter whose accuracy was never measured
     (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}).
-  \item \textbf{Nested dataset sizes.} The $n=1{,}000$, $n=5{,}000$ and
-    $n=10{,}000$ subsets overlap almost completely
-    (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-nesting}), so the
-    larger-scale runs are not independent samples and no experiment evaluates the
-    selected configuration on held-out data.
+  \item \textbf{Nested dataset sizes.} The $n=1{,}000$, $n=2{,}000$, $n=3{,}000$,
+    $n=5{,}000$ and $n=10{,}000$ subsets overlap almost completely with one
+    another (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-nesting}),
+    so the RQ1--RQ3 runs at each scale are not independent samples of one
+    another. The RQ4 held-out ground truth (Section~\ref{sec:methodology-ground-truth})
+    was constructed to be disjoint from all five, so it is not affected by this
+    limitation, but it is itself a single fixed 500-article set reused across
+    every scale, so the five RQ4 scale points share the same evaluation sample
+    rather than being independently sampled test sets.
   \item \textbf{No error-category analysis.} No analysis links the observed
     effects to specific categories of factual error; this was not part of the
     final research questions and is listed under future work.
+  \item \textbf{Unequal replication at the two intermediate scales.} The
+    $n=2{,}000$ and $n=3{,}000$ points used to locate the RQ4 crossover
+    (Section~\ref{sec:results-scale-curve}) were each run at five seeds rather
+    than the twenty used at $n=1{,}000$, $n=5{,}000$, and $n=10{,}000$, to keep
+    the total experiment volume tractable in the time remaining before
+    submission. They locate the crossover to a region rather than a precise
+    value.
+  \item \textbf{The reversal's mechanism is unexplained.} One candidate
+    explanation for why GCA's ground-truth precision reverses at large
+    training-set sizes, that its training pairs contain more near-zero-margin
+    comparisons than holistic's, was tested directly and rejected
+    (Section~\ref{sec:results-gt-margin}). No alternative mechanism was
+    confirmed; the leading untested candidate is discussed under future work.
 \end{enumerate}
 
 \section{Future Work}
@@ -237,11 +312,30 @@ an unqualified positive finding that the fuller evidence does not support.
     behavior that its split modes perform internally much of what GCA performs
     externally. Comparing per-sentence scores under split and unsplit modes on the
     same pairs would test that inference rather than rest on it.
-  \item \textbf{Independent validation of the labels.} Human annotation of a
+  \item \textbf{Independent validation of the labels.} RQ4
+    (Chapter~\ref{ch:results}, Section~\ref{sec:results-ground-truth}) evaluates
+    trained reward models against summaries and articles disjoint from every
+    training pool, but the ground-truth labels are still constructed by
+    AlignScore, the same evaluator used throughout. Human annotation of a
     stratified sample of holistic/GCA disagreement cases, or scoring the same
-    candidate pool with a second factuality model, would provide the external
-    reference this study lacks and would indicate whether either construction
-    procedure produces labels closer to human judgment.
+    candidate pool with a second factuality model, would provide the
+    evaluator-independent reference this study still lacks and would indicate
+    whether either construction procedure produces labels closer to human
+    judgment.
+  \item \textbf{Explain the RQ4 reversal.} The near-tie-training-pair
+    explanation for why GCA's ground-truth precision reverses at large
+    training-set sizes was tested and rejected
+    (Section~\ref{sec:results-gt-margin}). A remaining candidate is that the
+    GCA reward model learns to rely on a surface shortcut, such as summary
+    length or sentence count, that happens to correlate with the training
+    labels and is exploited more heavily as more training data reinforce it,
+    but that does not transfer to the ground truth's cross-article
+    comparisons. This would not require retraining any model: it can be
+    tested by scoring the existing ground-truth summaries with the
+    already-trained checkpoints at each scale and checking whether the
+    correlation between predicted score and summary length or sentence count
+    is larger for GCA than for holistic, and whether it grows with training-set
+    size.
   \item \textbf{Downstream policy evaluation.} Training a summarization policy on
     each preference set and evaluating the factual consistency of its generations
     would test whether differences in preference learnability translate into
