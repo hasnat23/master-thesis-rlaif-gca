@@ -241,7 +241,8 @@ test split, under the same length filters and the same subset seed (200). Only t
 number of requested samples differs. Because the selection draws from one eligible
 pool of 10{,}896 articles with a fixed random seed, the resulting subsets overlap
 heavily. Reproducing the selection with the recorded parameters gives the
-intersections in Table~\ref{tab:subset-overlap}.\footnote{Computed by re-running
+intersections in Table~\ref{tab:subset-overlap}, shown schematically in
+Figure~\ref{fig:subset-nesting}.\footnote{Computed by re-running
 \texttt{select\_subset} with the parameters recorded in
 \url{configs/subset_1000.yaml} and \url{slurm/generate_candidates_scale.sh}
 ($\texttt{seed}=200$, test split, article limit 8{,}000 characters, summary limit

@@ -26,8 +26,8 @@ the likelihood is equivalent to minimizing the negative log-likelihood
   \Big[ \log \sigma\big( R_\theta(w) - R_\theta(l) \big) \Big],
   \label{eq:bt-loss}
 \end{equation}
-where $\mathcal{D}$ is the preference dataset, holistic or GCA in this thesis. This
-is exactly the loss implemented in \url{src/reward_model/train.py}
+where $\mathcal{D}$ is the preference dataset, holistic or GCA in this thesis.
+Equation~\ref{eq:bt-loss} is exactly the loss implemented in \url{src/reward_model/train.py}
 (\url{bradley_terry_loss}), and it belongs to the same family of
 reward-modeling loss used inside RLHF pipelines more broadly
 \citep{stiennon2020learning, ouyang2022training}. The difference here is that the
@@ -79,7 +79,7 @@ defined relative to a fixed reference policy $\pi_{\text{ref}}$
 \end{equation}
 where $x$ is the source article, $w$ and $l$ are the chosen and rejected
 summaries, and $\beta$ bounds divergence from the reference policy. The relevant
-point for this thesis is structural: DPO consumes exactly the same pairwise
+point for this thesis is structural: Equation~\ref{eq:dpo-loss} consumes exactly the same pairwise
 preference pairs used to train the reward models in
 Section~\ref{sec:bg-bradley-terry}, but converts them directly into a policy
 update, so the quality of the preference data and the behavior of the optimizer

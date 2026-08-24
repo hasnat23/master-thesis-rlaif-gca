@@ -110,7 +110,8 @@ that the extra discrimination was at least partly noise rather than signal.
 Nine aggregation strategies were then compared by how well each agreed with the
 holistic decision on the same 1{,}000 pairs
 (\url{analysis/test_gca_formulas.py}, \url{analysis/test_advanced_aggregation.py}).
-Table~\ref{tab:formula-comparison} reports the results. The simple mean
+Table~\ref{tab:formula-comparison} reports the results and
+Figure~\ref{fig:formula-agreement} plots them in rank order. The simple mean
 ($\alpha = 0.0$) had the highest agreement of any strategy tested, 15.4 percentage
 points above the original penalty formula.
 
@@ -616,6 +617,8 @@ ordinary run-to-run variation, so each scale was subsequently extended, first
 to six and then to twenty independently seeded runs, under the same corrected,
 deterministic training procedure used for the $n=1{,}000$ extension
 (Section~\ref{sec:results-extended-campaign}).
+Table~\ref{tab:scale-robustness-runs} reports the resulting run-level
+statistics at all three scales.
 
 \begin{table}[htbp]
 \centering
@@ -656,6 +659,9 @@ advantage observed at $n=1{,}000$ is not present at $n=5{,}000$ or
 $n=10{,}000$, and this is now supported by repeated, properly powered
 evidence at each scale, all three at the same twenty-run resolution, rather
 than by runs of unequal weight.
+
+Table~\ref{tab:scale-robustness} gives the underlying mean accuracies behind
+these gaps, and Figure~\ref{fig:scale-results} plots them.
 
 \begin{table}[htbp]
 \centering
@@ -905,7 +911,10 @@ two summaries being compared (Section~\ref{sec:methodology-ground-truth}):
 same-article pairs are typically close in quality (mean GCA score gap
 $\approx0.04$), while the percentile-split constructions compare
 progressively more clear-cut cases as $X$ shrinks. The pattern across the
-four rows is consistent with that ordering. On the closest comparison,
+four rows is consistent with that ordering, and
+Figure~\ref{fig:gt-1000-bars} shows it directly: the two conditions sit on
+top of one another on the closest comparison and separate progressively as
+the quality gap widens. On the closest comparison,
 same-article pairs, the two reward models are statistically
 indistinguishable ($p=0.760$); a TOST equivalence test rules out any true
 difference larger than $\pm0.96$ percentage points at the 5\% level. On the
@@ -1062,6 +1071,9 @@ covered and the time remaining before submission, these two intermediate
 points were each run at five seeds rather than twenty; they are reported as
 a supplementary, lower-precision check on where the crossover falls, not as
 an equally-powered addition to Table~\ref{tab:gt-scale}.
+Table~\ref{tab:gt-curve} places all five sizes side by side, and
+Figure~\ref{fig:gt-crossover} plots the same values as a curve per
+construction.
 
 \begin{table}[htbp]
 \centering
