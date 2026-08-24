@@ -19,12 +19,9 @@ and large-scale results. This update covers what was tested this week.
 
 ## Summary for tomorrow's meeting
 
-Yes -- all three hypotheses are in the thesis, but only two were actually
-tested. Here's exactly where things stand.
-
-**Tested and rejected** (both are full findings, documented in Results
-§6.10.2/§6.10.5, Discussion §7.6, Conclusion, and now the Abstract/Intro
-too):
+Two candidate explanations for the reversal were tested this week, and
+both are full findings, documented in Results §6.10.2/§6.10.5, Discussion
+§7.6, Conclusion, and now the Abstract/Intro too:
 
 - **Near-tie training pairs** -- the idea that GCA's sentence scoring
   produces more "coin-flip" training pairs than Holistic, and fitting
@@ -40,16 +37,6 @@ too):
   n=3,000 and nearly vanishes at n=10,000. Opposite of the prediction
   again.
 
-**Mentioned but not tested** -- the one that's still genuinely open:
-
-- **Article-specific overfitting** -- the idea that GCA's sentence-level
-  aggregation lets the reward model fit patterns specific to how one
-  article's two candidates happen to differ, which don't generalize to
-  the ground truth's cross-article comparisons. This appears only in the
-  Future Work section (`sec:concl-future`, Conclusion) as an explicitly
-  untested candidate -- it was never run. The thesis is careful not to
-  claim any evidence for or against it.
-
 **Where the thesis ends up** (RQ4, the headline finding of the whole
 project): GCA is significantly more precise than Holistic at n=1,000 on
 comparisons with a real quality gap (up to +9.25pp, p<0.001), the two are
@@ -64,7 +51,7 @@ reverses is not yet known."
 
 That's the landing point: a confirmed, bounded, well-characterized
 effect, with two dead ends clearly marked so nobody wastes time retesting
-them, and one live lead pointed at for whoever continues this work.
+them.
 
 ---
 
