@@ -14,6 +14,8 @@
 \usepackage{caption}                     % caption formatting
 \usepackage[numbers,sort&compress]{natbib} % \citep/\citet, numbered bracket style
 \usepackage{microtype}                   % better justification, fewer overfull lines
+\emergencystretch=3em                    % let long \texttt identifiers wrap rather than
+                                          % overflow the margin (e.g. BradleyTerryRewardModel)
 \usepackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=black,
             pdfborder={0 0 0}]{hyperref} % clickable links, no colored boxes (load after natbib)
 \usepackage{xurl}                        % allow \url to break at /, _, - (long code paths)
