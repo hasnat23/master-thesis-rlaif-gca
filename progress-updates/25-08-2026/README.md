@@ -19,31 +19,52 @@ and large-scale results. This update covers what was tested this week.
 
 ## Summary for tomorrow's meeting
 
-**Three candidate explanations for the reversal, only two of which were
-actually tested:**
+Yes -- all three hypotheses are in the thesis, but only two were actually
+tested. Here's exactly where things stand.
 
-| # | Candidate | Status | Verdict |
-|---|---|---|---|
-| 1 | Near-tie training pairs -- GCA produces more noise-level pairs than Holistic, and fitting that noise at scale hurts it | **Tested** this week | **Rejected** -- near-tie share is ~identical between conditions at every scale; GCA has *more* near-ties at n=1,000, where it wins, not fewer |
-| 2 | Length/sentence-count shortcut -- GCA increasingly relies on summary length as a quality proxy as training data grows | **Tested** this week | **Rejected** -- the GCA-vs-Holistic gap in length-correlation should peak at n=10,000 (where GCA loses); it instead peaks at n=3,000 and nearly vanishes at n=10,000 |
-| 3 | Article-specific overfitting -- GCA's sentence-level aggregation lets the reward model fit article-specific patterns that don't generalize to the ground truth's cross-article comparisons | **Not tested** -- listed as future work only | Open. No evidence for or against it; not a finding of this thesis |
+**Tested and rejected** (both are full findings, documented in Results
+§6.10.2/§6.10.5, Discussion §7.6, Conclusion, and now the Abstract/Intro
+too):
 
-Both rejections follow the same falsification logic: each hypothesis made
-a specific prediction about *where* the effect should be largest, and the
-data showed the opposite pattern in both cases, not just a failure to
-confirm.
+- **Near-tie training pairs** -- the idea that GCA's sentence scoring
+  produces more "coin-flip" training pairs than Holistic, and fitting
+  that noise at scale hurts GCA. Rejected: the near-tie fraction is
+  virtually identical between conditions at every scale (24.2% vs 24.2%
+  at n=10,000), and GCA actually has *more* near-ties at n=1,000 -- where
+  GCA wins. Opposite of the prediction.
 
-**Where RQ4 ends up, in one paragraph:** GCA's ground-truth precision
-advantage is real and large where it holds (up to +9.3pp at n=1,000 on
-clear-cut comparisons, p<0.001), but it is bounded to a specific regime --
-small training set (up to a few thousand pairs) *and* a genuine quality
-gap between the two summaries being compared. Push past n=3,000-5,000 (the
-located crossover) and it flips into a small, significant advantage for
-Holistic instead (-2.0pp at n=10,000). Two of the most obvious mechanical
-explanations for that reversal have been tested and eliminated this week.
-The reversal's actual mechanism is not resolved and is reported honestly
-as an open question -- the effect and its boundary are the finding; the
-*why* is future work.
+- **Length/sentence-count shortcut** -- the idea that GCA increasingly
+  leans on summary length as a proxy for quality as training data grows.
+  Rejected: the GCA-vs-Holistic gap in length-correlation should peak at
+  n=10,000 (where GCA loses) if this were true; instead it peaks at
+  n=3,000 and nearly vanishes at n=10,000. Opposite of the prediction
+  again.
+
+**Mentioned but not tested** -- the one that's still genuinely open:
+
+- **Article-specific overfitting** -- the idea that GCA's sentence-level
+  aggregation lets the reward model fit patterns specific to how one
+  article's two candidates happen to differ, which don't generalize to
+  the ground truth's cross-article comparisons. This appears only in the
+  Future Work section (`sec:concl-future`, Conclusion) as an explicitly
+  untested candidate -- it was never run. The thesis is careful not to
+  claim any evidence for or against it.
+
+**Where the thesis ends up** (RQ4, the headline finding of the whole
+project): GCA is significantly more precise than Holistic at n=1,000 on
+comparisons with a real quality gap (up to +9.25pp, p<0.001), the two are
+indistinguishable at n=5,000, and Holistic is significantly *more*
+precise than GCA at n=10,000 on 3 of 4 constructions (p=0.010-0.036). The
+crossover is located between n=3,000 and n=5,000. Two plausible
+mechanical explanations for that reversal have been tested and
+eliminated. The actual mechanism is left as an open question for future
+work -- the thesis doesn't pretend to have solved it, and closes RQ4
+honestly with "the effect is real and its regime is mapped; why it
+reverses is not yet known."
+
+That's the landing point: a confirmed, bounded, well-characterized
+effect, with two dead ends clearly marked so nobody wastes time retesting
+them, and one live lead pointed at for whoever continues this work.
 
 ---
 
