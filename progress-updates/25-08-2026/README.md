@@ -5,6 +5,15 @@ Meeting: Tuesday, 25 August 2026
 
 ---
 
+> **TL;DR:** GCA beats Holistic only in a specific, narrow situation:
+> small training data **and** two summaries that clearly differ in
+> quality. Push past ~n=3,000-5,000 and that advantage disappears, then
+> flips into a small edge for Holistic instead. We tested the two most
+> obvious explanations for *why* it flips -- both were ruled out. The
+> real "why" is still unknown and is flagged honestly as future work.
+
+---
+
 ## Context
 
 The 18 August update found that GCA's ground-truth ranking precision advantage
@@ -19,9 +28,10 @@ and large-scale results. This update covers what was tested this week.
 
 ## Summary for tomorrow's meeting
 
-Two candidate explanations for the reversal were tested this week, and
-both are full findings, documented in Results §6.10.2/§6.10.5, Discussion
-§7.6, Conclusion, and now the Abstract/Intro too:
+Two candidate explanations for the reversal were tested this week. Both
+are now full findings in the thesis, not just side notes -- they are
+covered in the Results, Discussion, and Conclusion chapters, and in the
+Abstract and Introduction too:
 
 - **Near-tie training pairs** -- the idea that GCA's sentence scoring
   produces more "coin-flip" training pairs than Holistic, and fitting
@@ -145,77 +155,50 @@ happens **between n=3,000 and n=5,000** for all three conditions.
 Pulling the three pieces above (near-tie test, shortcut test, crossover
 scan) into one story:
 
-**What holds up.** GCA is more precise than Holistic against the
-independent ground truth, but only when two conditions both hold at once:
-the reward model was trained on a small amount of data (roughly n=1,000,
-maybe up to n=2,000-3,000), and the two summaries being compared actually
-differ in quality rather than being near-identical. Inside that regime the
-advantage is large and consistent: up to +9.3pp at n=1,000 on the
-top/bottom 10% comparison, still +3.4 to +3.8pp at n=2,000-3,000 on the
-same comparison. This is not a marginal or noisy effect where it holds.
+**When GCA wins.** GCA beats Holistic on the ground truth, but only when
+two things are both true at the same time: the reward model was trained
+on a small amount of data (up to a few thousand examples), **and** the
+two summaries being compared are clearly different in quality, not
+near-identical. Inside that window, the advantage is large and
+consistent: up to **+9.3pp at n=1,000**, still **+3.4 to +3.8pp** at
+n=2,000-3,000, on the same type of comparison.
 
-**Where it breaks down, in two independent ways.** Tightening the
-comparison difficulty kills the advantage even at the best training-set
-size: on same-article pairs (the closest, least clear-cut comparison),
-GCA and Holistic are statistically indistinguishable at every single
-scale tested, n=1,000 through n=10,000 -- there was never a regime where
-GCA won on hard comparisons. Separately, growing the training set kills
-the advantage even on the easy comparisons where it is otherwise largest:
-holding comparison difficulty fixed at top/bottom 10%, the advantage is
-+9.3pp at n=1,000, roughly a third of that by n=2,000-3,000, essentially
-zero at n=5,000, and by n=10,000 it has not just vanished but flipped
-into a small, statistically significant advantage for Holistic instead
-(-2.0pp). So "GCA wins" is not a general property of the method -- it is
-a property of a specific, identifiable combination of training-set size
-and comparison difficulty, and the boundary of that regime is now mapped
-rather than assumed.
+**When it stops winning -- for two separate reasons.**
+- *Reason 1: the comparison is too easy to call.* On same-article pairs
+  (summaries that are already close in quality), GCA and Holistic are
+  statistically indistinguishable at *every* scale we tested, from
+  n=1,000 to n=10,000. GCA never had an edge here, at any size.
+- *Reason 2: there is too much training data.* Even on the easiest
+  comparisons, where GCA's advantage is largest, growing the training set
+  erases it: **+9.3pp** at n=1,000 → about a third of that by
+  n=2,000-3,000 → roughly zero at n=5,000 → a small but real advantage
+  for **Holistic** by n=10,000 (**-2.0pp**).
 
-**What we ruled out this week, and how.** The interesting question is not
-just that the advantage reverses, but *why* -- a reversal is a stronger
-claim than "the advantage fades," since something has to actively flip
-sign rather than merely shrink toward zero. Two concrete, testable
-mechanisms were checked directly against data and checkpoints already on
-disk, at no new training cost:
-1. *Near-tie training pairs.* If GCA's sentence-level scoring produced
-   more near-zero-margin ("coin flip") training pairs than Holistic's,
-   and fitting that noise got worse as more such pairs accumulated at
-   larger n, that would explain a growing GCA disadvantage. Checked
-   directly against the stored preference files: the near-tie fraction is
-   essentially identical between GCA and Holistic at every scale
-   (24.2% vs. 24.2% at n=10,000), and if anything GCA has *more*
-   near-ties at n=1,000, where GCA wins -- the opposite of the
-   prediction. Rejected.
-2. *Length/sentence-count shortcut.* If GCA increasingly learned to use
-   summary length or sentence count as a proxy for quality, and leaned on
-   that proxy more heavily as training data grew, the effect should be
-   *largest* at n=10,000, where GCA starts losing. Checked by scoring the
-   ground-truth summaries with the already-trained checkpoints and
-   correlating predicted reward with length: the gap between GCA's and
-   Holistic's length-correlation instead peaks at n=3,000 and nearly
-   disappears at n=10,000, again the opposite of the prediction. Rejected.
+So "GCA wins" is not a general rule -- it only holds in one specific
+corner of the experiment, and that corner is now precisely mapped rather
+than guessed at.
 
-Both tests were designed so that the hypothesis made a specific,
-falsifiable prediction about *where the effect should be largest*, and in
-both cases the data showed the opposite pattern rather than just failing
-to show the predicted one -- which is a cleaner rejection than a null
-result would have been.
+**Why does it flip, not just fade?** That's the more interesting
+question, and it's what the two hypothesis tests above (near-tie pairs,
+length/sentence-count shortcut) were built to answer. Both made a clear,
+checkable prediction about *where* the effect should be strongest if the
+hypothesis were true, and in both cases the actual data went the opposite
+direction -- a stronger kind of rejection than simply "no effect found."
+Both are ruled out; see those two sections for the numbers.
 
-**What remains open.** Ruling out two mechanisms did not surface a third,
-confirmed one. The leading untested candidate (see Future Work below) is
-that GCA's sentence-level aggregation lets the reward model fit
-article-specific regularities during training -- patterns tied to how one
-particular article's two candidate summaries happen to differ -- that
-don't generalize to the ground truth's cross-article comparisons, where
-the two summaries being ranked come from different source articles
-entirely. This was not tested, so it remains a hypothesis, not a finding.
+**What's still unknown.** Ruling out two explanations did not produce a
+confirmed one. The leading untested idea (see Future Work below) is that
+GCA's sentence-by-sentence scoring lets the reward model pick up on
+quirks specific to how *one particular article's* two summaries happen to
+differ -- quirks that don't carry over when comparing summaries written
+about *different* articles, which is what the ground-truth test actually
+does. This idea was not tested, so it stays a guess, not a finding.
 
-**Bottom line.** The effect is real, its regime is now precisely located
-(small training set, clear quality gap between the two summaries being
-compared), and two of the most obvious mechanical explanations for why it
-reverses at scale -- rather than merely fading -- have been eliminated
-with direct, falsification-style evidence. That is a complete and honest
-result to report for RQ4 even though the reversal's underlying mechanism
-itself is not resolved.
+> **Bottom line:** the effect is real, we now know exactly where it holds
+> and where it doesn't, and the two most obvious explanations for why it
+> flips (rather than just fades) have been directly tested and ruled out.
+> The mechanism itself is still open -- and that is an honest, complete
+> place to close RQ4.
 
 ---
 
