@@ -17,6 +17,36 @@ and large-scale results. This update covers what was tested this week.
 
 ---
 
+## Summary for tomorrow's meeting
+
+**Three candidate explanations for the reversal, only two of which were
+actually tested:**
+
+| # | Candidate | Status | Verdict |
+|---|---|---|---|
+| 1 | Near-tie training pairs -- GCA produces more noise-level pairs than Holistic, and fitting that noise at scale hurts it | **Tested** this week | **Rejected** -- near-tie share is ~identical between conditions at every scale; GCA has *more* near-ties at n=1,000, where it wins, not fewer |
+| 2 | Length/sentence-count shortcut -- GCA increasingly relies on summary length as a quality proxy as training data grows | **Tested** this week | **Rejected** -- the GCA-vs-Holistic gap in length-correlation should peak at n=10,000 (where GCA loses); it instead peaks at n=3,000 and nearly vanishes at n=10,000 |
+| 3 | Article-specific overfitting -- GCA's sentence-level aggregation lets the reward model fit article-specific patterns that don't generalize to the ground truth's cross-article comparisons | **Not tested** -- listed as future work only | Open. No evidence for or against it; not a finding of this thesis |
+
+Both rejections follow the same falsification logic: each hypothesis made
+a specific prediction about *where* the effect should be largest, and the
+data showed the opposite pattern in both cases, not just a failure to
+confirm.
+
+**Where RQ4 ends up, in one paragraph:** GCA's ground-truth precision
+advantage is real and large where it holds (up to +9.3pp at n=1,000 on
+clear-cut comparisons, p<0.001), but it is bounded to a specific regime --
+small training set (up to a few thousand pairs) *and* a genuine quality
+gap between the two summaries being compared. Push past n=3,000-5,000 (the
+located crossover) and it flips into a small, significant advantage for
+Holistic instead (-2.0pp at n=10,000). Two of the most obvious mechanical
+explanations for that reversal have been tested and eliminated this week.
+The reversal's actual mechanism is not resolved and is reported honestly
+as an open question -- the effect and its boundary are the finding; the
+*why* is future work.
+
+---
+
 ## Hypothesis test: near-tie training pairs
 
 Leading hypothesis: GCA's sentence-level aggregation produces more
