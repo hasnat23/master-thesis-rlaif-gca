@@ -460,7 +460,7 @@ observations. The six-run campaign was therefore not merely inconclusive by
 chance; it was structurally unable to establish run-level significance at the
 conventional threshold, independent of the true size of the effect. Resolving
 this required more runs, which in turn required the reward-model training
-procedure to be fully deterministic under a given seed --- a property it did not
+procedure to be fully deterministic under a given seed, a property it did not
 previously have, as described next.
 
 \section{Extended Campaign: Twenty Independent Runs}
@@ -690,14 +690,14 @@ means at the larger scales.}
 \label{fig:scale-results}
 \end{figure}
 
-Absolute accuracy continues to rise with dataset size for both conditions ---
+Absolute accuracy continues to rise with dataset size for both conditions,
 from roughly 0.53--0.57 at $n=1{,}000$ to roughly 0.582--0.586 at the larger
-scales --- while the gap between conditions collapses from a significant 3.95
+scales, while the gap between conditions collapses from a significant 3.95
 percentage points to a non-significant fraction of a point. Reporting only
 $n=1{,}000$ would have substantially overstated how generally the GCA
 advantage holds; reporting only a single run at each of the larger scales, as
-the design originally did, would have left the alternative --- that the
-larger-scale movement was itself just noise --- open. Both possibilities are
+the design originally did, would have left the alternative open, namely that
+the larger-scale movement was itself just noise. Both possibilities are
 now closed by the repeated-run evidence.
 
 \section{Effect Sizes, Equivalence, and Statistical Power}
@@ -709,8 +709,8 @@ neither is answered by a $p$-value. How large is the $n=1{,}000$ effect in
 standardised terms? And at $n=5{,}000$ and $n=10{,}000$, does the failure to
 reject the null reflect a genuinely negligible effect, or merely insufficient
 data to detect one? The second question matters because the claim made in
-Section~\ref{sec:results-scale} --- that the advantage is \emph{absent} at the
-larger scales rather than merely unconfirmed --- is an assertion about absence,
+Section~\ref{sec:results-scale}, that the advantage is \emph{absent} at the
+larger scales rather than merely unconfirmed, is an assertion about absence,
 and a non-significant result does not by itself support one.
 Table~\ref{tab:effect-sizes} reports the relevant quantities, computed over the
 run-level differences by \url{analysis/effect_sizes_and_equivalence.py}.
@@ -774,8 +774,8 @@ present at either larger scale, it would have exceeded the detection threshold
 there by a factor of more than six. The larger-scale campaigns are therefore not
 underpowered with respect to the effect they were testing for, which is the
 claim Section~\ref{sec:results-scale} makes and this analysis substantiates.
-Note that the smaller standard deviations at the larger scales --- 1.03 and 0.67
-points, against 1.78 at $n=1{,}000$ --- also mean those campaigns are
+Note that the smaller standard deviations at the larger scales, 1.03 and 0.67
+points against 1.78 at $n=1{,}000$, also mean those campaigns are
 intrinsically more sensitive, not less, so the failure to find an effect there
 cannot be attributed to noisier measurement.
 
@@ -797,10 +797,10 @@ this section only changes what they are evaluated against.
 \subsection{Results at \texorpdfstring{$n=1{,}000$}{n=1,000}}
 \label{sec:results-gt-1000}
 
-Table~\ref{tab:gt-1000} reports the success rate --- the fraction of
+Table~\ref{tab:gt-1000} reports the success rate (the fraction of
 comparisons in which the reward model scores the higher-quality summary
-above the lower-quality one (Section~\ref{sec:methodology-ground-truth})
---- for both reward models, averaged over the same twenty seeds used in
+above the lower-quality one, Section~\ref{sec:methodology-ground-truth})
+for both reward models, averaged over the same twenty seeds used in
 Section~\ref{sec:results-extended-campaign}, across all four ground-truth
 constructions.
 
@@ -918,8 +918,8 @@ comparable to each other within this row, which is the relevant comparison.}
 
 The mechanism does not hold up against this data. At $n=5{,}000$ and
 $n=10{,}000$, the near-tie fraction is essentially identical between the two
-conditions, not larger for GCA. At $n=1{,}000$ --- the scale at which GCA
-\emph{leads} --- GCA in fact has a \emph{larger} share of near-tie pairs than
+conditions, not larger for GCA. At $n=1{,}000$, the scale at which GCA
+\emph{leads}, GCA in fact has a \emph{larger} share of near-tie pairs than
 holistic (26.5\% versus 20.5\%), the opposite of what the hypothesis
 predicts. Near-tie training-pair prevalence is therefore rejected as an
 explanation for any scale-dependent change in ground-truth precision. A

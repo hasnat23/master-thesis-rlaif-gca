@@ -186,7 +186,7 @@ the absolute accuracy level), an effect that generalizes to other scales
 remains an interpretation, not confirmed by the extended campaign). What the
 evidence now supports is a directionally consistent, statistically significant
 advantage of approximately three to four percentage points under this
-configuration --- a materially stronger claim than the six-run campaign could
+configuration, a materially stronger claim than the six-run campaign could
 support, but one that is still scoped to the conditions under which it was
 measured.
 
@@ -321,8 +321,8 @@ undetectable. Consistent with this account, absolute accuracy rises for
 \emph{both} conditions from $n=1{,}000$ to the larger scales (from 0.5297 and
 0.5691 to roughly 0.582--0.586 at both $n=5{,}000$ and $n=10{,}000$), exactly
 as the two conditions converge. What the repeated-run evidence newly
-establishes is the \emph{shape} of this pattern --- a real effect at small
-scale that is absent at larger scale, not merely a shrinking one --- not the
+establishes is the \emph{shape} of this pattern, a real effect at small
+scale that is absent at larger scale rather than merely a shrinking one, not the
 mechanism behind it: nothing in this design isolates article length, sentence
 count, or segmentation quality as an independent variable, so the account
 above remains the most plausible explanation rather than a demonstrated one.
@@ -349,7 +349,7 @@ does not hold for RQ4. Against the independent, held-out ground truth
 (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-ground-truth}),
 GCA is significantly more precise than holistic at $n=1{,}000$ on
 comparisons with a genuine quality gap, statistically indistinguishable at
-$n=5{,}000$ --- consistent with convergence so far --- and then
+$n=5{,}000$ (consistent with convergence so far), and then
 significantly \emph{less} precise than holistic at $n=10{,}000$ on three of
 four ground-truth constructions (Chapter~\ref{ch:results},
 Section~\ref{sec:results-gt-scale}). A convergence account has nothing to
@@ -369,9 +369,9 @@ actual training data, this does not hold: the near-tie fraction is
 statistically indistinguishable between the two conditions at every scale,
 and is if anything \emph{higher} for GCA specifically at $n=1{,}000$, where
 GCA leads (Chapter~\ref{ch:results}, Section~\ref{sec:results-gt-margin}).
-Ruling this out is informative on its own terms --- it means the reversal is
+Ruling this out is informative on its own terms: it means the reversal is
 not simply an artefact of an unfiltered margin setting that happened to
-interact badly with GCA's aggregation --- but it leaves the actual mechanism
+interact badly with GCA's aggregation, but it leaves the actual mechanism
 open.
 
 A second candidate follows the same logic as the temperature-confound check
@@ -412,8 +412,8 @@ Section~\ref{sec:concl-future}).
 
 Whatever the mechanism, the practical implication is stronger than the
 learnability result alone would suggest. Section~\ref{sec:disc-scale}'s
-closing statement --- that GCA helps when data are scarce and does no harm
-once data are plentiful --- has to be revised. Against the ground truth, GCA
+closing statement, that GCA helps when data are scarce and does no harm
+once data are plentiful, has to be revised. Against the ground truth, GCA
 does not merely stop helping at scale; it becomes the worse choice. The
 regime in which GCA is advisable is narrower than the learnability result on
 its own implies: small training sets \emph{and} comparisons with a genuine
@@ -519,7 +519,7 @@ were genuine repetitions rather than duplicates, because they shared the fold
 assignment but not the training stochasticity, and the 4.7-point spread between
 them reflects that uncontrolled stochasticity rather than fold assignment alone.
 
-This property has since been fixed --- PyTorch and CUDA are now seeded per fold,
+This property has since been fixed: PyTorch and CUDA are now seeded per fold,
 with an explicit generator for the training \texttt{DataLoader} and seeded
 worker initialization, so a run is fully determined by its seed on fixed
 hardware. The extended twenty-run campaign in Chapter~\ref{ch:results},
@@ -568,8 +568,8 @@ chosen and rejected summaries is 2 characters under holistic scoring and $-6$
 under GCA. Whatever the reward models are fitting, it is not summary length.
 
 This weakens the confound but does not dispose of it. Lexical and stylistic
-correlates of temperature beyond length --- word-frequency profiles, hedging,
-named-entity density --- were not tested, and a reward model with a
+correlates of temperature beyond length, such as word-frequency profiles, hedging, or
+named-entity density, were not tested, and a reward model with a
 pretrained encoder is well placed to pick up exactly that kind of regularity.
 What can be said is that the simple and most frequently raised version of the
 objection, that the models are covertly learning to prefer longer or shorter

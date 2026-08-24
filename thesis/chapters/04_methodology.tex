@@ -176,8 +176,8 @@ runs} (seeds 1--20, fixed before any was executed) under a corrected training
 procedure in which PyTorch and CUDA are seeded per fold, so that a run is fully
 determined by its seed (Chapter~\ref{ch:implementation},
 Section~\ref{sec:impl-rm-training}). All confirmatory statistics reported in
-this thesis --- the bootstrap interval, the Wilcoxon test, the effect sizes, and
-the equivalence tests of Section~\ref{sec:results-effect-sizes} --- are computed
+this thesis (the bootstrap interval, the Wilcoxon test, the effect sizes, and
+the equivalence tests of Section~\ref{sec:results-effect-sizes}) are computed
 over these run-level differences, for which the independence assumption does
 hold. Fold-level figures are retained only as descriptive summaries of spread.
 Twenty runs is also the smallest campaign size that permits a two-sided Wilcoxon
@@ -500,9 +500,9 @@ source and is left to future work (Chapter~\ref{ch:conclusion}).
 concern above is only as serious as the amount of label information that
 temperature-correlated surface features actually carry, and that is measurable
 directly on the same stored data. Table~\ref{tab:surface-baselines} reports the
-accuracy of the cheapest possible classifiers --- ones that ignore the article
+accuracy of the cheapest possible classifiers, ones that ignore the article
 entirely and decide from a single surface property of the two candidate
-summaries --- against the same decisions the evaluator
+summaries, against the same decisions the evaluator
 made.\footnote{Computed by \url{analysis/surface_feature_baselines.py} from the
 same two preference files as Table~\ref{tab:temperature-asymmetry}, restricted
 to the pairs carrying an A/B decision (154 holistic, 157 GCA).}
