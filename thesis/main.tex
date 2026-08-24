@@ -1,6 +1,13 @@
 \documentclass[english,m,master,palatino,scrreprt,nogermanabstract]{WeSTthesis}
 % Please read README.md for additional information on WeSTthesis parameters.
 
+% Separate paragraphs by vertical space rather than by a first-line indent.
+% The default indent-only style runs consecutive paragraphs together visually,
+% which is hard to read in the long analytical passages of Chapters 6 and 7.
+% parskip=half is KOMA's half-line setting, which separates paragraphs clearly
+% without the loose look of a full blank line.
+\KOMAoptions{parskip=half}
+
 \usepackage[english,ngerman]{babel}      % English and new German spelling
 \usepackage[utf8]{inputenc}              % correct input encoding
 \usepackage[T1]{fontenc}                 % correct output encoding
@@ -45,7 +52,7 @@
 % charts above rather than introducing new colors.
 \usepackage[skins,breakable]{tcolorbox}
 \newtcolorbox{keyfinding}[1][]{
-  enhanced, breakable, colback=blue!6, colframe=blue!55!black,
+  enhanced, colback=blue!6, colframe=blue!55!black,
   boxrule=0.5pt, left=2mm, right=2mm, top=1mm, bottom=1mm,
   fonttitle=\bfseries, coltitle=blue!30!black,
   attach boxed title to top left={yshift=-2mm, xshift=2mm},
@@ -53,7 +60,7 @@
   title={#1}, before skip=3mm, after skip=3mm,
 }
 \newtcolorbox{caveat}[1][]{
-  enhanced, breakable, colback=orange!6, colframe=orange!65!black,
+  enhanced, colback=orange!6, colframe=orange!65!black,
   boxrule=0.5pt, left=2mm, right=2mm, top=1mm, bottom=1mm,
   fonttitle=\bfseries, coltitle=orange!40!black,
   attach boxed title to top left={yshift=-2mm, xshift=2mm},
@@ -61,7 +68,7 @@
   title={#1}, before skip=3mm, after skip=3mm,
 }
 \newtcolorbox{definitionbox}[1][]{
-  enhanced, breakable, colback=gray!6, colframe=gray!55!black,
+  enhanced, colback=gray!6, colframe=gray!55!black,
   boxrule=0.5pt, left=2mm, right=2mm, top=1mm, bottom=1mm,
   fonttitle=\bfseries, coltitle=black,
   attach boxed title to top left={yshift=-2mm, xshift=2mm},
@@ -142,8 +149,9 @@ and at $n=10{,}000$ holistic is significantly \emph{more} precise than GCA on
 three of four ground-truth constructions ($-1.45$ to $-2.12$ percentage points,
 $p=0.010$--$0.036$). The advantage does not merely fail to persist as training
 data grow, as the learnability result also shows; it reverses. Supplementary
-five-seed checks at $n=2{,}000$ and $n=3{,}000$ locate this crossover between
-$n=3{,}000$ and $n=5{,}000$. Two candidate explanations for the reversal were
+five-seed checks at $n=2{,}000$ and $n=3{,}000$ show the decline passing
+through a null region around $n=3{,}000$--$5{,}000$, in which no gap is
+distinguishable from zero in either direction. Two candidate explanations for the reversal were
 tested directly and both rejected: that GCA's training pairs contain
 disproportionately more near-zero-margin comparisons than holistic's, and that
 GCA increasingly relies on a summary-length or sentence-count shortcut relative

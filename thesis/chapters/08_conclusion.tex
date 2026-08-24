@@ -61,8 +61,9 @@ ground-truth constructions
 (Chapter~\ref{ch:results}, Section~\ref{sec:results-ground-truth}). The
 advantage does not merely fail to persist as training data grow, as the
 learnability result also showed; it reverses. Five-seed checks at
-$n=2{,}000$ and $n=3{,}000$ locate this crossover between $n=3{,}000$ and
-$n=5{,}000$. Two candidate mechanisms were tested directly and both
+$n=2{,}000$ and $n=3{,}000$ show the decline passing through a null region
+around $n=3{,}000$--$5{,}000$, in which no gap is distinguishable from zero
+in either direction. Two candidate mechanisms were tested directly and both
 rejected. That GCA's uniformly unfiltered training pairs contain
 disproportionately more near-zero-margin comparisons than holistic's does
 not hold: the near-tie fraction is statistically indistinguishable between
@@ -136,8 +137,9 @@ Chapter~\ref{ch:results}, Section~\ref{sec:results-gt-1000}), statistically
 indistinguishable from holistic at $n=5{,}000$, and significantly
 \emph{less} precise than holistic at $n=10{,}000$ on three of four
 constructions ($p=0.010$--$0.036$; Section~\ref{sec:results-gt-scale}).
-Five-seed checks at $n=2{,}000$ and $n=3{,}000$ place the crossover between
-$n=3{,}000$ and $n=5{,}000$ (Section~\ref{sec:results-scale-curve}). This
+Five-seed checks at $n=2{,}000$ and $n=3{,}000$ show the decline passing
+through a null region around $n=3{,}000$--$5{,}000$
+(Section~\ref{sec:results-scale-curve}). This
 answer is stronger, in one sense, than RQ1's: it was obtained against data
 the trained reward models never saw and never influenced their selection,
 so it is not subject to the nesting caveat that qualifies RQ1--RQ3

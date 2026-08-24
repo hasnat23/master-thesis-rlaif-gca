@@ -51,8 +51,9 @@ Abstract and Introduction too:
 project): GCA is significantly more precise than Holistic at n=1,000 on
 comparisons with a real quality gap (up to +9.25pp, p<0.001), the two are
 indistinguishable at n=5,000, and Holistic is significantly *more*
-precise than GCA at n=10,000 on 3 of 4 constructions (p=0.010-0.036). The
-crossover is located between n=3,000 and n=5,000. Two plausible
+precise than GCA at n=10,000 on 3 of 4 constructions (p=0.010-0.036). In
+between, nothing is distinguishable from zero, so the crossover is a null
+region around n=3,000-5,000 rather than a single point. Two plausible
 mechanical explanations for that reversal have been tested and
 eliminated. The actual mechanism is left as an open question for future
 work -- the thesis doesn't pretend to have solved it, and closes RQ4
@@ -145,8 +146,18 @@ For the three conditions with a real effect at n=1,000 (top/bottom
 25%/10%/5%), the decline from n=1,000 to n=10,000 is consistent and close to
 monotonic: a large GCA advantage at n=1,000, roughly half that by
 n=2,000-3,000, near zero at n=5,000, and a small but significant Holistic
-advantage by n=10,000. The crossover from GCA-favoring to Holistic-favoring
-happens **between n=3,000 and n=5,000** for all three conditions.
+advantage by n=10,000.
+
+The crossover is best described as a **region, not a point**. Significance
+pins it down only at the two ends: GCA is significantly ahead at n=1,000,
+Holistic is significantly ahead at n=10,000, and *nothing* in between
+(n=2,000, 3,000, 5,000) is distinguishable from zero in either direction.
+The point estimates cross zero at different places depending on the
+condition (top/bottom 25% is already slightly negative by n=2,000, while
+10% and 5% stay marginally positive at n=5,000), which at 5 seeds is well
+inside normal run-to-run noise. So the honest statement is that the
+advantage **passes through a null region around n=3,000-5,000**, rather
+than flipping at one identifiable value.
 
 ---
 
@@ -217,7 +228,7 @@ does. This idea was not tested, so it stays a guess, not a finding.
 
 ## Questions
 
-1. Does the crossover point (n=3,000-5,000) combined with the two ruled-out
+1. Does the crossover region (n=3,000-5,000) combined with the two ruled-out
    hypotheses (near-tie pairs, length/sentence-count shortcut) give enough
    of a closing story for this section of the thesis, or is further
    investigation into the *why* expected before submission?

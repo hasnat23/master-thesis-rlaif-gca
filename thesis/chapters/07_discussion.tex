@@ -358,6 +358,19 @@ conditions meet. Something in addition to ``holistic catches up'' is needed
 to explain why GCA falls \emph{behind}, and this section considers what that
 might be and what can currently be ruled out.
 
+One clarification narrows the target before any mechanism is proposed. The
+reversal is not GCA deteriorating. The absolute success rates
+(Chapter~\ref{ch:results}, Table~\ref{tab:gt-scale-absolute}) show GCA
+improving with additional training data on every construction except the
+same-article one, from 86.00\% to 90.00\% on top/bottom 10\% between
+$n=1{,}000$ and $n=10{,}000$. Holistic improves over the same interval from
+76.75\% to 91.95\%. Both conditions therefore benefit from more data, as the
+convergence account expects; what the account does not predict is that they
+benefit at such different rates, holistic gaining roughly four times as much
+as GCA. Any adequate explanation has to account for GCA's flatter returns to
+scale rather than for a decline that does not occur, and this is the form in
+which the two candidate mechanisms below were posed.
+
 One candidate was tested directly rather than left as speculation. If GCA's
 uniformly margin-0 training pairs contain a growing share of near-zero-margin,
 effectively noise-level comparisons relative to holistic's, a reward model
