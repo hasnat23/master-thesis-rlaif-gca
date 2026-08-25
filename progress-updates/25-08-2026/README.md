@@ -26,7 +26,7 @@ and large-scale results. This update covers what was tested this week.
 
 ---
 
-## Summary for tomorrow's meeting
+## Summary
 
 Two candidate explanations for the reversal were tested this week. Both
 are now full findings in the thesis, not just side notes -- they are
