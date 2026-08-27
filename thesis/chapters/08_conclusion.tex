@@ -206,6 +206,19 @@ an unqualified positive finding that the fuller evidence does not support.
     recovered by the chosen architecture, not whether the preferences are
     factually right (Chapter~\ref{ch:methodology},
     Section~\ref{sec:methodology-scope}).
+  \item \textbf{RQ4 models are trained on more data than RQ1--RQ3 models.}
+    The RQ1--RQ3 accuracies are computed from fold models trained on 80\% of
+    the preference set; the RQ4 checkpoints are trained on the full 100\%,
+    since $k$-fold cross-validation retains no reusable single model
+    (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training};
+    Chapter~\ref{ch:results}, Section~\ref{sec:results-ground-truth}).
+    Comparing the two sets of results, as Chapter~\ref{ch:discussion},
+    Sections~\ref{sec:disc-scale} and~\ref{sec:disc-gt-reversal} do, is
+    therefore a comparison across both a different evaluation target and a
+    different training-data fraction at once. Nothing in this thesis
+    separates the two, so part of the difference between the learnability
+    and ground-truth patterns could in principle be attributable to the
+    training-data fraction rather than to the evaluation target alone.
   \item \textbf{No downstream policy evaluation.} The final study contains no
     DPO or other policy-optimization stage, so it does not establish whether
     models trained on either preference set generate more factually consistent
@@ -269,6 +282,14 @@ an unqualified positive finding that the fuller evidence does not support.
     limitation, but it is itself a single fixed 500-article set reused across
     every scale, so the five RQ4 scale points share the same evaluation sample
     rather than being independently sampled test sets.
+  \item \textbf{RQ4's four constructions are nested, and uncorrected.} The
+    top/bottom 5\%, 10\%, and 25\% constructions are subsets of one another,
+    all drawn from the same ranked pool of 1{,}000 held-out summaries, and no
+    multiple-comparison correction is applied across the four constructions
+    tested at each scale (Chapter~\ref{ch:results},
+    Section~\ref{sec:results-gt-summary}). Statements of the form ``significant
+    on three of four constructions'' should accordingly be read as three
+    overlapping views of one ranking, not as three independent replications.
   \item \textbf{No error-category analysis.} No analysis links the observed
     effects to specific categories of factual error; this was not part of the
     final research questions and is listed under future work.

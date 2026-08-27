@@ -93,70 +93,59 @@
 \mentorinfo{Fraunhofer Institute for Applied Information Technology FIT}
 
 \englishabstract{%
+\setlength{\parskip}{0em}%
 Preference-based alignment of abstractive summarization models increasingly relies
 on automatically generated preference labels rather than human judgments. It
 remains unclear whether a single holistic judgment over a multi-sentence summary
 uses the available supervision as effectively as a judgment assembled from
 sentence-level evidence. This thesis studies that question as a controlled
-comparison of two preference-construction procedures. In the holistic condition, a
-complete candidate summary is scored against the source article and the resulting
-scores form a pairwise preference. In the Granular Credit Assignment (GCA)
-condition, each summary is decomposed into sentences, each sentence is scored
-separately, and the sentence scores are aggregated into a summary-level preference.
-The candidate summaries, the factuality evaluator (AlignScore), the Bradley--Terry
-reward-model architecture, and the training procedure are held fixed, so that
-feedback granularity is the primary experimental variable.
+comparison of two preference-construction procedures: a holistic condition, where
+a complete candidate summary is scored against the source article, and a
+Granular Credit Assignment (GCA) condition, where each summary is decomposed
+into sentences, each is scored separately, and the sentence scores are
+aggregated into a summary-level preference. The candidate summaries, the
+factuality evaluator (AlignScore), the Bradley--Terry reward-model architecture,
+and the training procedure are held fixed across four research questions, so
+feedback granularity is isolated as the primary experimental variable.
 
-The dependent variable is preference learnability, measured as the pairwise
-validation accuracy of a reward model trained on the resulting preference pairs.
-An initial campaign of six repeated runs at $n=1{,}000$ gave a directionally
-consistent but statistically underpowered result (GCA ahead in five of six runs,
-mean advantage +3.08 percentage points; run-level Wilcoxon $p=0.0625$, which is
-the smallest two-sided value attainable with six paired observations). This
-campaign was subsequently extended to twenty independently seeded runs under a
-corrected, fully deterministic training procedure. GCA led in all twenty runs,
-with a mean advantage of 3.95 percentage points (bootstrap 95\% CI
-$[+3.19, +4.70]$ points), a run-level Wilcoxon $p<0.001$, and a large
-standardised effect (Cohen's $d = 2.22$). Twenty-run campaigns at $n=5{,}000$ and
-$n=10{,}000$, using the same corrected procedure, show that this advantage does
-not persist at larger scale: mean gaps of $-0.22$ and $-0.11$ percentage points
-respectively, both statistically indistinguishable from zero (95\% confidence
-intervals $[-0.66,+0.21]$ and $[-0.39,+0.18]$ points), with neither interval
-overlapping the $n=1{,}000$ result. Equivalence tests at those scales exclude any
-effect larger than $\pm0.61$ and $\pm0.36$ percentage points, so the advantage is
-shown to be absent rather than merely undetected. Absolute accuracy improves for
-both conditions as data increases even as their difference vanishes. An
-exploratory comparison of evaluator modes suggests that external sentence-level
-decomposition may be most useful when the evaluator does not already perform
-comparable decomposition internally.
+\textbf{RQ1} asks whether GCA produces a more learnable preference signal, measured
+as reward-model pairwise validation accuracy. Across twenty independently
+seeded runs at $n=1{,}000$, GCA led in every
+run, a mean advantage of 3.95 percentage points (bootstrap 95\% CI $[+3.19,
++4.70]$, run-level Wilcoxon $p<0.001$, Cohen's $d=2.22$). \textbf{RQ3} asks whether
+this advantage is stable across dataset scale; it is not. Twenty-run campaigns at
+$n=5{,}000$ and $n=10{,}000$, under the same corrected procedure, give mean
+gaps of $-0.22$ and $-0.11$ percentage points, both statistically
+indistinguishable from zero, with equivalence tests excluding any effect
+larger than $\pm0.61$ and $\pm0.36$ points: the advantage is absent, not
+merely undetected. Absolute accuracy improves for both conditions as data
+grows even as their difference vanishes.
 
-These results characterize when granular factuality feedback changes the structure
-of a preference-learning signal, rather than establishing that GCA is generally
-preferable. Higher reward-model accuracy indicates that a preference relation is
-more consistently recoverable by the chosen architecture. It does not by itself
-establish that GCA labels agree better with human factuality judgments, nor that
-summarization models trained on such preferences produce more factually consistent
-summaries; both questions are left to future work.
+\textbf{RQ2} asks how evaluator configuration and aggregation strategy affect this
+comparison. Both matter substantially: an early weakest-link penalty formula
+hurt GCA relative to a simple mean, and a sweep across four AlignScore modes
+finds GCA's advantage appears only under modes that do not themselves decompose
+the input internally, suggesting external and evaluator-internal decomposition
+act as partial substitutes. Each mode was tested once, so this is
+associational, not confirmed.
 
-A fourth question asks whether this learnability advantage also holds when the
-trained reward models are scored against an independent, held-out ground truth
-of 500 articles disjoint from every training set used above, scored by the same
-factuality judge but never used to train any reward model. It does, and more
-sharply than for learnability: at $n=1{,}000$, GCA is significantly more precise
-than holistic on comparisons with a genuine quality gap (up to $+9.25$ percentage
-points, $p<0.001$), the two are statistically indistinguishable at $n=5{,}000$,
-and at $n=10{,}000$ holistic is significantly \emph{more} precise than GCA on
-three of four ground-truth constructions ($-1.45$ to $-2.12$ percentage points,
-$p=0.010$--$0.036$). The advantage does not merely fail to persist as training
-data grow, as the learnability result also shows; it reverses. Supplementary
-five-seed checks at $n=2{,}000$ and $n=3{,}000$ show the decline passing
-through a null region around $n=3{,}000$--$5{,}000$, in which no gap is
-distinguishable from zero in either direction. Two candidate explanations for the reversal were
-tested directly and both rejected: that GCA's training pairs contain
-disproportionately more near-zero-margin comparisons than holistic's, and that
-GCA increasingly relies on a summary-length or sentence-count shortcut relative
-to holistic as training data grow. The mechanism behind the reversal remains
-open.
+\textbf{RQ4} asks whether the RQ1 advantage also holds against an independent,
+held-out ground truth: 500 articles disjoint from every training set, scored by
+the same judge but never used in training. It does, more sharply: at
+$n=1{,}000$, GCA is significantly more precise than holistic on comparisons
+with a genuine quality gap (up to $+9.25$ percentage points, $p<0.001$). It
+does not merely fail to persist, as RQ1 does; it reverses to a significant
+advantage for holistic at $n=10{,}000$ on three of four ground-truth
+constructions ($p=0.010$--$0.036$). Two candidate explanations, near-zero-margin
+training pairs and a length/sentence-count shortcut, were tested and both
+rejected; the mechanism behind the reversal remains open.
+
+These results characterize when granular feedback changes a preference
+signal's structure, not that GCA is generally preferable: it is not, once
+data are abundant or the comparison is ambiguous. Higher accuracy shows a
+preference relation is more recoverable by this architecture, not that GCA
+labels better match human judgments or that trained models are more
+factually consistent, both future work.
 }
 
 \begin{document}

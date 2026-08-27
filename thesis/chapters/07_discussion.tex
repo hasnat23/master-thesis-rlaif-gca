@@ -259,10 +259,23 @@ Max article chars & Holistic & GCA & Gap (GCA $-$ Holistic) \\
 \midrule
 500   & 0.5553 & 0.5850 & +2.97 \\
 1{,}000 & 0.5663 & 0.5903 & +2.40 \\
-2{,}000 & 0.5290 & 0.5480 & +1.90 \\
+2{,}000 & 0.5290 & 0.5480 & +1.90\footnotemark \\
 \bottomrule
 \end{tabular}
 \end{table}
+\footnotetext{The three seeds used here (1, 2, 3) are a subset of the twenty
+used in the headline campaign (Chapter~\ref{ch:results},
+Section~\ref{sec:results-extended-campaign}), not an independent draw. The
+2{,}000-character row's holistic figure, 0.5290, matches the mean of seeds
+1--3 in that campaign (0.5293) closely, as expected under the same
+configuration and seeds. Its GCA figure, 0.5480, is 1.7 percentage points
+below the corresponding three-seed mean there (0.5650); this size of gap is
+within the run-to-run spread already documented for GCA at $n=1{,}000$
+(individual seeds range from 0.543 to 0.592, Table~\ref{tab:seed-campaign-full}),
+and is expected when averaging three seeds rather than twenty. It should
+therefore be read as sampling noise from a small seed count, not as a
+discrepancy between this ablation and the headline result it is compared
+against.}
 
 \section{Interpreting the Larger-Scale Results}
 \label{sec:disc-scale}

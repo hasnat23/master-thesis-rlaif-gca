@@ -205,7 +205,7 @@ split into sentences with a regex-based splitter, then every sentence is scored
 independently against the article with \texttt{judge.score\_sentences(article,\
 sentences)}. The resulting list of per-sentence scores is passed to
 \texttt{aggregate\_sentence\_scores(scores,\ alpha)}
-(Chapter~\ref{ch:background}, Equation~\ref{eq:gca-general}) to produce a single
+(Chapter~\ref{ch:methodology}, Equation~\ref{eq:gca-general}) to produce a single
 GCA score per summary, and the same margin-guarded comparison determines the
 preference. Every output record retains the full sentence-level detail, including
 each sentence's individual AlignScore score and a count of ``low-faithfulness''
@@ -250,17 +250,32 @@ detail is worth stating precisely, since it affects how ``training seed'' should
 be interpreted. The \texttt{--seed} argument is passed to Python's
 \texttt{random} module, which governs the fold-assignment shuffle in the
 $k$-fold path (and the train/seed initialization in the non-$k$-fold path).
-PyTorch's own
-generator is not seeded anywhere in the cross-validation path
-(\texttt{\_kfold\_cv}), so every source of stochasticity drawn from it is
-uncontrolled: the randomly initialized reward head, the shuffling of training
-batches by the \texttt{DataLoader}, and the dropout masks applied during
-training. Changing \texttt{--seed} therefore changes the fold assignment, while
-these other sources vary between process executions regardless of the seed value.
-Together they explain why two executions launched with the same seed value
-produced different results (Chapter~\ref{ch:results},
-Section~\ref{sec:results-final-campaign}), and they are discussed as a source of
-run-to-run variation in Chapter~\ref{ch:discussion},
+
+In the version of \texttt{\_kfold\_cv} used for the original six-run campaign
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-final-campaign}),
+PyTorch's own generator was not seeded anywhere in the cross-validation path,
+so every other source of stochasticity was uncontrolled: the randomly
+initialized reward head, the shuffling of training batches by the
+\texttt{DataLoader}, and the dropout masks applied during training. Changing
+\texttt{--seed} therefore changed only the fold assignment, while these other
+sources varied between process executions regardless of the seed value, which
+is why two executions launched with the same seed value produced different
+results (Section~\ref{sec:results-final-campaign}) and why the original
+campaign could not be extended past six runs without first addressing this.
+
+This was fixed before the twenty-run campaign that produces every headline
+result in this thesis: \texttt{\_kfold\_cv} now seeds PyTorch and CUDA
+explicitly at the start of each fold, supplies an explicit generator to the
+training \texttt{DataLoader}, and seeds the \texttt{DataLoader} worker
+processes. Under this corrected procedure, a run is fully determined by its
+seed value on fixed hardware, and this is the training procedure that
+produced every twenty-run campaign reported in Chapter~\ref{ch:results}
+(Sections~\ref{sec:results-extended-campaign}
+and~\ref{sec:results-scale} onward) and the reproduction instructions in
+Appendix~\ref{app:reproduction}. The original, unseeded behaviour is
+retained here as the explanation for why the six-run campaign's individual
+runs differ even at a repeated seed value, and is discussed further as a
+source of run-to-run variation in Chapter~\ref{ch:discussion},
 Section~\ref{sec:disc-stochasticity}.
 
 The final training configuration, used for every reported reward-model result, is:
@@ -324,13 +339,19 @@ command line, and every script accepts explicit flags for the parameters that
 matter for a given experiment (margin, $\alpha$, AlignScore evaluation mode,
 reward-model hyperparameters, and so on) rather than hardcoding them.
 
-Seeding is partial, and the limits should be stated exactly. Subset selection and
-cross-validation fold assignment are explicitly seeded through Python's
-\texttt{random} module. PyTorch's generator is not seeded in the
-cross-validation path, so weight initialization, batch ordering and dropout are
-not fixed, and exact run-level reproduction from the command-line seed alone is
-not guaranteed: two executions with identical arguments can differ. Every
-pipeline script writes a JSON run-metadata file
+Seeding is now complete for the procedure used to produce every headline
+result. Subset selection and cross-validation fold assignment are explicitly
+seeded through Python's \texttt{random} module, and, since the fix described
+in Section~\ref{sec:impl-rm-training}, PyTorch and CUDA are seeded per fold as
+well, with an explicit generator for the training \texttt{DataLoader} and
+seeded worker processes. Under this corrected procedure a run is fully
+determined by its seed value on fixed hardware. This was not always the case:
+the original six-run campaign at $n=1{,}000$
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-final-campaign}) predates
+the fix, and two executions with identical arguments could differ under that
+earlier version of the code, which is why that campaign's per-run figures do
+not exactly reproduce from the seed value alone. Every pipeline script writes
+a JSON run-metadata file
 (\url{src/utils/logging.py}, \texttt{save\_run\_metadata}) recording its
 configuration, output artifact paths, and a timestamped run ID, so that any
 reported number can in principle be traced back to the exact invocation that
@@ -338,8 +359,12 @@ produced it.
 
 The configuration required to reproduce the $n=1{,}000$ result is given in full
 in Table~\ref{tab:methodology-summary} (Chapter~\ref{ch:methodology}), together
-with the six training seeds listed in Chapter~\ref{ch:results},
-Table~\ref{tab:seed-validation}, and is implemented by
-\url{slurm/train_rm_1000.sh} and \url{slurm/mode_nli_seed_confirm.sh}. The
-codebase, including all scripts referenced in this chapter, is available at the
-project's GitHub repository: \url{https://github.com/hasnat23/master-thesis-rlaif-gca}.
+with the twenty training seeds (1--20) listed in Chapter~\ref{ch:results},
+Table~\ref{tab:seed-campaign-full}, and is implemented by
+\url{slurm/train_rm_1000.sh} and \url{slurm/seed_campaign.sh}. The six seeds
+in Table~\ref{tab:seed-validation} (42, 42, 7, 100, 314, 2026) reproduce only
+the earlier, superseded six-run campaign under the pre-fix code and are
+retained for that historical comparison, not as the current reproduction
+path. The codebase, including all scripts referenced in this chapter, is
+available at the project's GitHub repository:
+\url{https://github.com/hasnat23/master-thesis-rlaif-gca}.

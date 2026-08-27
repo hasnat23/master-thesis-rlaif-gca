@@ -47,11 +47,13 @@ obtained from the Hugging Face Hub.
 This appendix records the exact configuration required to reproduce the headline
 $n=1{,}000$ result. It restates in executable form what
 Chapter~\ref{ch:methodology}, Table~\ref{tab:methodology-summary} summarizes and
-Chapter~\ref{ch:implementation} describes in prose. The reproducibility caveat
-stated in Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-repro} applies:
-because PyTorch's generator is not seeded in the cross-validation path, two
-executions with identical arguments can differ, and these commands reproduce the
-experimental \emph{setup} rather than guaranteeing bit-identical numbers.
+Chapter~\ref{ch:implementation} describes in prose. Under the corrected,
+fully-seeded training procedure described in
+Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}, a single
+run of these commands at a given seed value is deterministic on fixed
+hardware; running the full twenty-run headline campaign means repeating the
+reward-model training command below once per seed in $\{1, \ldots, 20\}$, as
+\url{slurm/seed_campaign.sh} does.
 
 \section{Summarization Prompt}
 \label{app:repro-prompt}
@@ -117,7 +119,8 @@ Stage & Parameter & Value \\
   & Learning rate       & $2\times10^{-5}$, linear warmup over 10\% of steps \\
   & Max sequence length & 512 tokens \\
   & Max article chars   & 2{,}000 \\
-  & Cross-validation    & 5-fold; training seeds 42, 42, 7, 100, 314, 2026 \\
+  & Cross-validation    & 5-fold; training seeds 1--20 (headline campaign,
+    Chapter~\ref{ch:results}, Table~\ref{tab:seed-campaign-full}) \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -156,9 +159,14 @@ gca_reward_preferences_1000.jsonl \
     --backbone FacebookAI/roberta-base \
     --epochs 5 --batch-size 8 --lr 2e-5 \
     --max-length 512 --max-article-chars 2000 \
-    --kfold 5 --seed 42
+    --kfold 5 --seed 1
 \end{verbatim}
 \end{quote}
+
+\noindent
+This reproduces one run of the headline campaign, seed 1 of 20. Substituting
+each of \texttt{--seed 2} through \texttt{--seed 20} in turn reproduces the
+remaining nineteen.
 
 \noindent
 In step 4 the two preference-file paths are shown split across lines for

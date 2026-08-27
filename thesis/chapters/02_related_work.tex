@@ -147,9 +147,10 @@ whereas this thesis holds the objective fixed at factual consistency alone and
 varies only granularity, which isolates the granularity question at the cost of
 addressing a narrower one.
 
-Two more recent lines of work place sentence-level signals at other points in the
-alignment pipeline, and both should be distinguished carefully from the present
-study, since neither leaves the question examined here open in general.
+Three more recent lines of work place sentence- or step-level signals at
+other points in the alignment pipeline, and each should be distinguished
+carefully from the present study, since none leaves the question examined
+here open in general.
 
 \citet{gu2025maskdpo} introduce Mask-DPO, which incorporates sentence-level
 factuality signals directly into the DPO objective. Rather than treating a whole
@@ -177,6 +178,33 @@ reward-model architecture at all. The Bradley--Terry model, its backbone, and it
 training procedure are held fixed across both conditions precisely so that
 differences in outcome can be attributed to the preference labels rather than to
 the model consuming them.
+
+Closer still to GCA's decompose-then-aggregate structure is process reward
+modeling for multi-step reasoning \citep{lightman2023verify}. Rather than
+training a single model to judge a complete solution as correct or
+incorrect, \citet{lightman2023verify} have human annotators label the
+correctness of each individual reasoning step in a chain-of-thought
+solution, train a reward model to reproduce those per-step judgments, and
+show that this process-level supervision outperforms a response-level
+outcome reward for selecting correct solutions among many sampled
+candidates. The structural resemblance to GCA is real: both decompose a
+long output into smaller units, score each unit, and use the per-unit
+scores rather than a single holistic judgment. Two differences remain.
+Process reward models keep the per-step scores as the object consumed
+downstream, typically for reranking or search over sampled solutions,
+whereas GCA aggregates its per-sentence scores back into one summary-level
+score so that the output is a conventional pairwise preference, compatible
+with unmodified Bradley--Terry training. And the per-step labels in
+\citet{lightman2023verify} come from trained human annotators judging
+mathematical correctness, a domain with a comparatively well-defined notion
+of a correct step, whereas GCA's per-sentence labels come from an automatic
+factuality judge applied to open-ended news summaries, where what counts as
+a faithful sentence is judged by a model rather than verified against a
+solution. The result that step-level supervision outperforms outcome-level
+supervision in their setting is consistent with the motivation for GCA, but
+it is evidence from a different domain, a different label source, and a
+different point of consumption in the pipeline, not a direct precedent for
+the automatic, aggregated case this thesis studies.
 
 Reward models are also increasingly evaluated in their own right rather than only
 as components of a larger pipeline. RewardBench assembles prompt-chosen-rejected
@@ -260,6 +288,25 @@ key facts, producing a diagnostic profile rather than one number
 an evaluation framework: it tells a practitioner where a summary went wrong, but
 does not convert that localized judgment into supervision for training.
 
+FActScore decomposes a generation into individual atomic facts and checks
+each against a knowledge source, then reports the fraction supported as a
+single precision score \citep{min2023factscore}. Its decompose-score-aggregate
+structure is the closest evaluation-side analogue to GCA's own aggregation
+step (Chapter~\ref{ch:methodology}, Section~\ref{sec:bg-gca}): both split a
+generation into small checkable units, score each independently, and combine
+the results into one number. The differences are the same ones that
+separate this thesis from SummaC and FineSurE. FActScore decomposes into
+atomic facts extracted from the generation itself and verifies them against
+an external knowledge source, whereas GCA decomposes into sentences and
+scores each against the source article with a single fixed judge; and
+FActScore's aggregate score is reported as a diagnostic metric, not
+converted into a pairwise preference for training a reward model. The
+aggregation choice it makes, a simple fraction of atomic facts supported,
+is nonetheless a further data point for the same lesson this thesis draws
+in Section~\ref{sec:results-formula-opt}: how per-unit scores are combined
+is a design decision with measurable consequences, examined here independently
+by two unrelated methods on two different granularities of decomposition.
+
 \section{Synthesis: The Gap This Thesis Addresses}
 \label{sec:rw-synthesis}
 
@@ -284,8 +331,11 @@ Work & Sentence-level signal enters at & Held fixed \\
   preference pair construction \\
 \citet{qiu2025sentencelevel} & the reward-model architecture &
   preference labels (human, response-level) \\
+\citet{lightman2023verify}   & the reward model's own output (per-step) &
+  training objective; labels (human, per-step) \\
 \citet{laban2022summac}      & evaluation metric only & -- \\
 \citet{song2024finesure}     & evaluation metric only & -- \\
+\citet{min2023factscore}     & evaluation metric only & -- \\
 \citet{zha2023alignscore}    & internal to the evaluator & -- \\
 \midrule
 This thesis & \textbf{construction of the preference label} &
@@ -300,8 +350,10 @@ distinguished. Sentence-level factuality signals are clearly not unexplored: the
 have been used to mask the policy-optimization objective
 \citep{gu2025maskdpo}, to restructure the reward model
 \citep{qiu2025sentencelevel}, to supply dense rewards during reinforcement
-learning \citep{wu2023finegrained}, and to build evaluation metrics
-\citep{laban2022summac, song2024finesure}. What distinguishes this thesis is the
+learning \citep{wu2023finegrained}, to train a reward model that outputs
+per-step judgments directly \citep{lightman2023verify}, and to build
+evaluation metrics \citep{laban2022summac, song2024finesure, min2023factscore}.
+What distinguishes this thesis is the
 insertion point. Each of the training-oriented works above takes the preference
 labels as given, in most cases as response-level human judgments, and modifies
 what happens downstream of them. The step examined here is the construction of
@@ -324,7 +376,7 @@ automatic factuality evidence is converted into pairwise preference labels is
 varied. No new factuality scorer is introduced; AlignScore is used off the shelf,
 and the measurement instrument is the learnability of the resulting labels.
 
-Five adjacent lines of work are distinguished as follows:
+Six adjacent lines of work are distinguished as follows:
 
 \begin{itemize}
   \item \textbf{RLAIF and LLM-as-a-judge research}
@@ -343,9 +395,15 @@ Five adjacent lines of work are distinguished as follows:
     changes the reward model's architecture while learning from conventional
     response-level preferences; here the architecture is fixed and the
     preferences vary.
+  \item \textbf{Process reward modeling} \citep{lightman2023verify} trains a
+    reward model to output human-labeled, per-step correctness judgments
+    directly, consumed downstream for reranking or search; here the reward
+    model outputs a single scalar per summary, unchanged from the holistic
+    condition, and what varies is only how that scalar's training label was
+    constructed upstream.
   \item \textbf{Fine-grained evaluation frameworks}
-    \citep{laban2022summac, song2024finesure} decompose summaries in order to
-    diagnose them rather than to supervise with them.
+    \citep{laban2022summac, song2024finesure, min2023factscore} decompose
+    summaries in order to diagnose them rather than to supervise with them.
 \end{itemize}
 
 The comparison is conducted on preference data generated by one evaluator on one

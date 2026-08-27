@@ -4,8 +4,8 @@
 \section{Motivation}
 \label{sec:intro-motivation}
 
-Large language models are increasingly used for multi-sentence generation tasks such
-as news summarization. In this setting, the perceived quality of an output is often
+Large language models (LLMs) are increasingly used for multi-sentence generation
+tasks such as news summarization. In this setting, the perceived quality of an output is often
 dominated not by its overall fluency but by a small number of high-impact factual
 errors: a wrong entity, a flipped relation, or a fabricated claim can outweigh
 otherwise well-written text. Throughout this thesis, \emph{reliability} refers
@@ -206,10 +206,11 @@ preference-based alignment, LLM-as-a-judge reliability, fine-grained feedback fo
 long-form generation, and automatic factual-consistency evaluation.
 Chapter~\ref{ch:background} introduces the technical mechanisms this thesis builds
 on: the Bradley--Terry preference model, Direct Preference Optimization, the
-AlignScore factuality metric, the GCA aggregation formula, and the statistical tools
+AlignScore factuality metric, and the statistical tools
 used to validate the results. Chapter~\ref{ch:methodology} presents the experimental
-design, including an explicit account of how the study that was actually carried out
-diverges from the original proposal, and why. Chapter~\ref{ch:implementation}
+design, including the GCA aggregation formula itself, which is this thesis's own
+contribution rather than prior work, and an explicit account of how the study that
+was actually carried out diverges from the original proposal, and why. Chapter~\ref{ch:implementation}
 describes the pipeline, codebase, and compute infrastructure. Chapter~\ref{ch:results}
 reports the full experimental campaign, from the initial reward-model baseline
 through the formula and judge-mode optimization to the final multi-seed and

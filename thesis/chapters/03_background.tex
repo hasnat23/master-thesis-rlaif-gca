@@ -121,7 +121,7 @@ AlignScore exposes several evaluation modes, of which four are used in this thes
 Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep} reports an empirical
 sweep across all four modes. The choice of mode is associated with substantial
 changes in the outcome, alongside the GCA aggregation formula
-(Section~\ref{sec:bg-gca}). The \texttt{nli} mode produced the largest GCA
+(Chapter~\ref{ch:methodology}, Section~\ref{sec:bg-gca}). The \texttt{nli} mode produced the largest GCA
 advantage in that sweep and was selected as the final configuration for the
 validated $n=1{,}000$ campaign and the scale-robustness checks
 (Section~\ref{sec:results-final-campaign}). This should be read as a
@@ -129,108 +129,6 @@ judge-\emph{configuration} finding specific to this pipeline and this task, not 
 a general property of sentence-level aggregation independent of the underlying
 judge; Chapter~\ref{ch:discussion} discusses what can and cannot be concluded from
 it.
-
-\section{Granular Credit Assignment (GCA)}
-\label{sec:bg-gca}
-
-Granular Credit Assignment (GCA) is the aggregation layer that converts
-per-sentence AlignScore scores into a single summary-level score, which is then
-compared against the corresponding score for the other candidate summary to
-construct a preference label. A candidate summary is first split into sentences
-with a regex-based sentence splitter (\url{src/judging/sentence_level.py},
-\url{split_into_sentences}). Each sentence is then scored independently
-against the full source article using AlignScore
-(\url{RewardModelJudge.score_sentences}), yielding a list of per-sentence
-scores $s = (s_1, \ldots, s_n)$. These per-sentence scores are aggregated into a
-single summary-level score via (\url{src/judging/gca.py},
-\url{aggregate_sentence_scores}):
-\begin{equation}
-  \mathrm{gca}(s) = \bar{s} \cdot \left( \frac{\min(s)}{\bar{s}} \right)^{\alpha},
-  \qquad \bar{s} = \frac{1}{n}\sum_{k=1}^{n} s_k,
-  \label{eq:gca-general}
-\end{equation}
-where $\alpha \geq 0$ is a penalty exponent. When $\alpha = 0$, Equation
-\ref{eq:gca-general} reduces to the simple mean, $\mathrm{gca}(s) = \bar{s}$;
-larger $\alpha$ increasingly penalizes summaries containing at least one
-low-scoring, ``weakest-link'' sentence, even when the average sentence score is
-otherwise high.
-
-Two distinct configurations of Equation~\ref{eq:gca-general} were used at
-different points in the project. The original, proposal-era configuration used
-$\alpha = 0.5$, a moderate weakest-link penalty intended to make GCA sensitive to
-exactly the failure mode motivating this thesis: a summary that is mostly accurate
-but contains one fabricated or unsupported sentence. Empirically, this formula
-achieved only 82.2\% agreement with the corresponding holistic decision on the
-same 1{,}000 candidate pairs, and when used to construct reward-model training
-data it caused the GCA reward model to \emph{underperform} the holistic reward
-model (56.0\% vs.\ 57.2\% mean pairwise accuracy;
-Section~\ref{sec:results-rm-baseline}). A subsequent optimization campaign
-(Section~\ref{sec:results-formula-opt}) tested nine alternative aggregation
-strategies and found that the simple mean, $\alpha = 0.0$, achieved 97.6\%
-agreement with holistic decisions, the highest of all strategies tested, and,
-combined with the AlignScore \texttt{nli} mode (Section~\ref{sec:bg-alignscore}),
-was the configuration that eventually produced the repeated-run GCA advantage
-(Section~\ref{sec:results-final-campaign}). $\alpha = 0.0$ was accordingly locked
-as the final configuration.
-
-
-Figure~\ref{fig:gca-worked} illustrates the difference between the two settings of
-$\alpha$ on a real candidate pair drawn from the $n=200$ preference set. Summary A
-contains four well-supported sentences and one that the evaluator scores at
-$0.011$; summary B is more uniformly mediocre. Under the simple mean the single
-weak sentence is diluted by the other four and A is preferred, matching the
-holistic decision. Under the penalty formula the minimum term dominates and the
-decision reverses. This is the behaviour the penalty was designed to produce, and
-also the behaviour that made it noisier in practice
-(Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}).
-
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}
-\begin{axis}[
-  thesisplot,
-  width=0.80\textwidth, height=4.8cm,
-  ybar, bar width=9pt,
-  ymin=0, ymax=1.08,
-  ylabel={AlignScore per sentence},
-  xlabel={sentence index},
-  xtick={1,2,3,4,5}, xmin=0.4, xmax=5.6,
-  legend style={at={(0.5,-0.32)}, anchor=north, legend columns=2},
-]
-\addplot[holbar] coordinates {(1,0.994) (2,0.975) (3,0.997) (4,0.011) (5,0.977)};
-\addplot[gcabar] coordinates {(1,0.050) (2,0.880) (3,0.995) (4,0.757) (5,0.989)};
-\legend{Summary A, Summary B}
-\end{axis}
-\end{tikzpicture}
-
-\vspace{0.6em}
-\small
-\begin{tabular}{lccc}
-\toprule
-Aggregation & Summary A & Summary B & Preferred \\
-\midrule
-Holistic score (full summary)      & 0.7910 & 0.7345 & A \\
-GCA, $\alpha=0.0$ (simple mean)    & 0.7910 & 0.7345 & A \\
-GCA, $\alpha=0.5$ (penalty)        & 0.0938 & 0.1924 & B \\
-\bottomrule
-\end{tabular}
-\caption[Worked example: holistic scoring vs.\ GCA aggregation]{Worked example on pair \texttt{cnn\_00233} from the $n=200$ preference
-set (evaluator mode \texttt{nli\_sp}). Summary A has one sentence scored $0.011$
-among four strong ones. The simple mean preserves the holistic ordering, while
-the $\alpha=0.5$ penalty inverts it. Values are computed from the stored
-per-sentence scores in
-\url{data/preferences/gca_reward_preferences_200.jsonl}.}
-\label{fig:gca-worked}
-\end{figure}
-
-\paragraph{No cross-summary sentence alignment.} One design point is worth stating
-explicitly, since sentence-level methods in this area sometimes align the
-sentences of one candidate to those of another before comparing them. GCA as
-defined here performs no such cross-summary alignment. Each candidate summary's
-sentences are scored independently against the source article, and the two
-aggregated scores are compared only afterwards. The method therefore contains no
-alignment step that could introduce matching errors, and correspondingly offers no
-opportunity to study alignment quality as a variable.
 
 \section{Statistical Validation: Bootstrap Confidence Intervals and the Wilcoxon Signed-Rank Test}
 \label{sec:bg-stats}

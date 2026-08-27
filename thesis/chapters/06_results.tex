@@ -256,6 +256,22 @@ Mode & Holistic mean acc.\ & GCA mean acc.\ & Gap (GCA $-$ Holistic) \\
 \end{tabular}
 \end{table}
 
+The \texttt{nli\_sp} row above (0.578 holistic, 0.557 GCA) is a separate single
+run from the $\alpha=0.0$/\texttt{nli\_sp} row in
+Table~\ref{tab:alpha0-validation} (0.586 holistic, 0.561 GCA), not a
+repetition of it: the two experiments were run independently, at different
+points in the exploratory process, before either PyTorch or CUDA was seeded.
+The 0.8 and 0.4 percentage-point differences between them, on what is
+nominally the same configuration, illustrate exactly the run-to-run
+instability documented directly in
+Section~\ref{sec:results-final-campaign}, where the same seed value (42)
+produced a 4.7 percentage-point swing between the original sweep and its
+confirmation rerun. Neither single-run table should be read as a precise
+measurement of the underlying configuration; both are superseded by the
+twenty-run campaign (Section~\ref{sec:results-extended-campaign}), which is
+why this chapter reports them as exploratory context rather than as
+confirmatory results.
+
 Figure~\ref{fig:mode-sweep} plots the same values grouped by whether the
 evaluator performs its own internal splitting.
 
@@ -810,8 +826,34 @@ This section reports RQ4, evaluated against the independent, held-out ground
 truth described in Section~\ref{sec:methodology-ground-truth}: 500 articles
 disjoint from every training pool used in this thesis, scored by the same
 locked AlignScore-GCA configuration but never used to train any reward
-model. Every reward model reported here is one already trained for RQ1--RQ3;
-this section only changes what they are evaluated against.
+model. The reward models evaluated here are trained on the same preference
+data, seeds, and hyperparameters as RQ1--RQ3, but they are not the same
+trained weights: RQ1--RQ3 train five fold models per run under $k$-fold
+cross-validation and discard all five after recording their accuracy, so no
+single reusable model exists from that procedure
+(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}). RQ4
+therefore required one additional, non-$k$-fold training pass per seed and
+scale, using the same preference files, that trains a single model on the
+full preference set and retains its checkpoint
+(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-ground-truth}).
+Every such checkpoint was trained once for this evaluation; every result
+that follows below reuses those same checkpoints without retraining them
+again, including the two hypothesis tests in
+Sections~\ref{sec:results-gt-margin} and~\ref{sec:results-gt-shortcut}.
+
+One consequence of this difference is worth flagging before the two sets of
+results are read together. The RQ1--RQ3 accuracies report each fold model
+trained on 80\% of the preference set and evaluated on the held-out 20\%,
+whereas the RQ4 models trained below see 100\% of the same preference set
+during training. The comparison between RQ1--RQ3 learnability and RQ4
+ground-truth precision (Chapter~\ref{ch:discussion},
+Sections~\ref{sec:disc-scale} and~\ref{sec:disc-gt-reversal}) is therefore a
+comparison across two things that differ in more than just the evaluation
+target: the training data fraction differs as well, and RQ4's numbers alone
+cannot separate what is due to scoring against an independent ground truth
+from what is due to training on the full set rather than four fifths of it.
+Nothing in this thesis isolates that second factor, and it is recorded as a
+limitation in Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-limitations}.
 
 Table~\ref{tab:gt-constructions} states the four ground-truth constructions
 concretely, since the difference between them drives most of the pattern
@@ -1299,6 +1341,27 @@ tested and both rejected, each because the data contradicted the
 hypothesis's own prediction about where its effect should concentrate:
 near-tie training pairs (Section~\ref{sec:results-gt-margin}) and a
 length or sentence-count shortcut (Section~\ref{sec:results-gt-shortcut}).
+
+Two properties of how the ground truth is constructed limit how the
+significance pattern above should be read, and both follow from the same
+fact: every scale point and every construction scores the same fixed pool of
+1{,}000 held-out summaries (500 articles), never an independently drawn
+one. First, the four constructions are nested rather than independent tests:
+the top/bottom 5\% pairs are a subset of the top/bottom 10\% pairs, which
+are in turn a subset of the top/bottom 25\% pairs, all drawn from the same
+1{,}000-summary ranking. No multiple-comparison correction is applied
+across them, and none of the ``three of four constructions significant''
+statements in this section should be read as three independent
+confirmations; they are three overlapping views of the same underlying
+ranking at different degrees of overlap. Second, because the same 500
+articles are reused at every training-set size, the five-point curve in
+Section~\ref{sec:results-scale-curve} is not five independent samples of
+ground-truth precision: any idiosyncrasy of this particular held-out draw
+is shared by every point on it, so the curve should be read as showing how
+the trained models' behaviour changes on one fixed evaluation instrument,
+not as an average over repeated independent draws of the ground truth
+itself. Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-limitations}
+records both points.
 
 \begin{caveat}[The reversal is characterised, not explained]
 RQ4 establishes that the advantage is real at small scale, that it
