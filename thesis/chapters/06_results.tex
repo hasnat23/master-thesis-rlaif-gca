@@ -789,6 +789,23 @@ the design originally did, would have left the alternative open, namely that
 the larger-scale movement was itself just noise. Both possibilities are
 now closed by the repeated-run evidence.
 
+One property of the training setup is worth naming explicitly here, since
+it bears on the first half of that claim. Epoch count, batch size, and
+learning rate schedule are held fixed at every scale
+(Table~\ref{tab:methodology-summary}), but the number of optimizer steps
+is not: \url{src/reward_model/train.py} sets
+\texttt{total\_steps~=~len(train\_loader)~*~epochs}, so at a fixed batch
+size the number of gradient updates scales with the number of preference
+pairs. A model trained at $n=10{,}000$ therefore receives roughly ten times
+as many optimizer steps as one trained at $n=1{,}000$, not only ten times
+as much distinct data. The two are coupled by this design and nothing here
+separates them, so part of the rise in absolute accuracy with $n$ may
+reflect more optimization rather than more information alone. This does
+not bear on the GCA-versus-holistic comparison itself, since both
+conditions receive the same step count at a given $n$, but it qualifies
+what ``more data helps both conditions'' is evidence of
+(Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-scale}).
+
 \section{Effect Sizes, Equivalence, and Statistical Power}
 \label{sec:results-effect-sizes}
 

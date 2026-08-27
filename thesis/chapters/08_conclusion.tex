@@ -395,6 +395,23 @@ an unqualified positive finding that the fuller evidence does not support.
     effects, and specifically the evaluator-mode interpretation in
     Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation},
     hold under the configuration this thesis intended to test throughout.
+  \item \textbf{Separate optimizer steps from dataset size.} Epoch count is
+    fixed at every training-set size, but because
+    \texttt{total\_steps~=~len(train\_loader)~*~epochs}
+    (Chapter~\ref{ch:results}, Section~\ref{sec:results-scale}), the number
+    of gradient updates scales with $n$: a model trained at $n=10{,}000$
+    receives roughly ten times the optimizer steps of one trained at
+    $n=1{,}000$, not only ten times the distinct data. This thesis does not
+    separate the two. It is a plausible contributor to why absolute
+    accuracy rises with $n$ for both conditions alike, and, more
+    specifically, a candidate contributor to the RQ4 reversal: if holistic
+    and GCA converge at different rates per optimizer step, for instance
+    because a coarser holistic signal is easier to fit with additional
+    updates than GCA's finer one, that would be consistent with holistic's
+    steeper absolute improvement documented in
+    Section~\ref{sec:results-gt-scale}. Testing this means training at
+    matched step counts rather than matched epoch counts across scales,
+    which was not attempted here.
   \item \textbf{Remove the temperature confound at source.} Summary length and
     sentence count have been ruled out as carriers of the preference signal:
     classifiers using them reach chance accuracy against the evaluator's own
