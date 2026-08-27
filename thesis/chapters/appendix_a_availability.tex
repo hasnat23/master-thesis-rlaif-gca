@@ -80,7 +80,16 @@ corresponding YAML file, the command-line override in
 Section~\ref{app:repro-commands} is authoritative; this is the case for the
 subset size, the tie margin, and the GCA exponent $\alpha$, each of which changed
 over the course of the project as described in Chapter~\ref{ch:methodology},
-Section~\ref{sec:methodology-evolution}.
+Section~\ref{sec:methodology-evolution}. The evaluation mode and $\alpha$
+below are the \emph{intended} configuration; Chapter~\ref{ch:implementation},
+Section~\ref{sec:impl-preferences} reports that the twenty-run campaign
+actually reproduced by the commands in
+Section~\ref{app:repro-commands} was trained on preference data built
+under \texttt{nli\_sp} and $\alpha=0.5$, not the \texttt{nli} and
+$\alpha=0.0$ shown here, an implementation oversight found during final
+review. Running the commands below as written reproduces the
+\emph{intended} configuration, which is \texttt{nli}/$\alpha=0.0$, not the
+one the headline campaign was actually trained on.
 
 \begin{table}[htbp]
 \centering
@@ -162,6 +171,19 @@ gca_reward_preferences_1000.jsonl \
     --kfold 5 --seed 1
 \end{verbatim}
 \end{quote}
+
+\noindent
+Step 3 above, run exactly as written, produces the intended
+\texttt{nli}/$\alpha=0.0$ preference data. The actual headline campaign
+was produced by the Slurm scripts \url{slurm/build_preferences_1000.sh}
+and \url{slurm/build_preferences_scale.sh} (below) instead of this exact
+command, and those scripts omit \texttt{--alignscore-evaluation-mode}
+(defaulting to \texttt{nli\_sp}) and, for $n=1{,}000$, pass
+\texttt{--alpha 0.5}; this is the discrepancy reported in
+Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}. A
+reader following the four commands above exactly as shown will reproduce
+the configuration this thesis intended, not the one the headline numbers
+in Chapter~\ref{ch:results} were actually measured from.
 
 \noindent
 This reproduces one run of the headline campaign, seed 1 of 20. Substituting

@@ -122,9 +122,12 @@ Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep} reports an empiri
 sweep across all four modes. The choice of mode is associated with substantial
 changes in the outcome, alongside the GCA aggregation formula
 (Chapter~\ref{ch:methodology}, Section~\ref{sec:bg-gca}). The \texttt{nli} mode produced the largest GCA
-advantage in that sweep and was selected as the final configuration for the
-validated $n=1{,}000$ campaign and the scale-robustness checks
-(Section~\ref{sec:results-final-campaign}). This should be read as a
+advantage in that sweep and was selected as the intended final
+configuration for the validated $n=1{,}000$ campaign and the
+scale-robustness checks (Section~\ref{sec:results-final-campaign}), though
+Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences} reports
+that the confirmatory twenty-run campaigns were, due to an implementation
+oversight, actually trained under \texttt{nli\_sp} instead. This should be read as a
 judge-\emph{configuration} finding specific to this pipeline and this task, not as
 a general property of sentence-level aggregation independent of the underlying
 judge; Chapter~\ref{ch:discussion} discusses what can and cannot be concluded from

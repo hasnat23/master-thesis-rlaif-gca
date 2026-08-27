@@ -83,9 +83,9 @@ Dataset & CNN/DailyMail; runs at $n=1{,}000$, $5{,}000$, and $10{,}000$
   (subset seed 200) \\
 Candidate generation & Mistral-7B-Instruct-v0.3, two-temperature sampling
   ($T=0.7$ / $T=1.0$) \\
-Evaluator & \texttt{yzha/AlignScore}, mode \texttt{nli} \\
+Evaluator & \texttt{yzha/AlignScore}, mode \texttt{nli}\footnotemark \\
 Manipulated variable & Feedback granularity: holistic vs.\ sentence-level $+$ GCA \\
-GCA aggregation & Simple mean ($\alpha = 0.0$) \\
+GCA aggregation & Simple mean ($\alpha = 0.0$), $n=5{,}000$/$n=10{,}000$ only\footnotemark[\value{footnote}] \\
 Margin & 0 (all pairs used) \\
 Reward model & Bradley--Terry, \url{FacebookAI/roberta-base} backbone,
   mean-pool $+$ linear scalar head \\
@@ -95,6 +95,16 @@ Dependent variable & Reward-model pairwise validation accuracy \\
 \bottomrule
 \end{tabularx}
 \end{table}
+\footnotetext{This is the configuration selected in
+Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep} and intended
+as the locked design. The confirmatory campaigns that produced the results
+in Chapter~\ref{ch:results} were, due to an implementation oversight found
+during final review, actually trained under evaluation mode \texttt{nli\_sp}
+throughout, and, at $n=1{,}000$ specifically, under $\alpha=0.5$ rather than
+$\alpha=0.0$. This discrepancy is reported in full in
+Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}, and its
+consequences are discussed in Chapter~\ref{ch:discussion},
+Section~\ref{sec:disc-interpretation}.}
 
 \section{Granular Credit Assignment (GCA)}
 \label{sec:bg-gca}
@@ -138,9 +148,12 @@ Chapter~\ref{ch:results}, Section~\ref{sec:results-rm-baseline}). A subsequent o
 strategies and found that the simple mean, $\alpha = 0.0$, achieved 97.6\%
 agreement with holistic decisions, the highest of all strategies tested, and,
 combined with the AlignScore \texttt{nli} mode (Chapter~\ref{ch:background}, Section~\ref{sec:bg-alignscore}),
-was the configuration that eventually produced the repeated-run GCA advantage
+was intended as the configuration behind the repeated-run GCA advantage
 (Chapter~\ref{ch:results}, Section~\ref{sec:results-final-campaign}). $\alpha = 0.0$ was accordingly locked
-as the final configuration.
+as the final configuration; whether the \texttt{nli} mode was too is
+qualified in Chapter~\ref{ch:implementation},
+Section~\ref{sec:impl-preferences} and Chapter~\ref{ch:discussion},
+Section~\ref{sec:disc-interpretation}.
 
 
 Figure~\ref{fig:gca-worked} illustrates the difference between the two settings of
@@ -491,8 +504,35 @@ noise from the smallest, highest-signal condition. A trained reward model's
 \emph{success rate} on a given construction is the fraction of comparisons in
 which it scores the higher-GCA-score summary above the lower-GCA-score one;
 this is the dependent variable throughout Section~\ref{sec:results-ground-truth},
-and it is defined identically for the holistic and GCA reward models, so
-neither construction favours either condition by design.
+and it is computed identically for the holistic and GCA reward models,
+using the same fixed ranking for both.
+
+That last point requires a sharper qualification than an earlier version of
+this section gave it. The ranking itself, the ground-truth criterion both
+models are scored against, is constructed using GCA's own aggregation rule
+(sentence-level AlignScore, mean-pooled at $\alpha=0.0$), the same rule the
+GCA reward model is trained to predict. The holistic reward model is
+trained to predict a different rule (whole-summary AlignScore) and is then
+scored against a criterion built from the rule it never saw. The
+\emph{data} are genuinely held out for both conditions, no reward model
+trains on these 500 articles, but the \emph{criterion} is in-distribution
+for GCA and out-of-distribution for holistic in a way that plain data
+held-out-ness does not fix. This does not mean the RQ4 result is void: a
+higher success rate for GCA under a GCA-defined ranking is still evidence
+that GCA's aggregated score is a more decisive signal by its own standard,
+and the two same-model comparisons (GCA vs.\ its own criterion, holistic
+vs.\ the same criterion) are still informative relative to each other. But
+it is not, contrary to what this section previously claimed, a symmetric
+test that treats the two conditions identically, and the possibility that
+part of GCA's RQ4 advantage reflects this asymmetry rather than a general
+precision advantage cannot be ruled out with the data collected here.
+Scoring the held-out pool under a holistic ranking as well, and reporting
+GCA's and holistic's success against both criteria, would settle this and
+is recorded as future work
+(Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-future}); it was not
+attempted here because it requires rescoring 1{,}000 held-out summaries
+with AlignScore under a second configuration, which is new computation
+this thesis does not undertake at this stage.
 
 \paragraph{Checkpoint retention.} The training procedure used for RQ1--RQ3
 (Section~\ref{sec:methodology-rm-eval}) discards each fold's trained weights

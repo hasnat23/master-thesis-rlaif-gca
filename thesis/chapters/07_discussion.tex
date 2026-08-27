@@ -30,14 +30,37 @@ does.
 \section{Why Granularity Interacts With Evaluator Design}
 \label{sec:disc-interpretation}
 
+\begin{caveat}[This section's account is contradicted by the confirmatory
+data, not merely unconfirmed]
+The account originally built in this section, that GCA's advantage
+specifically requires the \texttt{nli} evaluation mode because \texttt{nli}
+lacks the internal sentence decomposition that \texttt{nli\_sp} performs,
+was developed from the single-run mode sweep in
+Section~\ref{sec:results-mode-sweep}, before Chapter~\ref{ch:implementation},
+Section~\ref{sec:impl-preferences} found that the twenty-run confirmatory
+campaign at $n=1{,}000$, the actual headline result of this thesis, was
+trained under \texttt{nli\_sp} throughout, not \texttt{nli}. On the
+account below, a robust GCA advantage under \texttt{nli\_sp} should not
+occur. One did: $+3.95$ percentage points, GCA ahead in all twenty runs,
+$p<0.001$. The account is therefore not an untested hypothesis so much as
+a hypothesis this thesis's own confirmatory data speaks against. It is
+retained in this section, with that contradiction stated plainly
+throughout, because the reasoning about how AlignScore's modes work is
+independently correct and documents a real empirical check, and because
+removing it would obscure how the interpretation of this thesis's results
+changed once the discrepancy was found.
+\end{caveat}
+
 The advantage reported in Chapter~\ref{ch:results},
-Section~\ref{sec:results-final-campaign} is not a property of GCA in the abstract.
-It appears only under a specific combination of two design choices,
-simple-mean aggregation ($\alpha=0.0$) and the AlignScore \texttt{nli} evaluation
-mode, and Section~\ref{sec:results-alpha0-validation} already showed that the
-aggregation-formula change alone is not sufficient: at $\alpha=0.0$ under the
-\texttt{nli\_sp} mode, holistic still led. This section asks why the
-judge mode specifically makes the difference.
+Section~\ref{sec:results-final-campaign} was originally thought not to be a
+property of GCA in the abstract, but to appear only under a specific
+combination of two design choices, simple-mean aggregation ($\alpha=0.0$)
+and the AlignScore \texttt{nli} evaluation mode; Section~\ref{sec:results-alpha0-validation}
+had already shown that the aggregation-formula change alone was not
+sufficient, since holistic still led at $\alpha=0.0$ under \texttt{nli\_sp}
+in that single exploratory run. The remainder of this section reconstructs
+why the judge mode was thought to make the difference, before addressing,
+at the end, why the confirmatory data no longer support that account.
 
 AlignScore's implementation \citep{zha2023alignscore} suggests a plausible
 mechanism, though the present experiments do not test it directly. The \texttt{\_sp} suffix in \texttt{nli\_sp} enables
@@ -110,20 +133,49 @@ could not be run for the unsplit mode.}
 \label{fig:mean-vs-holistic}
 \end{figure}
 
-This measurement supports the part of the account concerning \texttt{nli\_sp},
-but the account as a whole remains an interpretation of an exploratory sweep, and
-three limitations constrain it. The mode comparison rests on a
-single run per mode, and Section~\ref{sec:disc-stochasticity} shows that
-single-run differences of this size fall within observed run-to-run variation;
-only the selected \texttt{nli} configuration received repeated-run validation. No
-ablation isolates the components of the \texttt{\_sp} preprocessing, such as chunk
-size, from the mode change as a whole. And nothing here verifies empirically that
-\texttt{nli\_sp}'s internal aggregation and GCA's external aggregation produce
-comparable scores rather than merely comparable rankings. The proposition that
-evaluator-internal decomposition reduces the marginal benefit of external GCA is
-therefore offered as the most plausible reading of the observed pattern, and as a
-hypothesis worth testing directly, rather than as a finding of this thesis
-(Chapter~\ref{ch:conclusion}).
+This measurement supports the part of the account concerning \texttt{nli\_sp}'s
+internal behaviour considered on its own, but the account as a whole was
+always an interpretation of an exploratory sweep, and even on its own terms
+three limitations constrain it. The mode comparison rests on a single run
+per mode; no ablation isolates the components of the \texttt{\_sp}
+preprocessing, such as chunk size, from the mode change as a whole; and
+nothing verifies empirically that \texttt{nli\_sp}'s internal aggregation
+and GCA's external aggregation produce comparable scores rather than
+merely comparable rankings.
+
+A fourth point is decisive rather than merely limiting. The claim that
+``only the selected \texttt{nli} configuration received repeated-run
+validation'' is what Chapter~\ref{ch:implementation},
+Section~\ref{sec:impl-preferences} found to be false: the twenty-run
+campaign believed to be that validation was actually run under
+\texttt{nli\_sp}, and it reproduced a GCA advantage of similar direction
+and larger magnitude than the single \texttt{nli} run that motivated
+locking the mode in the first place ($+3.95$ points over twenty runs under
+\texttt{nli\_sp}, against $+6.0$ points from a single \texttt{nli} run and
+$+1.3$ points from its confirmation rerun). Read alongside the six-run
+campaign, which genuinely was trained under \texttt{nli}
+(Section~\ref{sec:results-final-campaign}) and also showed a consistent GCA
+advantage ($+3.08$ points, five of six runs), the confirmatory evidence
+available across both modes now points the same way: GCA leads at
+$n=1{,}000$ under \texttt{nli} \emph{and} under \texttt{nli\_sp} once each
+is tested with enough runs to distinguish a real effect from noise. That
+is the opposite of what this section's account predicts, which requires
+the advantage to appear under \texttt{nli} and not under \texttt{nli\_sp}.
+The single-run \texttt{nli\_sp} result that seemed to confirm the account
+($-2.1$ points, Table~\ref{tab:mode-sweep}) is, on this reading, another
+instance of the single-run instability documented directly in
+Section~\ref{sec:disc-stochasticity}, not a stable property of the mode.
+
+The proposition that evaluator-internal decomposition reduces the marginal
+benefit of external GCA is therefore not a finding of this thesis and is
+not, on the evidence now available, a well-supported hypothesis either. It
+is retained above as an account of AlignScore's internal behaviour, which
+the $r=0.983$ correlation genuinely establishes, and as a candidate
+explanation that a future, correctly-configured repetition of these
+campaigns could still test properly; what it cannot currently explain is
+why the confirmatory campaign that was believed to isolate this factor
+shows the same effect the factor was invoked to explain away
+(Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-future}).
 
 \section{How Much Weight the Statistical Evidence Can Carry}
 \label{sec:disc-stats-caveat}
@@ -339,6 +391,21 @@ scale that is absent at larger scale rather than merely a shrinking one, not the
 mechanism behind it: nothing in this design isolates article length, sentence
 count, or segmentation quality as an independent variable, so the account
 above remains the most plausible explanation rather than a demonstrated one.
+
+One piece of direct, rather than inferred, support for it comes from how
+often holistic and GCA actually disagree
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-label-agreement}). On
+any pair where the two conditions reach the same decision, both reward
+models train on an identical (article, chosen, rejected) triple, so the
+disagreeing pairs are what any gap between conditions has to come from.
+That fraction falls from roughly 18\% of pairs at $n=1{,}000$ to 2--3\% at
+$n=5{,}000$ and $n=10{,}000$, under the configuration these campaigns were
+actually trained on. This does not by itself prove the convergence
+account above, since it says only how much room the two conditions have to
+differ, not why GCA uses that room better at small $n$, but it is
+independent, measurable evidence that the room genuinely shrinks in step
+with the vanishing gap, rather than an assumption required to make the
+account work.
 
 Read this way, the larger-scale results are a substantive finding rather than
 an unresolved caveat. GCA provides a confirmed learnability advantage when

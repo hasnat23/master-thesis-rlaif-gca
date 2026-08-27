@@ -101,13 +101,23 @@ two larger ones, with both conclusions resting on repeated, adequately powered
 evidence rather than single runs.
 
 \textbf{RQ2} (how do evaluator configuration and aggregation strategy affect
-relative learnability?) is answered \emph{associationally}. Both the aggregation
-formula and the evaluator mode are associated with substantial changes in the
-outcome, and in the exploratory sweep the two modes in which the evaluator
-performs its own internal decomposition are also the two in which GCA shows no
-advantage (Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep}).
-Because only one mode received repeated-run validation, this pattern is suggestive
-rather than established.
+relative learnability?) is answered \emph{partially, and less conclusively
+than this thesis originally believed}. The aggregation formula clearly
+matters: the original weakest-link penalty measurably hurt GCA relative to
+the simple mean (Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}).
+Evaluator mode was believed to matter in the same way, based on an
+exploratory single-run sweep in which the two modes performing internal
+decomposition showed no GCA advantage. That belief does not survive the
+discovery, during final review, that the confirmatory twenty-run campaign
+was itself trained under one of those two modes
+(\texttt{nli\_sp}, Chapter~\ref{ch:implementation},
+Section~\ref{sec:impl-preferences}) and nonetheless reproduced a GCA
+advantage as large as the one originally attributed to the other mode.
+Taken together with the six-run campaign, which genuinely used the other
+mode and also favoured GCA, the confirmatory evidence now available points
+against evaluator mode being the deciding factor, which is the opposite of
+what the exploratory sweep suggested
+(Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation}).
 
 \textbf{RQ3} (how stable are the differences across runs and dataset sizes?) is
 answered \emph{differently, and now conclusively, across the two axes it asks
@@ -146,7 +156,13 @@ so it is not subject to the nesting caveat that qualifies RQ1--RQ3
 (Section~\ref{sec:methodology-nesting}). It does not, however, remove the
 evaluator-dependence caveat that qualifies every result in this thesis: the
 ground-truth labels are still constructed by AlignScore, the same evaluator
-used throughout (Section~\ref{sec:concl-limitations}).
+used throughout (Section~\ref{sec:concl-limitations}). Nor is the
+comparison as neutral as ``held out'' suggests: the ranking used to score
+both conditions is built from GCA's own aggregation rule, so it is
+in-distribution for GCA and out-of-distribution for holistic in a way that
+disjoint articles alone do not fix, and the $n=1{,}000$ advantage in
+particular has not been checked against a holistic-defined criterion
+(Section~\ref{sec:concl-limitations}).
 
 \section{Status of the Working Hypotheses}
 \label{sec:concl-hypotheses}
@@ -167,12 +183,21 @@ hypothesis as originally stated was unconditional and is therefore not supported
 in that form; what survives is a scale-bounded version of it.
 
 \textbf{H2} (the evaluator's configuration affects whether any such difference is
-observable) is \emph{supported, associationally}. Whether GCA leads at all
-depends on the AlignScore mode, and the two modes in which it does not lead are
-precisely the two in which the evaluator performs its own internal decomposition
-(Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep}). Because each
-mode was run once, the association is established more securely than the
-mechanism behind it.
+observable) is \emph{not supported by the confirmatory evidence, contrary to
+what this thesis concluded before a final-review discovery}. The exploratory
+single-run sweep suggested exactly this, with GCA leading only under modes
+that skip AlignScore's internal decomposition
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep}). But the
+twenty-run campaign that was meant to confirm this, and that this thesis
+believed had, was actually trained under the mode predicted \emph{not} to
+show an advantage, and showed one anyway, as large as the single-run result
+it superseded (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences};
+Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation}). The
+six-run campaign, run under the other mode, also favoured GCA. H2 is
+retained here, marked as refuted rather than removed, because the reasoning
+behind it is not itself wrong and remains worth testing under a correctly
+configured repetition (Section~\ref{sec:concl-future}); what is refuted is
+the specific claim that this thesis's own confirmatory campaigns support it.
 
 \textbf{H3} (effects observed at one dataset scale need not persist at another)
 is \emph{supported, and is the hypothesis the evidence bears on most directly}.
@@ -187,6 +212,33 @@ an unqualified positive finding that the fuller evidence does not support.
 \label{sec:concl-limitations}
 
 \begin{enumerate}
+  \item \textbf{The confirmatory campaigns were not trained on the intended
+    configuration.} Found during final review, after the experimental
+    phase had concluded: the twenty-run campaigns at all three scales, the
+    $n=2{,}000$/$n=3{,}000$ crossover checks, and the RQ4 checkpoints were
+    trained on preference data built under AlignScore's \texttt{nli\_sp}
+    mode, not the \texttt{nli} mode selected in
+    Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep} and
+    described elsewhere in this thesis as locked; at $n=1{,}000$
+    specifically, the aggregation exponent is additionally $\alpha=0.5$
+    rather than the locked $\alpha=0.0$. The comparison between holistic
+    and GCA within each campaign remains fair, since both conditions in a
+    given run were built under the same configuration, and every reported
+    number is a genuine measurement of the run that produced it. What is
+    not sound is this thesis's account, prior to this discovery, of
+    \emph{why} GCA leads at $n=1{,}000$: that account attributes the
+    advantage to AlignScore's \texttt{nli} mode specifically, and the
+    confirmatory campaign that was believed to test this was not run under
+    that mode. This is reported in full in
+    Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences},
+    and its consequences for the evaluator-mode interpretation are
+    addressed in Chapter~\ref{ch:discussion},
+    Section~\ref{sec:disc-interpretation}. It was not corrected by
+    re-running the affected campaigns, both for lack of time before
+    submission and because doing so is new experimental work beyond what
+    had been agreed with the supervisors at this stage of the project; it
+    is recorded as the first item under future work
+    (Section~\ref{sec:concl-future}).
   \item \textbf{No human factuality audit.} No independent human annotation was
     collected in the final study, so the evaluator's judgments were never checked
     against human assessments of faithfulness
@@ -201,6 +253,20 @@ an unqualified positive finding that the fuller evidence does not support.
     summaries with AlignScore-GCA, so it does not remove evaluator-dependence:
     a systematic bias in AlignScore itself would still be present in both the
     training preferences and the RQ4 ground truth alike.
+  \item \textbf{The RQ4 ground-truth criterion is GCA's own rule, not a
+    neutral one.} The ranking RQ4 scores both reward models against is
+    built from GCA's aggregation formula (sentence-level AlignScore, mean
+    at $\alpha=0.0$), the same rule the GCA reward model is trained to
+    predict; the holistic reward model is scored against a criterion built
+    from a rule it never saw (Chapter~\ref{ch:methodology},
+    Section~\ref{sec:methodology-ground-truth}). The held-out
+    \emph{articles} are genuinely disjoint from every training pool, but
+    the \emph{criterion} is not neutral between the two conditions in the
+    way this thesis originally claimed. Some part of GCA's RQ4 advantage,
+    including the $+9.25$ percentage-point result at $n=1{,}000$
+    (Chapter~\ref{ch:results}, Section~\ref{sec:results-gt-1000}), could
+    in principle reflect this asymmetry rather than a general precision
+    advantage, and the data collected here cannot rule that out.
   \item \textbf{Preference learnability is not factual correctness.} The
     dependent variable measures how consistently a preference relation can be
     recovered by the chosen architecture, not whether the preferences are
@@ -315,6 +381,20 @@ an unqualified positive finding that the fuller evidence does not support.
 \label{sec:concl-future}
 
 \begin{itemize}
+  \item \textbf{Re-run the confirmatory campaigns under the intended
+    configuration.} Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}
+    reports that the twenty-run campaigns at all three scales, the
+    $n=2{,}000$/$n=3{,}000$ crossover checks, and the RQ4 checkpoints were
+    trained under AlignScore's \texttt{nli\_sp} mode rather than the
+    intended, selected \texttt{nli} mode, and, at $n=1{,}000$, under
+    $\alpha=0.5$ rather than $\alpha=0.0$. Repeating these campaigns on the
+    correctly-configured preference data, which already exists at
+    \url{data/preferences_1000_alpha0_mode_nli/} for $n=1{,}000$ and would
+    need to be rebuilt with the mode flag corrected for $n=5{,}000$ and
+    $n=10{,}000$, is the most direct way to establish whether the reported
+    effects, and specifically the evaluator-mode interpretation in
+    Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation},
+    hold under the configuration this thesis intended to test throughout.
   \item \textbf{Remove the temperature confound at source.} Summary length and
     sentence count have been ruled out as carriers of the preference signal:
     classifiers using them reach chance accuracy against the evaluator's own
@@ -353,6 +433,17 @@ an unqualified positive finding that the fuller evidence does not support.
     evaluator-independent reference this study still lacks and would indicate
     whether either construction procedure produces labels closer to human
     judgment.
+  \item \textbf{Score the RQ4 held-out pool under a holistic ranking too.}
+    The current ground-truth criterion is built entirely from GCA's own
+    aggregation rule, so it is in-distribution for the GCA reward model and
+    out-of-distribution for holistic in a way plain data held-out-ness does
+    not correct (Chapter~\ref{ch:methodology},
+    Section~\ref{sec:methodology-ground-truth}; Limitations above).
+    Scoring the same 1{,}000 held-out summaries under a holistic ranking as
+    well, and reporting each reward model's success rate against both
+    criteria (or their intersection), would separate a genuine precision
+    advantage from an artefact of the criterion matching GCA's own
+    training objective.
   \item \textbf{Explain the RQ4 reversal.} Two candidate explanations for why
     GCA's ground-truth precision reverses at large training-set sizes were
     tested and rejected: near-zero-margin training pairs

@@ -139,9 +139,12 @@ This work makes the following contributions:
     and~\ref{sec:results-mode-sweep}).
 
   \item A repeated-run, multi-scale evaluation establishing a statistically
-    significant GCA advantage at $n=1{,}000$ with the AlignScore \texttt{nli}
-    mode (20 independent runs, mean $+3.95$ percentage points, run-level
-    Wilcoxon $p<0.001$), and confirming, through twenty-run campaigns at
+    significant GCA advantage at $n=1{,}000$
+    (20 independent runs, mean $+3.95$ percentage points, run-level
+    Wilcoxon $p<0.001$; found during final review to have been trained
+    under AlignScore's \texttt{nli\_sp} mode rather than the \texttt{nli}
+    mode intended, Chapter~\ref{ch:implementation},
+    Section~\ref{sec:impl-preferences}), and confirming, through twenty-run campaigns at
     $n=5{,}000$ and $n=10{,}000$ matching that same resolution, that this
     advantage is genuinely absent
     rather than merely unreproduced at larger scale: both confidence intervals
@@ -187,8 +190,12 @@ Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-scope}.
     Mistral-7B-Instruct-v0.3, sampled at two temperatures ($T=0.7$ and $T=1.0$) to
     produce an A/B candidate pair per source article.
   \item \textbf{Judge:} a single fixed, deterministic factuality judge,
-    \texttt{yzha/AlignScore} \citep{zha2023alignscore}, in its \texttt{nli}
-    evaluation mode. No generative LLM-as-judge and no external API dependency is
+    \texttt{yzha/AlignScore} \citep{zha2023alignscore}, intended throughout
+    in its \texttt{nli} evaluation mode, though the confirmatory campaigns
+    were, due to an implementation oversight found during final review,
+    actually run under its \texttt{nli\_sp} mode
+    (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}).
+    No generative LLM-as-judge and no external API dependency is
     used in the final pipeline.
   \item \textbf{Optimization target:} the learnability of the resulting preference
     data for Bradley--Terry reward-model training, measured by pairwise validation

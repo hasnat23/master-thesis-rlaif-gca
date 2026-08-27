@@ -221,6 +221,110 @@ python src/judging/build\_reward\_preferences.py\\
 \hspace*{1em}--alignscore-backbone FacebookAI/roberta-base
 \end{quote}
 
+\paragraph{A discrepancy between this intended configuration and what the
+confirmatory campaigns actually ran, found during final review.}
+This is reported here in full because it materially affects how several
+results in this thesis should be read, and because finding it and reporting
+it precisely is more useful to the reader than leaving it undiscovered.
+
+The command above is what \emph{should} produce the preference data behind
+every confirmatory campaign, and it is what a small number of exploratory
+runs earlier in the project, including the judge-mode sweep itself
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep}) and the
+six-run campaign that followed it
+(Section~\ref{sec:results-final-campaign}), were in fact built from. It is
+not, however, what the twenty-run extended campaigns at $n=1{,}000$,
+$n=5{,}000$, and $n=10{,}000$ were trained on, nor what the
+$n=2{,}000$/$n=3{,}000$ crossover checks (filtered from the $n=10{,}000$
+file) or the RQ4 checkpoints (trained on the same files as RQ1--RQ3) were
+trained on. Checking the stored preference files directly against the
+training scripts that consumed them shows the following.
+
+\begin{itemize}
+  \item \textbf{\texttt{slurm/build\_preferences\_scale.sh}}, used to build
+    the $n=5{,}000$ and $n=10{,}000$ preference files, never passes
+    \texttt{--alignscore-evaluation-mode} on its command line. The flag's
+    default in \url{src/judging/build_reward_preferences.py} is
+    \texttt{nli\_sp}, not \texttt{nli}, so both files were built under
+    \texttt{nli\_sp}. The aggregation exponent is unaffected: both files
+    correctly carry $\alpha = 0.0$, since \texttt{--alpha 0.0} is passed
+    explicitly.
+  \item The $n=1{,}000$ file at \url{data/preferences_1000/} is dated to
+    the original, pre-optimization run of
+    \url{slurm/build_preferences_1000.sh}
+    (Section~\ref{sec:results-rm-baseline}), which explicitly passes
+    \texttt{--alpha 0.5} and, like the scale script, never sets
+    \texttt{--alignscore-evaluation-mode}, so it too defaults to
+    \texttt{nli\_sp}. A separate file built correctly under \texttt{nli},
+    $\alpha=0.0$ exists at
+    \url{data/preferences_1000_alpha0_mode_nli/}. This correct file is what
+    the six-run campaign (Section~\ref{sec:results-final-campaign}) actually
+    used: its four ``seed validation'' runs were each built fresh by
+    \url{slurm/mode_nli_seed_confirm.sh}, which does pass
+    \texttt{--alignscore-evaluation-mode nli} explicitly, and the run-metadata
+    JSON files for those four runs
+    (\url{outputs/mode_sweep_alpha0/mode_nli_seed\{7,100,314,2026\}/}) confirm
+    both the correct configuration and an exact match to the six-run
+    figures reported in Table~\ref{tab:seed-validation}. The twenty-run
+    extended campaign that supersedes it
+    (Section~\ref{sec:results-extended-campaign}) does not share this
+    property: its own stored run-metadata, for every one of its twenty
+    seeds, records \url{data/preferences_1000/} as the input, i.e.\ the
+    stale $\alpha=0.5$/\texttt{nli\_sp} file, not
+    \url{data/preferences_1000_alpha0_mode_nli/}. The RQ4 checkpoints at
+    $n=1{,}000$ were trained from the same stale file. In short: the
+    six-run campaign at $n=1{,}000$ is correctly configured; the twenty-run
+    campaign that supersedes it, and every RQ4 result built on it, is not.
+  \item The RQ4 held-out ground truth (Chapter~\ref{ch:methodology},
+    Section~\ref{sec:methodology-ground-truth}) is not affected in the same
+    way: \url{slurm/build_ground_truth.sh} does pass
+    \texttt{--alignscore-evaluation-mode nli} explicitly, and this is the
+    only stage in the pipeline for which the intended and executed
+    configurations agree.
+\end{itemize}
+
+The practical consequence is that every reward model whose accuracy is
+reported as a confirmatory result in this thesis, the RQ1/RQ3 twenty-run
+campaigns at all three scales, the $n=2{,}000$/$n=3{,}000$ crossover checks,
+and the RQ4 checkpoints, was trained on preference data built under
+\texttt{nli\_sp}, not the \texttt{nli} configuration that
+Section~\ref{sec:results-mode-sweep} selected and that this thesis describes
+elsewhere as locked. At $n=1{,}000$ specifically, the aggregation exponent is
+additionally the original $\alpha=0.5$ penalty formula rather than the
+locked $\alpha=0.0$ simple mean. The RQ4 ground-truth criterion itself was
+scored under the correctly-locked \texttt{nli}, $\alpha=0.0$ configuration,
+so the training data and the ground-truth criterion in RQ4 were built under
+different judge configurations from one another, a further consequence
+addressed in Chapter~\ref{ch:results}, Section~\ref{sec:results-ground-truth}
+and recorded as a limitation in Chapter~\ref{ch:conclusion},
+Section~\ref{sec:concl-limitations}.
+
+Two things are unaffected by this. First, every reported number is a
+genuine measurement of the data that was actually used: the run-metadata
+files trace every seed's result back to the exact preference file consumed,
+and the accuracies, gaps, and statistics reported throughout
+Chapter~\ref{ch:results} are correctly computed from those runs. What is
+incorrect is the description, repeated at several points in this thesis
+prior to this discovery, of that data as the \texttt{nli}, $\alpha=0.0$
+configuration. Second, the comparison between holistic and GCA within each
+campaign remains fair: both conditions in a given campaign were built from
+the same candidate pool under the same (if mislabelled) judge configuration,
+so the discrepancy does not advantage one condition over the other within a
+run. What it does undermine is the specific mechanistic account in
+Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation}, that the
+\texttt{nli} mode's absence of internal decomposition is why GCA shows an
+advantage: the confirmatory campaigns were not run under that mode, and that
+account is revisited in light of this finding at the same location.
+
+This was found during a final review pass after the experimental phase of
+the project had concluded. Re-running the affected campaigns under the
+correctly-configured data would settle whether the reported effects persist
+under the intended configuration, and is recorded as the first item under
+future work (Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-future});
+it was not attempted here, both because of the time remaining before
+submission and because it constitutes new experimental work beyond what had
+already been agreed with the supervisors for this stage of the project.
+
 \section{Reward-Model Training}
 \label{sec:impl-rm-training}
 

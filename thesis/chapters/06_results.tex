@@ -344,7 +344,10 @@ substitutes. This sweep is exploratory and each mode was run once, so the
 comparison across modes should be read as suggestive rather than established:
 Section~\ref{sec:results-final-campaign} shows that single-run differences of this
 magnitude fall within the range of run-to-run variation, and only the
-\texttt{nli} configuration was subsequently validated across repeated runs.
+\texttt{nli} configuration was subsequently validated across repeated runs
+in that six-run campaign (though, as Chapter~\ref{ch:implementation},
+Section~\ref{sec:impl-preferences} reports, the twenty-run campaign that
+later supersedes it did not, in fact, remain on \texttt{nli}).
 Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation} develops the
 interpretation and states what would be required to test it.
 
@@ -533,10 +536,27 @@ seeds 1 through 20, fixed in advance of running any of them so that no seed
 could be selected after seeing its result. Table~\ref{tab:seed-campaign-full}
 lists every run.
 
+\begin{caveat}[The preference data for this campaign, found during final review]
+The intention, consistent with the six-run campaign it extends, was to
+train this campaign on the \texttt{nli}-mode, $\alpha=0.0$ preference file
+at \url{data/preferences_1000_alpha0_mode_nli/}. The stored run-metadata for
+all twenty seeds shows the training script instead read
+\url{data/preferences_1000/}, the earlier, pre-optimization file built under
+\texttt{nli\_sp} and $\alpha=0.5$ (Chapter~\ref{ch:implementation},
+Section~\ref{sec:impl-preferences}). Every number in this section and
+Table~\ref{tab:seed-campaign-full} is an accurate report of the runs as
+executed; the comparison between holistic and GCA remains fair, since both
+conditions were built from the same (mislabelled) file, but the campaign
+does not test the configuration Section~\ref{sec:results-mode-sweep}
+selected. Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation}
+discusses what this means for the mode-based interpretation offered there.
+\end{caveat}
+
 \begin{table}[htbp]
 \centering
 \caption[Per-run results, extended twenty-run campaign]{Per-run results for the extended campaign, seeds 1--20,
-$n=1{,}000$, \texttt{nli} mode, $\alpha=0.0$, margin 0.}
+$n=1{,}000$, as executed under \texttt{nli\_sp} mode, $\alpha=0.5$, margin 0
+(see caveat above; \texttt{nli}/$\alpha=0.0$ was intended).}
 \label{tab:seed-campaign-full}
 \begin{tabular}{rrrr}
 \toprule
@@ -622,11 +642,13 @@ from too few runs rather than genuine instability of the effect.}
 \end{figure}
 
 \begin{keyfinding}[Headline learnability result (RQ1)]
-At $n=1{,}000$, under the locked \texttt{nli}-mode, $\alpha=0.0$, margin-0
-configuration, GCA preference construction produces a more learnable
-reward-model signal than holistic construction: mean gap $+3.95$ percentage
-points across twenty independently seeded runs, GCA ahead in all twenty,
-run-level Wilcoxon $p<0.001$, Cohen's $d=+2.22$.
+At $n=1{,}000$, under the \texttt{nli\_sp}-mode, $\alpha=0.5$, margin-0
+configuration this campaign was actually trained on (not the locked
+\texttt{nli}/$\alpha=0.0$ configuration intended, see the caveat above),
+GCA preference construction produces a more learnable reward-model signal
+than holistic construction: mean gap $+3.95$ percentage points across
+twenty independently seeded runs, GCA ahead in all twenty, run-level
+Wilcoxon $p<0.001$, Cohen's $d=+2.22$.
 \end{keyfinding}
 
 The mean gap under the extended campaign, $+3.95$ percentage
@@ -653,6 +675,20 @@ deterministic training procedure used for the $n=1{,}000$ extension
 (Section~\ref{sec:results-extended-campaign}).
 Table~\ref{tab:scale-robustness-runs} reports the resulting run-level
 statistics at all three scales.
+
+The $n=5{,}000$ and $n=10{,}000$ preference files carry the same discrepancy
+documented for $n=1{,}000$ in the caveat above, though only in the
+evaluation mode: \url{slurm/build_preferences_scale.sh} never sets
+\texttt{--alignscore-evaluation-mode}, so both files were built under
+\texttt{nli\_sp} rather than the intended \texttt{nli}
+(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}). The
+aggregation exponent at these two scales is unaffected, since
+\texttt{--alpha 0.0} is passed explicitly; unlike $n=1{,}000$, there is no
+correctly-configured six-run precursor at these scales, as both were
+extended directly from a single run. Every $n=5{,}000$/$n=10{,}000$ result
+in this thesis, including the $n=2{,}000$/$n=3{,}000$ crossover checks
+filtered from the $n=10{,}000$ file, is therefore reported under
+\texttt{nli\_sp}, not \texttt{nli}.
 
 \begin{table}[htbp]
 \centering
@@ -989,6 +1025,15 @@ both are limited by the same 2{,}000-character article truncation
 bounds how much evidence either model can check a summary against regardless
 of how large the quality gap between the two candidates is.
 
+The ranking used to compute success rate throughout this section is built
+from GCA's own aggregation rule, not a rule neutral to both conditions
+(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-ground-truth}).
+Every GCA-versus-holistic gap reported here, including the $+9.25$ and
+$+7.38$ point advantages above, should be read with that in mind: they are
+established against a GCA-defined criterion, and the same evaluation under
+a holistic-defined criterion has not been run
+(Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-future}).
+
 \subsection{Scale Dependence: \texorpdfstring{$n=5{,}000$}{n=5,000} and \texorpdfstring{$n=10{,}000$}{n=10,000}}
 \label{sec:results-gt-scale}
 
@@ -1245,37 +1290,108 @@ This was checked directly against the stored per-pair score gaps in the
 existing preference files, which required no additional model training or
 AlignScore scoring. Table~\ref{tab:near-tie} reports the fraction of
 training pairs with a score gap below 0.05, for both conditions at all three
-main training-set sizes.
+main training-set sizes, recomputed directly from the files each campaign
+actually trained on (Chapter~\ref{ch:implementation},
+Section~\ref{sec:impl-preferences}) rather than from the intended
+\texttt{nli}/$\alpha=0.0$ files, which is why the $n=1{,}000$ column differs
+from an earlier version of this table computed before that discrepancy was
+found.
 
 \begin{table}[htbp]
 \centering
 \caption[Near-tie training-pair fraction, holistic vs.\ GCA]{Fraction of training preference pairs with a score gap below 0.05,
-by condition and training-set size.}
+by condition and training-set size, computed from the preference files each
+campaign actually trained on.}
 \label{tab:near-tie}
 \begin{tabular}{rrrrr}
 \toprule
 $n$ & Holistic (frac.\ $<0.05$) & GCA (frac.\ $<0.05$) & Holistic (count) & GCA (count) \\
 \midrule
-1{,}000  & 20.5\% & 26.5\% & 205 & 265 \\
-5{,}000  & 24.6\% & 24.4\% & 1{,}229 & 1{,}220 \\
-10{,}000 & 24.2\% & 24.2\% & 1{,}103\footnotemark & 1{,}103 \\
+1{,}000  & 24.6\% & 21.3\% & 246 & 213 \\
+5{,}000  & 24.6\% & 24.4\% & 1{,}232 & 1{,}218 \\
+10{,}000 & 24.2\% & 24.2\% & 2{,}416 & 2{,}425 \\
 \bottomrule
 \end{tabular}
 \end{table}
-\footnotetext{Restricted to pairs with a recorded score gap below 0.02 rather
-than 0.05 at this row only, due to a logging granularity difference between
-the two preference-construction runs; the two conditions remain directly
-comparable to each other within this row, which is the relevant comparison.}
 
-The mechanism does not hold up against this data. At $n=5{,}000$ and
+The mechanism does not hold up against this data, though the shape of the
+rejection differs from a first look at the raw preference files (which used
+the intended rather than the executed configuration). At $n=5{,}000$ and
 $n=10{,}000$, the near-tie fraction is essentially identical between the two
-conditions, not larger for GCA. At $n=1{,}000$, the scale at which GCA
-\emph{leads}, GCA in fact has a \emph{larger} share of near-tie pairs than
-holistic (26.5\% versus 20.5\%), the opposite of what the hypothesis
-predicts. Near-tie training-pair prevalence is therefore rejected as an
-explanation for the reversal: the asymmetry the mechanism requires is not
-present in the training data at any scale, and where an asymmetry does
-appear it points the wrong way.
+conditions, not larger for GCA, so there is no growing asymmetry at the
+scales where GCA actually loses. At $n=1{,}000$, the scale at which GCA
+\emph{leads}, GCA has \emph{fewer} near-tie pairs than holistic (21.3\%
+versus 24.6\%), not more. The hypothesis requires GCA's near-tie share to
+be disproportionately larger, and to grow relative to holistic's as $n$
+grows, so that fitting that noise increasingly hurts GCA at scale; instead
+the largest gap between conditions occurs at the one scale where GCA wins,
+and it points the wrong way, while the two scales where GCA loses show
+next to no gap at all. Near-tie training-pair prevalence is therefore
+rejected as an explanation for the reversal.
+
+\subsection{How Often Holistic and GCA Agree}
+\label{sec:results-label-agreement}
+
+A related question, raised independently of the two hypotheses above, is
+how often the two conditions' labels agree in the first place. Holistic
+and GCA are scored from the same candidate pool, so on any pair where both
+conditions reach the same A/B decision, the two reward models are trained
+on literally the same (article, chosen, rejected) triple; the labels can
+only differ on pairs where the two decisions disagree. Table~\ref{tab:label-agreement}
+reports this directly, computed from the same preference files as
+Table~\ref{tab:near-tie}, at every scale for which the actually-trained
+files are available, and additionally for the intended
+\texttt{nli}/$\alpha=0.0$ configuration at $n=1{,}000$
+(\url{data/preferences_1000_alpha0_mode_nli/}), where it can be measured
+without new AlignScore scoring.
+
+\begin{table}[htbp]
+\centering
+\caption[Holistic/GCA label agreement by scale and configuration]{Fraction of preference pairs on which holistic and GCA reach the
+same A/B decision, by training-set size and evaluator configuration.}
+\label{tab:label-agreement}
+\begin{tabular}{llrr}
+\toprule
+$n$ & Configuration & Pairs compared & Agreement \\
+\midrule
+1{,}000  & \texttt{nli}, $\alpha=0.0$ (intended)   & 1{,}000 & 63.9\% \\
+1{,}000  & \texttt{nli\_sp}, $\alpha=0.5$ (as trained) & 1{,}000 & 82.2\% \\
+5{,}000  & \texttt{nli\_sp}, $\alpha=0.0$ (as trained) & 4{,}998 & 97.5\% \\
+10{,}000 & \texttt{nli\_sp}, $\alpha=0.0$ (as trained) & 9{,}991 & 97.9\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two patterns stand out. First, agreement rises sharply with training-set
+size under the configuration actually used for the confirmatory campaigns:
+from 82.2\% at $n=1{,}000$ to 97.5--97.9\% at $n=5{,}000$/$n=10{,}000$. This
+bears directly on the RQ1 result. Because agreeing pairs give both
+conditions identical training signal, the disagreeing pairs, roughly 18\%
+of the training set at $n=1{,}000$ but only 2--3\% at $n=5{,}000$ and
+$n=10{,}000$, are the only pairs that can possibly produce a difference in
+what the two reward models learn, absent second-order effects from training
+jointly on a slightly different overall set. A shrinking pool of
+disagreeing pairs is consistent with, and offers a direct mechanistic
+account of, a shrinking gap between conditions: there is simply less room
+at large $n$ for the two label sets to diverge, independent of any claim
+about which construction procedure is more informative per label. Second,
+evaluator mode affects agreement by more than dataset size does at
+$n=1{,}000$: the intended \texttt{nli} configuration agrees only 63.9\% of
+the time, well below \texttt{nli\_sp}'s 82.2\%, consistent with
+Section~\ref{sec:disc-interpretation}'s account of \texttt{nli\_sp}
+performing an internal decomposition that already resembles what GCA does
+externally, which should make the two conditions' decisions converge more
+often under \texttt{nli\_sp} than under \texttt{nli}. This pattern holds
+even though, as reported in Section~\ref{sec:results-extended-campaign}
+above, the resulting reward-model accuracy gap does not track it in the
+way the mode-based account of Section~\ref{sec:disc-interpretation}
+predicts.
+
+The corresponding figures for $n=5{,}000$ and $n=10{,}000$ under the
+intended \texttt{nli} configuration cannot be computed without rebuilding
+those preference files under the correct evaluator-mode flag and rescoring
+with AlignScore, which is new computation beyond what this thesis attempts
+(Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-future}).
 
 \subsection{A Second Candidate Tested and Rejected: A Length/Sentence-Count Shortcut}
 \label{sec:results-gt-shortcut}
