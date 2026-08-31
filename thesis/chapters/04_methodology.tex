@@ -309,18 +309,22 @@ status, and the distinction is material to how the results should be read.
 
 The aggregation-formula comparison (Section~\ref{sec:results-formula-opt}), the
 evaluator-mode sweep (Section~\ref{sec:results-mode-sweep}), and the
-hyperparameter search (Section~\ref{sec:results-alpha0-validation}) were all
+hyperparameter search (Appendix~\ref{app:exploratory},
+Section~\ref{sec:results-alpha0-validation}) were all
 carried out on the $n=1{,}000$ setting, and the final configuration was selected
-after observing their outcomes. These experiments are exploratory. The
+after observing their outcomes. These experiments are exploratory, and are
+reported as such: the first two in condensed form because they justify a design
+decision, the rest in the appendix. The
 configuration they produced was not specified in advance, and reporting it as
 though it had been pre-registered would overstate the evidence: with enough
 configurations examined, some separation between conditions is expected by chance
 alone.
 
-The repeated runs at $n=1{,}000$ (Section~\ref{sec:results-final-campaign}) test
-whether the selected configuration produces a stable effect under repetition, but
-they reuse the dataset on which that configuration was chosen and therefore cannot
-establish that it generalizes beyond that setting.
+The twenty-run campaign at $n=1{,}000$
+(Section~\ref{sec:results-extended-campaign}) tests whether the selected
+configuration produces a stable effect under repetition, but it reuses the
+dataset on which that configuration was chosen and therefore cannot establish
+that it generalizes beyond that setting.
 
 The $n=5{,}000$ and $n=10{,}000$ experiments provide a weaker check than would be
 ideal, for a reason that must be stated explicitly. All three subsets are drawn

@@ -37,13 +37,18 @@ to holistic factuality supervision. They show that sentence-level aggregation
 produces a statistically significant, repeatedly confirmed improvement in the
 learnability of automatically generated pairwise preferences specifically when
 training data are scarce, and no detectable improvement once training data
-become more plentiful. In the exploratory mode comparison, the advantage appears
-under evaluator modes that do not themselves decompose the input, which
-motivates the hypothesis that external and evaluator-internal decomposition may
-act partly as substitutes. Taken together, the results indicate that the
-usefulness of granular credit assignment is bounded to a specific,
-data-scarce regime, and depends within that regime on evaluator configuration
-and aggregation choice, rather than following from finer granularity as such.
+become more plentiful. An exploratory single-run sweep suggested that the
+advantage appears only under evaluator modes that do not themselves decompose
+the input, motivating the hypothesis that external and evaluator-internal
+decomposition act partly as substitutes; the confirmatory campaigns do not
+support that hypothesis, which is discussed in
+Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation} and revisited
+under RQ2 below. What the aggregation comparison does establish is that the rule
+used to combine sentence scores matters: a weakest-link penalty performed
+measurably worse than a simple mean. Taken together, the results indicate that
+the usefulness of granular credit assignment is bounded to a specific,
+data-scarce regime, and depends within that regime on the aggregation rule
+chosen, rather than following from finer granularity as such.
 
 A fourth question (RQ4, Chapter~\ref{ch:methodology},
 Section~\ref{sec:methodology-rqs}) asked whether this learnability advantage
