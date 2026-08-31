@@ -38,12 +38,19 @@ Section~\ref{sec:methodology-ground-truth} describes the independent
 evaluation constructed to address this, and
 Section~\ref{sec:results-ground-truth} reports its results.
 
-Three working hypotheses guided the design. H1: sentence-level aggregated
-preferences are more learnable than holistic preferences, because they localize
-the factuality signal within a long output. H2: the evaluator's configuration
-affects whether any such difference is observable. H3: effects observed at one
-dataset scale need not persist at another. Their status is assessed in
-Chapter~\ref{ch:conclusion}.
+Two substantive working hypotheses guided the design, alongside one
+methodological precaution. \textbf{H1}, the primary hypothesis, is that
+sentence-level aggregated preferences are more learnable than holistic
+preferences, because they localize the factuality signal within a long output.
+\textbf{H2} is that the evaluator's configuration affects whether any such
+difference is observable at all, so that granularity cannot be assessed
+independently of the judge it is applied on top of. \textbf{H3} is not a
+prediction about the world but a precaution against generalising from one
+setting: that effects observed at one dataset scale need not persist at
+another, and so must be checked rather than assumed. It is stated alongside the
+other two because it turned out to determine the shape of the final result.
+The status of all three against the evidence collected is assessed in
+Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-hypotheses}.
 
 \section{Study Design}
 \label{sec:methodology-design}
@@ -85,7 +92,7 @@ Candidate generation & Mistral-7B-Instruct-v0.3, two-temperature sampling
   ($T=0.7$ / $T=1.0$) \\
 Evaluator & \texttt{yzha/AlignScore}, mode \texttt{nli}\footnotemark \\
 Manipulated variable & Feedback granularity: holistic vs.\ sentence-level $+$ GCA \\
-GCA aggregation & Simple mean ($\alpha = 0.0$), $n=5{,}000$/$n=10{,}000$ only\footnotemark[\value{footnote}] \\
+GCA aggregation & Simple mean ($\alpha = 0.0$)\footnotemark[\value{footnote}] \\
 Margin & 0 (all pairs used) \\
 Reward model & Bradley--Terry, \url{FacebookAI/roberta-base} backbone,
   mean-pool $+$ linear scalar head \\
@@ -143,13 +150,13 @@ achieved only 82.2\% agreement with the corresponding holistic decision on the
 same 1{,}000 candidate pairs, and when used to construct reward-model training
 data it caused the GCA reward model to \emph{underperform} the holistic reward
 model (56.0\% vs.\ 57.2\% mean pairwise accuracy;
-Chapter~\ref{ch:results}, Section~\ref{sec:results-rm-baseline}). A subsequent optimization campaign
+Appendix~\ref{app:exploratory}, Section~\ref{sec:results-rm-baseline}). A subsequent optimization campaign
 (Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}) tested nine alternative aggregation
 strategies and found that the simple mean, $\alpha = 0.0$, achieved 97.6\%
 agreement with holistic decisions, the highest of all strategies tested, and,
 combined with the AlignScore \texttt{nli} mode (Chapter~\ref{ch:background}, Section~\ref{sec:bg-alignscore}),
 was intended as the configuration behind the repeated-run GCA advantage
-(Chapter~\ref{ch:results}, Section~\ref{sec:results-final-campaign}). $\alpha = 0.0$ was accordingly locked
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-final-campaign}). $\alpha = 0.0$ was accordingly locked
 as the final configuration; whether the \texttt{nli} mode was too is
 qualified in Chapter~\ref{ch:implementation},
 Section~\ref{sec:impl-preferences} and Chapter~\ref{ch:discussion},
@@ -162,8 +169,8 @@ contains four well-supported sentences and one that the evaluator scores at
 $0.011$; summary B is more uniformly mediocre. Under the simple mean the single
 weak sentence is diluted by the other four and A is preferred, matching the
 holistic decision. Under the penalty formula the minimum term dominates and the
-decision reverses. This is the behaviour the penalty was designed to produce, and
-also the behaviour that made it noisier in practice
+decision reverses. This is the behavior the penalty was designed to produce, and
+also the behavior that made it noisier in practice
 (Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}).
 
 \begin{figure}[htbp]
@@ -259,60 +266,40 @@ cross-validation uses the full dataset for both and yields five accuracy
 readings per run.
 
 Cross-validation alone does not account for variance introduced by the reward
-model's initialization and by which pairs fall into which fold. This became
-apparent during the study: a first run of the final configuration produced a GCA
-advantage of $+6.0$ percentage points, while a rerun of the identical
-configuration \emph{at the same seed value} produced $+1.3$ percentage points
-(Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep}). That two
-same-seed runs diverge follows from an implementation detail documented in
-Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}: the
-\texttt{--seed} argument controls the cross-validation fold assignment, while
-PyTorch's generator is left unseeded, so weight initialization, batch ordering and
-dropout all vary between executions. A seed value therefore does not pin down a
-run completely, and repeated runs at one seed value are not redundant.
+model's initialization and by which pairs fall into which fold, and at this
+dataset size that variance is large enough to reverse a single run's conclusion
+(Appendix~\ref{app:exploratory},
+Section~\ref{sec:results-alpha0-validation}). Every reported comparison is
+therefore a repeated-run campaign, and the \emph{run} is treated as the unit of
+independent replication throughout: each confirmatory result pools
+\emph{twenty independently seeded runs} (seeds 1--20, fixed before any was
+executed) under a training procedure in which PyTorch and CUDA are seeded per
+fold, so that a run is fully determined by its seed
+(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}). The same
+twenty-run resolution is used at all three dataset sizes, so no scale carries
+more evidential weight than another.
 
-The $n=1{,}000$ result was accordingly first pooled over \emph{six training runs}
-spanning \emph{five distinct seed values} (42, 42, 7, 100, 314, 2026; seed 42
-appears twice, as the original run and its rerun), giving 30 fold-level accuracy
-readings per condition.
+Two consequences of this design are carried through the rest of the thesis. The
+first concerns which level the statistics may be applied at. Fold-level
+differences are not independent observations: the five folds within a run
+partition a single dataset, so their training sets overlap heavily and their
+errors are correlated, and procedures assuming independence overstate the
+effective sample size. All confirmatory statistics reported in this thesis (the
+bootstrap intervals, the Wilcoxon tests, the effect sizes, and the equivalence
+tests of Section~\ref{sec:results-effect-sizes}) are therefore computed over
+run-level differences, for which the assumption does hold; fold-level figures
+appear only as descriptive summaries of spread
+(Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-stats-caveat}).
 
-Two properties of this pooling constrain the statistical claims that can be made
-from it, and are revisited in Chapter~\ref{ch:discussion},
-Section~\ref{sec:disc-stats-caveat}. Six runs across five seed values is a modest
-basis for a variance estimate. More consequentially, the 30 fold-level differences
-are not 30 independent observations: the five folds within a run partition a
-single dataset, so their training sets overlap heavily and their errors are
-correlated. Procedures assuming independent observations therefore overstate the
-effective sample size. Fold-level uncertainty estimates are reported in
-Chapter~\ref{ch:results} as exploratory and anti-conservative, not as
-confirmatory tests.
+The second concerns campaign size. With $n$ paired same-signed observations the
+smallest attainable two-sided Wilcoxon $p$-value is $2/2^{n}$, which at $n=6$ is
+$0.031$ and leaves no room for a single discordant run, while at $n=20$ it is
+$1.9\times10^{-6}$. Twenty runs is thus the smallest campaign size that permits
+a result below the conventional threshold with a realistic margin, which is why
+the earlier six-run campaign could not have established run-level significance
+at any true effect size (Appendix~\ref{app:exploratory},
+Section~\ref{sec:results-final-campaign}).
 
-Both constraints motivated the design actually used for the reported headline
-result. The \emph{run} is treated as the unit of independent replication
-throughout, and the campaign was extended to \emph{twenty independently seeded
-runs} (seeds 1--20, fixed before any was executed) under a corrected training
-procedure in which PyTorch and CUDA are seeded per fold, so that a run is fully
-determined by its seed (Chapter~\ref{ch:implementation},
-Section~\ref{sec:impl-rm-training}). All confirmatory statistics reported in
-this thesis (the bootstrap interval, the Wilcoxon test, the effect sizes, and
-the equivalence tests of Section~\ref{sec:results-effect-sizes}) are computed
-over these run-level differences, for which the independence assumption does
-hold. Fold-level figures are retained only as descriptive summaries of spread.
-Twenty runs is also the smallest campaign size that permits a two-sided Wilcoxon
-result below the conventional threshold with a realistic margin: with $n$ paired
-same-signed observations the smallest attainable two-sided $p$-value is
-$2/2^{n}$, which at $n=6$ is $0.031$ and leaves no room for a single
-discordant run, while at $n=20$ it is $1.9\times10^{-6}$
-(Chapter~\ref{ch:results}, Section~\ref{sec:results-extended-campaign}).
-
-The $n=5{,}000$ and $n=10{,}000$ configurations were initially each executed
-once rather than repeated, for reasons of computational budget, and at that
-stage carried correspondingly less weight than the pooled $n=1{,}000$ result.
-Both were subsequently extended to twenty-run campaigns under the same
-corrected, deterministic training procedure used for the $n=1{,}000$ extension,
-matching its resolution exactly (Chapter~\ref{ch:results},
-Section~\ref{sec:results-scale}), so all three dataset sizes are now supported
-by equally powered, repeated-run evidence rather than only $n=1{,}000$.
 
 \section{Exploratory and Confirmatory Experiments}
 \label{sec:methodology-exploratory}
@@ -507,8 +494,8 @@ this is the dependent variable throughout Section~\ref{sec:results-ground-truth}
 and it is computed identically for the holistic and GCA reward models,
 using the same fixed ranking for both.
 
-That last point requires a sharper qualification than an earlier version of
-this section gave it. The ranking itself, the ground-truth criterion both
+That last point requires a sharp qualification. The ranking itself, the
+ground-truth criterion both
 models are scored against, is constructed using GCA's own aggregation rule
 (sentence-level AlignScore, mean-pooled at $\alpha=0.0$), the same rule the
 GCA reward model is trained to predict. The holistic reward model is
@@ -522,7 +509,7 @@ higher success rate for GCA under a GCA-defined ranking is still evidence
 that GCA's aggregated score is a more decisive signal by its own standard,
 and the two same-model comparisons (GCA vs.\ its own criterion, holistic
 vs.\ the same criterion) are still informative relative to each other. But
-it is not, contrary to what this section previously claimed, a symmetric
+it is not a symmetric
 test that treats the two conditions identically, and the possibility that
 part of GCA's RQ4 advantage reflects this asymmetry rather than a general
 precision advantage cannot be ruled out with the data collected here.

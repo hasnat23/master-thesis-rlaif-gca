@@ -8,8 +8,8 @@ Large language models (LLMs) are increasingly used for multi-sentence generation
 tasks such as news summarization. In this setting, the perceived quality of an output is often
 dominated not by its overall fluency but by a small number of high-impact factual
 errors: a wrong entity, a flipped relation, or a fabricated claim can outweigh
-otherwise well-written text. Throughout this thesis, \emph{reliability} refers
-specifically to factual consistency with the source document, not to stylistic
+otherwise well-written text. The quality dimension this thesis is concerned with
+throughout is \emph{factual consistency} with the source document, not stylistic
 polish or fluency.
 
 Preference-based fine-tuning, most prominently reinforcement learning from human
@@ -24,14 +24,23 @@ A further question arises for long, multi-sentence outputs such as news summarie
 one that is largely independent of whether the feedback comes from a human or an AI
 judge: how granular should the preference signal be? A single holistic judgment
 (``summary A is better than summary B'') collapses all of the evidence in a
-multi-sentence output into one binary decision. If a summary is mostly accurate but
-contains one fabricated sentence, a holistic judge may still prefer it over an
-alternative that is uniformly mediocre but contains no outright fabrication. The
-holistic label cannot express that distinction. Sentence-level judging can in
+multi-sentence output into one binary decision, and cannot express \emph{where}
+in the output the deciding evidence lies. Sentence-level judging can in
 principle localize exactly which claims are, and are not, supported by the source,
 and that localized evidence can then be aggregated into a summary-level decision.
 This thesis asks whether that extra granularity actually produces a better training
 signal, and under what conditions.
+
+The intuition that originally motivated the design was more specific: that a
+summary which is mostly accurate but contains one fabricated sentence ought to be
+penalised relative to one that is uniformly mediocre but fabricates nothing, and
+that a single holistic label cannot make that distinction. It is worth stating
+that intuition explicitly, because the results reported here do not bear it out.
+The aggregation rule built to act on it, a weakest-link penalty, performed
+measurably \emph{worse} than a simple mean of the same sentence scores
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}), and what
+survives of the granularity question is narrower and more conditional than the
+motivating intuition suggests.
 
 \section{Problem Statement}
 \label{sec:intro-problem}
@@ -130,32 +139,20 @@ This work makes the following contributions:
     architecture, and training procedure are held fixed
     (Chapter~\ref{ch:methodology}).
 
-  \item An empirical study of how evaluator mode and aggregation strategy
-    interact with feedback granularity. Neither the aggregation formula nor the
-    evaluator configuration is neutral: a penalty-weighted aggregation performs
-    worse than a simple mean, and in an exploratory sweep the evaluator mode is
-    associated with whether an advantage for GCA is observed at all
-    (Chapter~\ref{ch:results}, Sections~\ref{sec:results-formula-opt}
-    and~\ref{sec:results-mode-sweep}).
+  \item Evidence that the rule used to aggregate sentence-level scores is not a
+    neutral implementation detail: a penalty-weighted aggregation performs
+    measurably worse than a simple mean of the same scores
+    (Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}).
 
   \item A repeated-run, multi-scale evaluation establishing a statistically
     significant GCA advantage at $n=1{,}000$
     (20 independent runs, mean $+3.95$ percentage points, run-level
-    Wilcoxon $p<0.001$; found during final review to have been trained
-    under AlignScore's \texttt{nli\_sp} mode rather than the \texttt{nli}
-    mode intended, Chapter~\ref{ch:implementation},
-    Section~\ref{sec:impl-preferences}), and confirming, through twenty-run campaigns at
-    $n=5{,}000$ and $n=10{,}000$ matching that same resolution, that this
-    advantage is genuinely absent
-    rather than merely unreproduced at larger scale: both confidence intervals
-    are centred on zero and neither overlaps the $n=1{,}000$ result
-    (Sections~\ref{sec:results-final-campaign} and~\ref{sec:results-scale}).
-
-  \item An exploratory observation that the benefit of external sentence-level
-    decomposition may be reduced when the underlying evaluator already performs
-    comparable internal decomposition, offered as a hypothesis motivated by the
-    mode comparison rather than as an established mechanism
-    (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation}).
+    Wilcoxon $p<0.001$), and confirming, through twenty-run campaigns at
+    $n=5{,}000$ and $n=10{,}000$ at the same resolution, that this
+    advantage is genuinely absent rather than merely unreproduced at larger
+    scale: both confidence intervals are centred on zero and neither overlaps
+    the $n=1{,}000$ result (Sections~\ref{sec:results-extended-campaign}
+    and~\ref{sec:results-scale}).
 
   \item An independent, held-out ground-truth evaluation (RQ4) showing that the
     $n=1{,}000$ advantage is not an artefact of validating against the trained
@@ -166,7 +163,11 @@ This work makes the following contributions:
     (Chapter~\ref{ch:results}, Section~\ref{sec:results-ground-truth}). Two
     candidate explanations for the reversal were tested directly and both
     rejected (Sections~\ref{sec:results-gt-margin}
-    and~\ref{sec:results-gt-shortcut}).
+    and~\ref{sec:results-gt-shortcut}). The held-out \emph{articles} are
+    disjoint from every training pool, but the ranking both conditions are
+    scored against is built from GCA's own aggregation rule, which qualifies
+    the comparison (Chapter~\ref{ch:methodology},
+    Section~\ref{sec:methodology-ground-truth}).
 
   \item A transparent account of instability, stochastic variation across runs,
     methodological limitations, and the reproducibility of the pipeline
@@ -218,12 +219,16 @@ used to validate the results. Chapter~\ref{ch:methodology} presents the experime
 design, including the GCA aggregation formula itself, which is this thesis's own
 contribution rather than prior work, and an explicit account of how the study that
 was actually carried out diverges from the original proposal, and why. Chapter~\ref{ch:implementation}
-describes the pipeline, codebase, and compute infrastructure. Chapter~\ref{ch:results}
-reports the full experimental campaign, from the initial reward-model baseline
-through the formula and judge-mode optimization to the final multi-seed and
-multi-scale validation, and then to the independent ground-truth precision
-evaluation that answers RQ4. Chapter~\ref{ch:discussion} interprets these
-results, including why the ground-truth result reverses rather than merely
-fading where the learnability result only fades, and
-Chapter~\ref{ch:conclusion} answers the research questions, states the
-limitations of this work, and outlines directions for future work.
+describes the pipeline, codebase, and compute infrastructure.
+Chapter~\ref{ch:results} reports the results, organised by research question:
+the two configuration decisions and the evidence justifying them, then the
+confirmatory learnability comparison, its behavior across dataset scale, and
+the independent ground-truth evaluation that answers RQ4.
+Chapter~\ref{ch:discussion} interprets these results, including why the
+ground-truth result reverses rather than merely fading where the learnability
+result only fades, and Chapter~\ref{ch:conclusion} answers the research
+questions, states the limitations of this work, and outlines directions for
+future work. Appendix~\ref{app:exploratory} retains the record of the
+exploratory and superseded experiments that preceded the final design, which
+are referenced from the main text where they justify a decision but are not
+themselves findings of this thesis.

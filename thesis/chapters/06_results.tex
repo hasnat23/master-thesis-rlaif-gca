@@ -1,142 +1,55 @@
 \chapter{Results}
 \label{ch:results}
 
-\begin{keyfinding}[Reading this chapter: where the validated results are]
-This chapter is organised by chronology, not by importance, because the
-exploratory sections are themselves evidence for a methodological argument
-made later in the chapter (Section~\ref{sec:results-final-campaign}): that
-single runs at this dataset scale are not reliable, which is why every
-confirmatory result in this thesis is a twenty-run campaign rather than
-one training run. A reader who wants the validated headline numbers
-first, and the exploratory process that led to them only as needed, can
-go directly to Section~\ref{sec:results-extended-campaign} (the RQ1
-headline result), Section~\ref{sec:results-scale} (RQ3, scale robustness),
-and Section~\ref{sec:results-ground-truth} (RQ4, the independent
-ground-truth evaluation and its reversal). Sections~\ref{sec:results-early}
-to~\ref{sec:results-final-campaign} below cover the exploratory process
-that selected the locked configuration and motivated the repeated-run
-protocol; they are referenced from those later sections and from
-Chapter~\ref{ch:discussion} rather than needing to be read first.
-\end{keyfinding}
+This chapter is organized by research question. Section~\ref{sec:results-config-selection}
+states the two configuration decisions that had to be settled before any
+confirmatory campaign could be run, and reports only as much of the exploratory
+evidence as is needed to justify them. The remaining sections report the
+confirmatory results: the RQ1 learnability comparison at $n=1{,}000$
+(Section~\ref{sec:results-extended-campaign}), its behavior across dataset
+scale for RQ3 (Section~\ref{sec:results-scale}), the effect sizes and
+equivalence tests that establish what those results do and do not bound
+(Section~\ref{sec:results-effect-sizes}), and the independent ground-truth
+evaluation answering RQ4 (Section~\ref{sec:results-ground-truth}). Every
+confirmatory figure is a twenty-run campaign; the reasoning behind that choice
+is given in Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-rm-eval},
+and the superseded experiments that motivated it, including an early DPO
+prototype, the reward-model baselines, the single-run checks that failed to
+reproduce, and the six-run precursor campaign, are recorded in
+Appendix~\ref{app:exploratory} rather than here.
 
-This chapter reports the experiments in the order they were carried out. Two
-intermediate findings did not survive repetition: a hyperparameter configuration
-that initially appeared promising (Section~\ref{sec:results-alpha0-validation})
-and a two-run estimate that proved inconclusive
-(Section~\ref{sec:results-mode-sweep}). Both are reported, since they motivated
-the repeated-run protocol described in Chapter~\ref{ch:methodology},
-Section~\ref{sec:methodology-rm-eval}, and omitting them would misrepresent how
-much of the final estimate rests on distinguishing an effect from run-to-run
-variance. Sections~\ref{sec:results-formula-opt} to~\ref{sec:results-mode-sweep}
-are exploratory in the sense of Chapter~\ref{ch:methodology},
-Section~\ref{sec:methodology-exploratory}; Section~\ref{sec:results-scale}
-examines how the selected configuration behaves as the dataset grows.
-Section~\ref{sec:results-ground-truth} then re-evaluates the same trained
-reward models against an independent, held-out ground truth
-(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-ground-truth},
-RQ4), rather than against the training-style labels used everywhere above.
+\section{Selecting the Final Configuration}
+\label{sec:results-config-selection}
 
-That final section follows a single line of enquiry across five steps, and
-it may help to state the sequence in advance. It first establishes that GCA
-is substantially more precise than holistic at $n=1{,}000$
-(Section~\ref{sec:results-gt-1000}); then finds that this advantage does not
-merely fade but reverses as the training set grows
-(Section~\ref{sec:results-gt-scale}); then narrows down where in between the
-two conditions change places (Section~\ref{sec:results-scale-curve}); and
-finally tests two candidate mechanisms for the reversal against data already
-collected, rejecting both
-(Sections~\ref{sec:results-gt-margin} and~\ref{sec:results-gt-shortcut}).
-Section~\ref{sec:results-gt-summary} states what the sequence collectively
-establishes and what it leaves open.
+Two design decisions are not fixed by the study design and had to be settled
+empirically: how per-sentence scores are aggregated into a summary-level score
+(the exponent $\alpha$ of Chapter~\ref{ch:methodology},
+Equation~\ref{eq:gca-general}), and which AlignScore evaluation mode the judge
+is queried in (Chapter~\ref{ch:background}, Section~\ref{sec:bg-alignscore}).
+Both were settled on the $n=1{,}000$ setting, and both are exploratory in the
+sense of Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-exploratory}:
+the configuration was chosen after observing outcomes, so results on that
+setting cannot also serve as independent confirmation of the choice.
 
-\section{Early Prototype Results (Historical Context)}
-\label{sec:results-early}
-
-An earlier version of the pipeline produced results under a DPO-based design
-before the study narrowed to reward-model comparison
-(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-evolution}). They are
-reported here as context for that change, not as findings of the present study.
-
-A FLAN-T5 \citep{chung2022flant5} baseline on a 20-sample pilot gave
-ROUGE-1 0.3278, ROUGE-2 0.1201, ROUGE-L 0.2341 \citep{lin2004rouge}, and
-BERTScore F1 0.8612 \citep{zhang2020bertscore}. On a
-200-sample subset (subset seed 42), the original AlignScore-based preference
-construction, using the proposal-era margin of 0.05 and $\alpha = 0.5$, produced 154
-usable holistic pairs out of 200 (77.0\%, mean scores 0.7324 for the low-temperature
-candidate and 0.6530 for the high-temperature one) and 157 usable GCA pairs
-(78.5\%, mean GCA scores 0.4066 and 0.3337). The two methods agreed on 121 of 200
-decisions (60.5\%).
-
-Mistral-7B-Instruct-v0.3 was then fine-tuned with DPO on both preference sets
-(Chapter~\ref{ch:background}, Section~\ref{sec:bg-dpo}), using LoRA adapters
-\citep{hu2021lora} on the attention and feed-forward projections rather than
-full fine-tuning: training loss reached
-0.6902 for the holistic condition and 0.6913 for the GCA condition, each in
-roughly 134.5 seconds on an A100. On 200 held-out articles, baseline AlignScore was
-0.7965, DPO-Holistic reached 0.8017, and DPO-GCA reached 0.7996. Only DPO-GCA's
-ROUGE-L differed from baseline at the conventional threshold (Wilcoxon
-$p=0.015$); the AlignScore differences between conditions were small and not
-distinguishable from noise. These downstream results illustrate the attribution
-problem described in Chapter~\ref{ch:methodology},
-Section~\ref{sec:methodology-evolution}: differences of this magnitude cannot be
-traced to the preference-construction procedure rather than to the optimization
-stage, which is why the final study measures the preference data directly.
-
-\section{Bradley--Terry Reward-Model Baseline}
-\label{sec:results-rm-baseline}
-
-The first Bradley--Terry reward-model result used the $n=495$ set (subset seed
-100) with a \texttt{microsoft/deberta-v3-base} backbone
-\citep{he2021deberta}, predating the
-standardization on \texttt{FacebookAI/roberta-base}
-(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}). Under 5-fold
-cross-validation, the holistic reward model reached 58.1\% mean pairwise accuracy
-and the GCA reward model reached 54.6\%, both above the 50\% chance level.
-
-The first result on the $n=1{,}000$ set, with the \texttt{roberta-base} backbone
-and the original configuration ($\alpha = 0.5$, margin 0.05), is summarized in
-Table~\ref{tab:rm-baseline-1000}. This is the baseline the rest of this chapter's
-optimization campaign works from: holistic outperforms GCA by 1.2 percentage
-points.
-
-\begin{table}[htbp]
-\centering
-\caption[Bradley--Terry reward-model baseline at $n=1{,}000$]{Bradley--Terry reward-model baseline at $n=1{,}000$ ($\alpha=0.5$,
-margin $0.05$, \texttt{roberta-base}).}
-\label{tab:rm-baseline-1000}
-\begin{tabular}{lrr}
-\toprule
-Condition & Mean pairwise accuracy & Gap (GCA $-$ Holistic) \\
-\midrule
-Holistic RM & 57.20\% & \multirow{2}{*}{$-1.20$ pp} \\
-GCA RM      & 56.00\% & \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\section{GCA Formula Optimization}
+\subsection{Aggregation Formula}
 \label{sec:results-formula-opt}
 
-To understand why GCA underperformed, disagreement between the holistic and GCA
-decisions at $\alpha = 0.5$ was analyzed directly on the $n=1{,}000$ pairs
-(\url{analysis/gca_vs_holistic_analysis.py}). The two methods disagreed on
-17.8\% of pairs. GCA scores showed higher discrimination between candidates than
-holistic scores (mean absolute score difference 0.2392 versus 0.1527), but only
-82.2\% of GCA decisions agreed with the corresponding holistic decision, suggesting
-that the extra discrimination was at least partly noise rather than signal.
-
-Nine aggregation strategies were then compared by how well each agreed with the
+The proposal-era weakest-link penalty ($\alpha=0.5$) produced a GCA reward model
+that \emph{underperformed} the holistic one, and GCA decisions agreed with the
+corresponding holistic decision on only 82.2\% of pairs
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-rm-baseline}). Nine
+aggregation strategies were therefore compared by how well each agreed with the
 holistic decision on the same 1{,}000 pairs
 (\url{analysis/test_gca_formulas.py}, \url{analysis/test_advanced_aggregation.py}).
-Table~\ref{tab:formula-comparison} reports the results and
-Figure~\ref{fig:formula-agreement} plots them in rank order. The simple mean
-($\alpha = 0.0$) had the highest agreement of any strategy tested, 15.4 percentage
-points above the original penalty formula.
+Table~\ref{tab:formula-comparison} reports the results; the simple mean
+($\alpha=0.0$) had the highest agreement of any strategy tested, 15.4
+percentage points above the original penalty formula.
 
 \begin{table}[htbp]
 \centering
 \caption[Agreement with the holistic decision across nine aggregation strategies]{Agreement with the holistic decision across nine GCA aggregation
-strategies, $n=1{,}000$ pairs.}
+strategies, $n=1{,}000$ pairs. Plotted in rank order in
+Appendix~\ref{app:exploratory}, Figure~\ref{fig:formula-agreement}.}
 \label{tab:formula-comparison}
 \begin{tabular}{lrr}
 \toprule
@@ -155,112 +68,35 @@ Minimum                      & 78.7\% & $-3.5$ pp \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}
-\begin{axis}[
-  thesisplot,
-  width=0.80\textwidth, height=6.2cm,
-  xbar, bar width=8pt,
-  xmin=70, xmax=100,
-  xlabel={agreement with the holistic decision (\%)},
-  ytick=data,
-  symbolic y coords={Minimum,{Penalty $\alpha{=}0.5$},Harmonic mean,
-                     Robust mean,Position-weighted,Length-weighted,
-                     Ensemble,Confidence-weighted,{Simple mean $\alpha{=}0.0$}},
-  y dir=reverse,
-  nodes near coords, nodes near coords style={font=\scriptsize},
-  every node near coord/.append style={/pgf/number format/fixed,
-        /pgf/number format/fixed zerofill, /pgf/number format/precision=1},
-]
-\addplot[gcabar] coordinates {
-  (78.7,Minimum) (82.2,{Penalty $\alpha{=}0.5$}) (82.9,Harmonic mean)
-  (85.4,Robust mean) (88.2,Position-weighted) (91.5,Length-weighted)
-  (93.3,Ensemble) (96.0,Confidence-weighted) (97.6,{Simple mean $\alpha{=}0.0$})};
-\end{axis}
-\end{tikzpicture}
-\caption[Agreement across the nine aggregation strategies]{Agreement with the holistic decision across the nine aggregation
-strategies of Table~\ref{tab:formula-comparison} ($n=1{,}000$ pairs). Agreement
-measures consistency between two procedures driven by the same evaluator, not
-external factual correctness.}
-\label{fig:formula-agreement}
-\end{figure}
+On the strength of this result, $\alpha$ was changed from 0.5 to 0.0
+throughout the codebase. One qualification governs how the table should be read:
+the criterion is agreement with the holistic decision, which measures internal
+consistency between two procedures driven by the same evaluator, not external
+factual correctness. A strategy could agree closely with holistic scoring while
+reproducing the same errors, and nothing here would distinguish those cases. The
+criterion is used as a diagnostic for whether the penalty term was amplifying
+disagreement, not as evidence that the simple mean produces better labels.
 
-On the strength of this result, the default $\alpha$ was changed from 0.5 to 0.0
-throughout the codebase (\url{src/judging/gca.py},
-\url{src/judging/build_reward_preferences.py}, and every Slurm script).
+The formula change did not, on its own, produce a GCA advantage: holding the
+judge mode fixed, the gap widened slightly rather than closing
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-alpha0-validation}).
+That is what motivated examining the judge mode next.
 
-Two qualifications apply to this selection. First, the criterion used in
-Table~\ref{tab:formula-comparison} is agreement with the holistic decision, which
-is a measure of internal consistency between two procedures driven by the same
-evaluator, not a measure of external factual correctness. A strategy could agree
-closely with holistic scoring while reproducing the same errors, and nothing in
-this comparison would distinguish those cases. The criterion is used here as a
-diagnostic for whether the penalty term was amplifying disagreement, not as
-evidence that the simple mean produces better labels. Second, this comparison and
-the evaluator-mode sweep that follows are exploratory in the sense defined in
-Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-exploratory}: the final
-configuration was chosen after observing $n=1{,}000$ outcomes, so results on that
-setting cannot also serve as independent confirmation of the choice. The
-$n=5{,}000$ and $n=10{,}000$ experiments do not fully remedy this, because their
-subsets are nested supersets of the $n=1{,}000$ set rather than independent
-samples (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-nesting}).
-
-\section{Does the Formula Change Alone Flip the Result?}
-\label{sec:results-alpha0-validation}
-
-The formula change was then validated the same way the baseline was measured: by
-training reward models on the resulting preferences and checking pairwise
-accuracy, holding the judge mode fixed at the original \texttt{nli\_sp} setting.
-Table~\ref{tab:alpha0-validation} shows that $\alpha = 0.0$ did not, on its own,
-close the gap. Holistic accuracy improved more than GCA accuracy did, and the gap
-between them widened slightly rather than closing.
-
-\begin{table}[htbp]
-\centering
-\caption[Effect of the aggregation-formula change alone]{Effect of the formula change alone ($n=1{,}000$, judge mode
-\texttt{nli\_sp} unchanged).}
-\label{tab:alpha0-validation}
-\begin{tabular}{lrrr}
-\toprule
-Metric & $\alpha=0.5$ (baseline) & $\alpha=0.0$ & Change \\
-\midrule
-Holistic mean accuracy & 0.572 & 0.586 & $+0.014$ \\
-GCA mean accuracy      & 0.560 & 0.561 & $+0.001$ \\
-Gap (Holistic $-$ GCA) & 0.012 & 0.025 & $+0.013$ (wider) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-A nine-configuration hyperparameter search was run next, sweeping learning rate
-over $\{1\times10^{-5}, 2\times10^{-5}, 5\times10^{-5}\}$ and epoch count over
-$\{3, 5, 7\}$, still at $\alpha = 0.0$. One configuration, learning rate
-$1\times10^{-5}$ with 7 epochs, produced a GCA advantage of $+0.014$ (GCA 0.586
-versus holistic 0.572). A same-seed confirmation rerun of that exact
-configuration, however, produced the opposite result: holistic 0.577 versus GCA
-0.560, a gap of $-0.017$. The apparent advantage did not reproduce. This result
-is reported in full because of what it implies: at this dataset size, a single
-training run, even with 5-fold cross-validation, can produce a result that looks
-like a real effect but is actually within the range of ordinary fold-to-fold and
-initialization noise. This directly motivated moving away from hyperparameter
-tuning toward the judge-mode sweep below, and toward the multi-seed validation
-protocol used for the headline result.
-
-\section{AlignScore Judge-Mode Sweep}
+\subsection{Evaluator Mode}
 \label{sec:results-mode-sweep}
 
-With $\alpha = 0.0$ fixed, four AlignScore evaluation modes
-(Chapter~\ref{ch:background}, Section~\ref{sec:bg-alignscore}) were compared under
-the same $n=1{,}000$ training setup. Table~\ref{tab:mode-sweep} shows that the
-choice of mode, not only the aggregation formula, is associated with whether GCA
-leads at all. The \texttt{nli} mode produced the largest GCA
-advantage of any configuration tested so far; \texttt{nli\_sp}, the mode used for
-every result up to this point, is actually one of the two modes that favor
-holistic.
+With $\alpha=0.0$ fixed, the four AlignScore evaluation modes were compared
+under the same $n=1{,}000$ training setup. Table~\ref{tab:mode-sweep} shows
+that the choice of mode, not only the aggregation formula, is associated with
+whether GCA leads at all. The \texttt{nli} mode produced the largest GCA
+advantage; \texttt{nli\_sp}, the mode inherited from the earliest experiments,
+is one of the two modes that favor holistic.
 
 \begin{table}[htbp]
 \centering
-\caption[AlignScore evaluator-mode sweep]{AlignScore judge-mode sweep ($n=1{,}000$, $\alpha=0.0$).}
+\caption[AlignScore evaluator-mode sweep]{AlignScore judge-mode sweep ($n=1{,}000$, $\alpha=0.0$). Each mode was
+run once; plotted in Appendix~\ref{app:exploratory},
+Figure~\ref{fig:mode-sweep}.}
 \label{tab:mode-sweep}
 \begin{tabular}{lrrr}
 \toprule
@@ -274,247 +110,46 @@ Mode & Holistic mean acc.\ & GCA mean acc.\ & Gap (GCA $-$ Holistic) \\
 \end{tabular}
 \end{table}
 
-The \texttt{nli\_sp} row above (0.578 holistic, 0.557 GCA) is a separate single
-run from the $\alpha=0.0$/\texttt{nli\_sp} row in
-Table~\ref{tab:alpha0-validation} (0.586 holistic, 0.561 GCA), not a
-repetition of it: the two experiments were run independently, at different
-points in the exploratory process, before either PyTorch or CUDA was seeded.
-The 0.8 and 0.4 percentage-point differences between them, on what is
-nominally the same configuration, illustrate exactly the run-to-run
-instability documented directly in
-Section~\ref{sec:results-final-campaign}, where the same seed value (42)
-produced a 4.7 percentage-point swing between the original sweep and its
-confirmation rerun. Neither single-run table should be read as a precise
-measurement of the underlying configuration; both are superseded by the
-twenty-run campaign (Section~\ref{sec:results-extended-campaign}), which is
-why this chapter reports them as exploratory context rather than as
-confirmatory results.
-
-Figure~\ref{fig:mode-sweep} plots the same values grouped by whether the
-evaluator performs its own internal splitting.
-
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}
-\begin{axis}[
-  thesisplot,
-  width=0.82\textwidth, height=5.6cm,
-  ybar, bar width=13pt,
-  ymin=0.48, ymax=0.62,
-  ylabel={mean pairwise accuracy},
-  symbolic x coords={nli,bin,bin\_sp,nli\_sp},
-  xtick=data,
-  legend style={at={(0.5,-0.22)}, anchor=north, legend columns=2},
-  nodes near coords, nodes near coords style={font=\scriptsize,
-        /pgf/number format/fixed, /pgf/number format/precision=3},
-]
-\addplot[holbar] coordinates {(nli,0.523) (bin,0.510) (bin\_sp,0.554) (nli\_sp,0.578)};
-\addplot[gcabar] coordinates {(nli,0.583) (bin,0.564) (bin\_sp,0.562) (nli\_sp,0.557)};
-\draw[dashed, gray!70] ({rel axis cs:0,0}|-{axis cs:nli,0.5}) --
-                       ({rel axis cs:1,0}|-{axis cs:nli,0.5});
-\node[font=\scriptsize, gray!60!black, anchor=south east]
-      at ({rel axis cs:0.995,0}|-{axis cs:nli,0.5}) {chance};
-\legend{Holistic, GCA}
-\end{axis}
-\end{tikzpicture}
-\caption[Evaluator-mode sweep]{Evaluator-mode sweep ($n=1{,}000$, $\alpha=0.0$). The two left-hand
-modes do not split the input internally; the two right-hand modes do. Each bar is
-a single run, so differences of this size fall within the run-to-run variation
-documented in Section~\ref{sec:results-final-campaign}, and the comparison is
-exploratory.}
-\label{fig:mode-sweep}
-\end{figure}
-
-The ordering in Table~\ref{tab:mode-sweep} follows a systematic pattern rather
-than varying arbitrarily. The two modes in which GCA leads by a clear margin,
-\texttt{nli} and
-\texttt{bin}, are precisely the two that operate on the context and claim without
-splitting them. The two modes in which the advantage is negligible or negative,
+The ordering follows a systematic pattern rather than varying arbitrarily. The
+two modes in which GCA leads by a clear margin, \texttt{nli} and \texttt{bin},
+are precisely the two that operate on the context and claim without splitting
+them. The two modes in which the advantage is negligible or negative,
 \texttt{bin\_sp} and \texttt{nli\_sp}, are the split variants, in which the
 evaluator itself segments the input and aggregates over the segments
 (Chapter~\ref{ch:background}, Section~\ref{sec:bg-alignscore}). Holistic accuracy
 also rises from 0.510--0.523 in the unsplit modes to 0.554--0.578 in the split
 modes, which is consistent with the split modes supplying a stronger holistic
-signal rather than with GCA becoming worse.
+signal rather than with GCA becoming worse. The pattern suggests that external
+sentence-level decomposition may contribute most where the evaluator does not
+already decompose internally, and little where it does.
 
-The pattern suggests that external sentence-level decomposition may contribute
-most where the evaluator does not already decompose internally, and little where
-it does; on this reading GCA and the evaluator's own splitting act partly as
-substitutes. This sweep is exploratory and each mode was run once, so the
-comparison across modes should be read as suggestive rather than established:
-Section~\ref{sec:results-final-campaign} shows that single-run differences of this
-magnitude fall within the range of run-to-run variation, and only the
-\texttt{nli} configuration was subsequently validated across repeated runs
-in that six-run campaign (though, as Chapter~\ref{ch:implementation},
-Section~\ref{sec:impl-preferences} reports, the twenty-run campaign that
-later supersedes it did not, in fact, remain on \texttt{nli}).
-Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation} develops the
-interpretation and states what would be required to test it.
+Two limits on this evidence must be carried forward. Each mode was run once, and
+single runs at this dataset size do not reproduce reliably
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-alpha0-validation}), so
+the comparison across modes is suggestive rather than established.
+And, as Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}
+reports, the confirmatory campaigns that follow did not in fact remain on the
+\texttt{nli} mode this sweep selected. Chapter~\ref{ch:discussion},
+Section~\ref{sec:disc-interpretation} sets out what the confirmatory evidence
+now permits to be concluded from Table~\ref{tab:mode-sweep}, which is
+substantially less than was originally supposed.
 
-Because a single run had already proved insufficient in
-Section~\ref{sec:results-alpha0-validation}, the \texttt{nli} result was rerun at
-the same seed value before any conclusion was drawn. The rerun gave holistic 0.543
-and GCA 0.556, a gap of $+0.013$: smaller than the original $+0.060$, but in the
-same direction. Over the fold-level differences from both runs, the 95\% interval
-was $[+0.003, +0.064]$ and the corresponding Wilcoxon $p$-value was 0.084. Under
-the independence caveat discussed above, neither figure was treated as decisive,
-and further runs were carried out rather than concluding from two.
+\subsection{From Single Runs to Repeated Campaigns}
 
-\section{Repeated Runs of the Selected Configuration (\texorpdfstring{$n=1{,}000$}{n=1,000})}
-\label{sec:results-final-campaign}
+Before the selected configuration could be evaluated, two single-run results had
+already failed to reproduce: a promising hyperparameter configuration reversed
+direction on a same-seed rerun, and two nominally identical \texttt{nli\_sp}
+runs differed by 0.8 and 0.4 percentage points
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-alpha0-validation}).
+A six-run campaign on the selected \texttt{nli}, $\alpha=0.0$ configuration
+followed, giving a mean gap of $+3.08$ percentage points with GCA ahead in five
+of six runs (Appendix~\ref{app:exploratory},
+Section~\ref{sec:results-final-campaign}). That campaign could not establish
+run-level significance at any effect size, because with six paired observations
+and one discordant run the smallest attainable two-sided Wilcoxon $p$-value is
+0.0625. Extending to twenty runs, reported next, was the direct response.
 
-The \texttt{nli} mode, $\alpha=0.0$, margin 0 configuration was fixed and run
-across four further seed values, in addition to the original sweep and its
-confirmation rerun, for six runs and 30 cross-validation folds in total.
-Table~\ref{tab:seed-validation} lists every run. Note that the six runs span five
-distinct seed values, not six: seed 42 appears twice, as the original sweep and
-its rerun. As discussed in Chapter~\ref{ch:methodology},
-Section~\ref{sec:methodology-rm-eval}, those two runs are not duplicates, because
-the seed argument controls only fold assignment and not the reward model's weight
-initialization.
-
-\begin{table}[htbp]
-\centering
-\caption[Per-run results for the selected configuration]{Per-run results for the selected \texttt{nli}-mode configuration
-($n=1{,}000$).}
-\label{tab:seed-validation}
-\begin{tabular}{lrrrr}
-\toprule
-Run & Seed & Holistic & GCA & Gap (GCA $-$ Holistic) \\
-\midrule
-Original sweep       & 42   & 0.523 & 0.583 & $+0.060$ \\
-Confirmation          & 42   & 0.543 & 0.556 & $+0.013$ \\
-Seed validation 1    & 7    & 0.556 & 0.546 & $-0.010$ \\
-Seed validation 2    & 100  & 0.510 & 0.561 & $+0.051$ \\
-Seed validation 3    & 314  & 0.520 & 0.552 & $+0.032$ \\
-Seed validation 4    & 2026 & 0.525 & 0.564 & $+0.039$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-GCA leads in five of the six runs; seed 7 is the only run in which holistic is
-ahead. Figure~\ref{fig:per-run-gaps} plots the per-run gaps against the pooled
-mean, which makes the spread easier to judge than the table alone: the individual
-runs range from $-0.010$ to $+0.060$, a spread wide enough that any single run,
-taken on its own, would have been weak evidence in either direction. Averaging
-over all 30 fold-level readings gives the estimate this campaign supported,
-shown in Table~\ref{tab:pooled-headline}: a mean gap of $+3.08$ percentage
-points. This was superseded by the twenty-run campaign of
-Section~\ref{sec:results-extended-campaign}, which is the headline result of
-this thesis; the six-run figures are retained here as the record of what the
-original campaign established and of why it had to be extended.
-
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[font=\footnotesize]
-  % axes
-  \def\xz{0}      % x origin
-  \def\xs{95}     % x scale (per 0.01 gap) -- gaps range -0.01..0.06
-  \draw[->, thick] (-1.3,0) -- (6.9,0) node[right] {gap};
-  \foreach \g/\lab in {-0.01/-0.01, 0/0, 0.02/+0.02, 0.04/+0.04, 0.06/+0.06} {
-    \draw ({\g*\xs},0.12) -- ({\g*\xs},-0.12) node[below] {\lab};
-  }
-  % zero reference line
-  \draw[dashed, gray] (0,-0.4) -- (0,5.4);
-  % pooled mean line
-  \draw[thick, blue!60!black, dashed] ({0.0308*\xs},-0.4) -- ({0.0308*\xs},5.4);
-  \node[blue!60!black, anchor=south, align=center] at ({0.0308*\xs},5.4)
-    {pooled mean\\$+0.0308$};
-  % runs (y from top to bottom)
-  \foreach \y/\seed/\gap in {
-      5/42/0.060,
-      4.2/42/0.013,
-      3.4/7/-0.010,
-      2.6/100/0.051,
-      1.8/314/0.032,
-      1.0/2026/0.039} {
-    \node[anchor=east] at (-1.35,\y) {seed \seed};
-    \fill[orange!80!black] ({\gap*\xs},\y) circle (2.4pt);
-    \draw[gray!60] (0,\y) -- ({\gap*\xs},\y);
-  }
-\end{tikzpicture}
-\caption[Per-run GCA$-$Holistic accuracy gap at $n=1{,}000$]{Per-run GCA$-$Holistic accuracy gap at $n=1{,}000$, against the pooled
-mean. Five of six runs favor GCA, but the spread across runs is wide relative to
-the pooled effect, which is why no single run was treated as conclusive.}
-\label{fig:per-run-gaps}
-\end{figure}
-
-\begin{table}[htbp]
-\centering
-\caption[Averaged result across six runs at $n=1{,}000$]{Averaged result across 6 runs / 30 cross-validation folds at
-$n=1{,}000$. The interval and $p$-value are computed over folds, which are not
-independent observations, and are therefore exploratory and anti-conservative
-(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-rm-eval}).}
-\label{tab:pooled-headline}
-\begin{tabular}{rrrrr}
-\toprule
-Holistic mean & GCA mean & Gap & 95\% fold-level CI & Fold-level Wilcoxon $p$ \\
-\midrule
-0.5295 & 0.5603 & \textbf{+0.0308} & $[+0.013, +0.047]$ & 0.0034 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-At the fold level, GCA leads in 22 of the 30 folds (73\%), with no ties. The
-interval and $p$-value in Table~\ref{tab:pooled-headline} are computed as
-described in Chapter~\ref{ch:background}, Section~\ref{sec:bg-stats}, using
-10{,}000 bootstrap resamples with a fixed NumPy seed of 42.
-
-These uncertainty estimates require an explicit caveat and are not presented as
-confirmatory. The 30 folds are not 30 independent observations: the five folds
-within a run partition one dataset, so their training sets overlap heavily and
-their errors are correlated. A procedure that assumes independence therefore
-treats the evidence as stronger than it is, and the quoted $p$-value is
-anti-conservative. What the fold-level analysis supports is that the difference is
-consistent in direction across runs and stable in magnitude, not that it meets a
-particular significance threshold. Chapter~\ref{ch:discussion},
-Section~\ref{sec:disc-stats-caveat} examines what a more conservative treatment
-would and would not permit.
-
-A second property should be read alongside the gap. Both conditions sit close to
-chance in absolute terms: 0.5295 and 0.5603 are 2.95 and 6.03 percentage points
-above the 0.5 chance level. The comparison is therefore between two weak
-preference signals, and the finding concerns which is more consistently
-recoverable, not whether either yields a strong reward model
-(Section~\ref{sec:disc-weak-signal}).
-
-Table~\ref{tab:evidence-progression} tracks how the estimate changed as runs were
-added. The interval narrows at each stage while the point estimate stays near
-three percentage points. Stability of the effect size as precision improves is
-consistent with a real underlying difference rather than with an artifact that
-grows as data accumulates, though the same independence caveat applies to every
-row of the table.
-
-\begin{table}[htbp]
-\centering
-\caption[Progression of the pooled estimate as runs were added]{Progression of the pooled statistical estimate as runs were added. The
-$p$-values are subject to the independence caveat discussed in
-Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-stats-caveat}.}
-\label{tab:evidence-progression}
-\begin{tabular}{lrrrrr}
-\toprule
-Stage & Runs & Folds & Pooled gap & 95\% CI & Wilcoxon $p$ \\
-\midrule
-Two-run  & 2 & 10 & $+0.034$ & $[+0.003, +0.064]$ & 0.084 \\
-Five-run & 5 & 25 & $+0.029$ & $[+0.009, +0.048]$ & 0.0123 \\
-Six-run  & 6 & 30 & $+0.031$ & $[+0.013, +0.047]$ & 0.0034 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-At six runs, the fold-pooled $p$-value in Table~\ref{tab:evidence-progression}
-had already fallen to 0.0034, yet the run-level test in
-Table~\ref{tab:pooled-headline}'s surrounding discussion could not fall below
-0.0312 no matter how consistent the six runs were, because that is the smallest
-two-sided value the Wilcoxon signed-rank test can return with six paired
-observations. The six-run campaign was therefore not merely inconclusive by
-chance; it was structurally unable to establish run-level significance at the
-conventional threshold, independent of the true size of the effect. Resolving
-this required more runs, which in turn required the reward-model training
-procedure to be fully deterministic under a given seed, a property it did not
-previously have, as described next.
-
-\section{Extended Campaign: Twenty Independent Runs}
+\section{RQ1: Preference Learnability at \texorpdfstring{$n=1{,}000$}{n=1,000}}
 \label{sec:results-extended-campaign}
 
 Before further runs could be added, a limitation in the cross-validation
@@ -523,13 +158,10 @@ controlled only the fold-assignment shuffle; PyTorch's own random-number
 generator was never seeded, so the reward head's weight initialization, the
 training \texttt{DataLoader}'s batch order, and dropout were all left
 uncontrolled (Chapter~\ref{ch:implementation},
-Section~\ref{sec:impl-rm-training}). Two executions of the same seed could
-therefore still differ, which is why the original sweep and its confirmation
-rerun in Table~\ref{tab:seed-validation}, both at seed 42, produced different
-results. This was corrected by seeding PyTorch and CUDA per fold, supplying an
-explicit generator to the training \texttt{DataLoader}, and seeding the
-\texttt{DataLoader} workers, so that a run is now fully determined by its seed on
-fixed hardware.
+Section~\ref{sec:impl-rm-training}). This was corrected by seeding PyTorch and
+CUDA per fold, supplying an explicit generator to the training
+\texttt{DataLoader}, and seeding the \texttt{DataLoader} workers, so that a run
+is fully determined by its seed on fixed hardware.
 
 Under this corrected procedure, the campaign was extended to twenty runs at
 seeds 1 through 20, fixed in advance of running any of them so that no seed
@@ -589,7 +221,7 @@ Seed & Holistic & GCA & Gap (GCA $-$ Holistic, pp) \\
 GCA led in all twenty runs. Figure~\ref{fig:seed-campaign-20} plots every
 per-run gap against the pooled mean. Table~\ref{tab:seed-campaign-stats}
 reports the run-level statistics, which is the appropriate unit of independent
-replication (Section~\ref{sec:results-final-campaign} above;
+replication (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-rm-eval};
 Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-stats-caveat}).
 
 \begin{table}[htbp]
@@ -651,30 +283,27 @@ twenty independently seeded runs, GCA ahead in all twenty, run-level
 Wilcoxon $p<0.001$, Cohen's $d=+2.22$.
 \end{keyfinding}
 
-The mean gap under the extended campaign, $+3.95$ percentage
-points, is close to the six-run estimate of $+3.08$ percentage points, so the
-additional runs refined the precision of the estimate rather than revealing a
-different effect. Section~\ref{sec:disc-stats-caveat} in the next chapter
-discusses what this result does and does not establish.
+The mean gap of $+3.95$ percentage points is close to the six-run estimate of
+$+3.08$ points (Appendix~\ref{app:exploratory},
+Section~\ref{sec:results-final-campaign}), so the additional runs refined the
+precision of the estimate rather than revealing a different effect. Both
+conditions nonetheless sit close to chance in absolute terms, 0.5297 and 0.5691
+against a chance level of 0.5, so the finding concerns which of two weak
+preference signals is more consistently recoverable, not whether either yields a
+strong reward model (Chapter~\ref{ch:discussion},
+Section~\ref{sec:disc-weak-signal}).
 
-\section{Scale Robustness: 5{,}000 and 10{,}000 Samples}
+\section{RQ3: Robustness Across Dataset Scale}
 \label{sec:results-scale}
 
-The selected configuration was first run once at $n=5{,}000$ and once at
-$n=10{,}000$. These subsets are nested supersets of the $n=1{,}000$ set rather
-than independent samples (Chapter~\ref{ch:methodology},
+The same configuration was run at $n=5{,}000$ and $n=10{,}000$, each extended to
+twenty independently seeded runs under the same corrected, deterministic
+training procedure. These subsets are nested supersets of the $n=1{,}000$ set
+rather than independent samples (Chapter~\ref{ch:methodology},
 Section~\ref{sec:methodology-nesting}), so they measure how the effect behaves as
 data is added to the same pool rather than providing out-of-sample replication.
-The single-run advantage was small and inconsistent in direction: $-0.0042$ at
-$n=5{,}000$, $+0.0035$ at $n=10{,}000$, against $+0.0308$ (later $+0.0395$
-under the extended campaign) at $n=1{,}000$. As with the original $n=1{,}000$
-campaign, a single run cannot distinguish a genuine dataset-size effect from
-ordinary run-to-run variation, so each scale was subsequently extended, first
-to six and then to twenty independently seeded runs, under the same corrected,
-deterministic training procedure used for the $n=1{,}000$ extension
-(Section~\ref{sec:results-extended-campaign}).
-Table~\ref{tab:scale-robustness-runs} reports the resulting run-level
-statistics at all three scales.
+Table~\ref{tab:scale-robustness-runs} reports the run-level statistics at all
+three scales.
 
 The $n=5{,}000$ and $n=10{,}000$ preference files carry the same discrepancy
 documented for $n=1{,}000$ in the caveat above, though only in the
@@ -683,9 +312,7 @@ evaluation mode: \url{slurm/build_preferences_scale.sh} never sets
 \texttt{nli\_sp} rather than the intended \texttt{nli}
 (Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}). The
 aggregation exponent at these two scales is unaffected, since
-\texttt{--alpha 0.0} is passed explicitly; unlike $n=1{,}000$, there is no
-correctly-configured six-run precursor at these scales, as both were
-extended directly from a single run. Every $n=5{,}000$/$n=10{,}000$ result
+\texttt{--alpha 0.0} is passed explicitly. Every $n=5{,}000$/$n=10{,}000$ result
 in this thesis, including the $n=2{,}000$/$n=3{,}000$ crossover checks
 filtered from the $n=10{,}000$ file, is therefore reported under
 \texttt{nli\_sp}, not \texttt{nli}.
@@ -693,7 +320,7 @@ filtered from the $n=10{,}000$ file, is therefore reported under
 \begin{table}[htbp]
 \centering
 \caption[Repeated-run statistics at all three dataset sizes]{Repeated-run statistics at all three dataset sizes. All three rows are
-now twenty-run campaigns using the same corrected training procedure; the
+twenty-run campaigns using the same corrected training procedure; the
 $n=1{,}000$ row is repeated from Table~\ref{tab:seed-campaign-stats}.}
 \label{tab:scale-robustness-runs}
 \begin{tabular}{rrrrrr}
@@ -716,27 +343,21 @@ not an underpowered result in either direction: with twenty paired
 observations the test could have detected an effect as small as the
 $n=1{,}000$ one had it been present, and it did not.
 
-The comparison against $n=1{,}000$ is the test proposed when only single runs
-were available (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-scale}): if
-the scale movement were statistical noise, the confidence intervals at
-$n=5{,}000$ and $n=10{,}000$ should overlap the $n=1{,}000$ estimate; if it
-reflects a real, scale-dependent change, they should not. They do not: the
-$n=1{,}000$ interval, $[+3.19, +4.70]$pp, does not overlap $[-0.66,
+The confidence intervals settle the question directly. The $n=1{,}000$
+interval, $[+3.19, +4.70]$pp, does not overlap $[-0.66,
 +0.21]$pp at $n=5{,}000$ or $[-0.39, +0.18]$pp at $n=10{,}000$, and the gap
 between the nearest edges is more than two and a half percentage points in
-both cases. This resolves the question the single runs left open: the GCA
-advantage observed at $n=1{,}000$ is not present at $n=5{,}000$ or
-$n=10{,}000$, and this is now supported by repeated, properly powered
-evidence at each scale, all three at the same twenty-run resolution, rather
-than by runs of unequal weight.
+both cases. The GCA advantage observed at $n=1{,}000$ is not present at
+$n=5{,}000$ or $n=10{,}000$, and this is supported by repeated, properly
+powered evidence at each scale rather than by runs of unequal weight.
 
 Table~\ref{tab:scale-robustness} gives the underlying mean accuracies behind
 these gaps, and Figure~\ref{fig:scale-results} plots them.
 
 \begin{table}[htbp]
 \centering
-\caption[Selected configuration at three dataset sizes, repeated-run means]{Selected configuration at three dataset sizes. All three are now
-averaged over twenty runs each.}
+\caption[Selected configuration at three dataset sizes, repeated-run means]{Selected configuration at three dataset sizes, each averaged over
+twenty runs.}
 \label{tab:scale-robustness}
 \begin{tabular}{rrrr}
 \toprule
@@ -772,8 +393,8 @@ Dataset size & Holistic mean & GCA mean & Gap (GCA $-$ Holistic) \\
 \legend{Holistic, GCA}
 \end{axis}
 \end{tikzpicture}
-\caption[Accuracy at the three dataset sizes]{Accuracy at the three dataset sizes, all now averaged over twenty
-repeated runs each. Absolute accuracy rises for both conditions as data is
+\caption[Accuracy at the three dataset sizes]{Accuracy at the three dataset sizes, each averaged over twenty
+repeated runs. Absolute accuracy rises for both conditions as data is
 added, while the two conditions converge to statistically indistinguishable
 means at the larger scales.}
 \label{fig:scale-results}
@@ -784,10 +405,7 @@ from roughly 0.53--0.57 at $n=1{,}000$ to roughly 0.582--0.586 at the larger
 scales, while the gap between conditions collapses from a significant 3.95
 percentage points to a non-significant fraction of a point. Reporting only
 $n=1{,}000$ would have substantially overstated how generally the GCA
-advantage holds; reporting only a single run at each of the larger scales, as
-the design originally did, would have left the alternative open, namely that
-the larger-scale movement was itself just noise. Both possibilities are
-now closed by the repeated-run evidence.
+advantage holds.
 
 One property of the training setup is worth naming explicitly here, since
 it bears on the first half of that claim. Epoch count, batch size, and
@@ -812,7 +430,7 @@ what ``more data helps both conditions'' is evidence of
 The tests reported so far establish whether each gap is distinguishable from
 zero. Two further questions bear directly on how the results should be read, and
 neither is answered by a $p$-value. How large is the $n=1{,}000$ effect in
-standardised terms? And at $n=5{,}000$ and $n=10{,}000$, does the failure to
+standardized terms? And at $n=5{,}000$ and $n=10{,}000$, does the failure to
 reject the null reflect a genuinely negligible effect, or merely insufficient
 data to detect one? The second question matters because the claim made in
 Section~\ref{sec:results-scale}, that the advantage is \emph{absent} at the
@@ -844,12 +462,12 @@ $n$ & Mean gap & SD & Cohen's $d$ & $r_{\text{rb}}$ & TOST $p$ ($\pm1$pp) &
 \end{tabular}
 \end{table}
 
-\paragraph{The $n=1{,}000$ effect is large in standardised terms.} Cohen's
+\paragraph{The $n=1{,}000$ effect is large in standardized terms.} Cohen's
 $d=+2.22$ places the mean gap more than two standard deviations of the
 run-to-run spread above zero, which is a large effect by any conventional
 reading of the scale \citep{cohen1988statistical}. The rank-biserial
 correlation reaches its maximum value of $+1.00$, reflecting that all twenty
-runs favour GCA without exception. These two figures should be read together
+runs favor GCA without exception. These two figures should be read together
 with the absolute accuracies, however, and they measure different things: the
 effect is large \emph{relative to the variability of the measurement}, while
 remaining small in absolute terms, since it moves a reward model from roughly
@@ -878,23 +496,24 @@ $0.64$ points at $n=5{,}000$, and $0.42$ points at $n=10{,}000$, each at 80\%
 power and $\alpha=0.05$. Had an effect of the size observed at $n=1{,}000$ been
 present at either larger scale, it would have exceeded the detection threshold
 there by a factor of more than six. The larger-scale campaigns are therefore not
-underpowered with respect to the effect they were testing for, which is the
-claim Section~\ref{sec:results-scale} makes and this analysis substantiates.
-Note that the smaller standard deviations at the larger scales, 1.03 and 0.67
+underpowered with respect to the effect they were testing for. Note that the
+smaller standard deviations at the larger scales, 1.03 and 0.67
 points against 1.78 at $n=1{,}000$, also mean those campaigns are
 intrinsically more sensitive, not less, so the failure to find an effect there
 cannot be attributed to noisier measurement.
 
-\section{Independent Ground-Truth Precision Evaluation}
+\section{RQ4: Precision Against an Independent Ground Truth}
 \label{sec:results-ground-truth}
 
 The experiments above establish that GCA preferences are more learnable at
 $n=1{,}000$: a reward model recovers them more consistently under
 cross-validation. They do not establish that the recovered signal is more
 accurate, because the validation labels are supplied by the same evaluator
-that built the training preferences (Section~\ref{sec:methodology-scope}).
+that built the training preferences (Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-scope}).
 This section reports RQ4, evaluated against the independent, held-out ground
-truth described in Section~\ref{sec:methodology-ground-truth}: 500 articles
+truth described in Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-ground-truth}: 500 articles
 disjoint from every training pool used in this thesis, scored by the same
 locked AlignScore-GCA configuration but never used to train any reward
 model. The reward models evaluated here are trained on the same preference
@@ -964,7 +583,8 @@ Top/bottom 5\% (all-pairs) & 50 & $\geq0.79$ &
 
 Table~\ref{tab:gt-1000} reports the success rate (the fraction of
 comparisons in which the reward model scores the higher-quality summary
-above the lower-quality one, Section~\ref{sec:methodology-ground-truth})
+above the lower-quality one, Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-ground-truth})
 for both reward models, averaged over the same twenty seeds used in
 Section~\ref{sec:results-extended-campaign}, across all four ground-truth
 constructions.
@@ -1020,7 +640,8 @@ of the three.}
 \end{figure}
 
 The four constructions differ only in how large a quality gap separates the
-two summaries being compared (Section~\ref{sec:methodology-ground-truth}):
+two summaries being compared (Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-ground-truth}):
 same-article pairs are typically close in quality (mean GCA score gap
 $\approx0.04$), while the percentile-split constructions compare
 progressively more clear-cut cases as $X$ shrinks. The pattern across the
@@ -1307,12 +928,10 @@ This was checked directly against the stored per-pair score gaps in the
 existing preference files, which required no additional model training or
 AlignScore scoring. Table~\ref{tab:near-tie} reports the fraction of
 training pairs with a score gap below 0.05, for both conditions at all three
-main training-set sizes, recomputed directly from the files each campaign
+main training-set sizes, computed from the files each campaign
 actually trained on (Chapter~\ref{ch:implementation},
 Section~\ref{sec:impl-preferences}) rather than from the intended
-\texttt{nli}/$\alpha=0.0$ files, which is why the $n=1{,}000$ column differs
-from an earlier version of this table computed before that discrepancy was
-found.
+\texttt{nli}/$\alpha=0.0$ files.
 
 \begin{table}[htbp]
 \centering
@@ -1331,9 +950,7 @@ $n$ & Holistic (frac.\ $<0.05$) & GCA (frac.\ $<0.05$) & Holistic (count) & GCA 
 \end{tabular}
 \end{table}
 
-The mechanism does not hold up against this data, though the shape of the
-rejection differs from a first look at the raw preference files (which used
-the intended rather than the executed configuration). At $n=5{,}000$ and
+The mechanism does not hold up against this data. At $n=5{,}000$ and
 $n=10{,}000$, the near-tie fraction is essentially identical between the two
 conditions, not larger for GCA, so there is no growing asymmetry at the
 scales where GCA actually loses. At $n=1{,}000$, the scale at which GCA
@@ -1395,7 +1012,7 @@ about which construction procedure is more informative per label. Second,
 evaluator mode affects agreement by more than dataset size does at
 $n=1{,}000$: the intended \texttt{nli} configuration agrees only 63.9\% of
 the time, well below \texttt{nli\_sp}'s 82.2\%, consistent with
-Section~\ref{sec:disc-interpretation}'s account of \texttt{nli\_sp}
+Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation}'s account of \texttt{nli\_sp}
 performing an internal decomposition that already resembles what GCA does
 externally, which should make the two conditions' decisions converge more
 often under \texttt{nli\_sp} than under \texttt{nli}. This pattern holds
@@ -1460,7 +1077,7 @@ $n=2{,}000$ to $r\approx-0.20$ at $n=10{,}000$, roughly a five-fold increase
 in magnitude for both. Because this growth affects holistic and GCA
 symmetrically, it cannot explain the reversal, but it is a candidate
 contributor to the low absolute accuracy ceiling neither condition breaks
-through (Section~\ref{sec:disc-weak-signal}).
+through (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-weak-signal}).
 
 \subsection{What the RQ4 Investigation Establishes}
 \label{sec:results-gt-summary}
@@ -1481,8 +1098,7 @@ larger training sets shows the advantage does not survive: it is within
 noise of zero at $n=5{,}000$ and significantly negative at $n=10{,}000$ on
 three of four constructions (Section~\ref{sec:results-gt-scale}).
 Intermediate five-seed points at $n=2{,}000$ and $n=3{,}000$ show the
-decline passing through a null region around $n=3{,}000$--$5{,}000$, in
-which no gap is distinguishable from zero in either direction
+decline passing through a null region around $n=3{,}000$--$5{,}000$
 (Section~\ref{sec:results-scale-curve}). The absolute rates locate the
 cause of the reversal in differing rates of improvement rather than in any
 degradation of GCA (Table~\ref{tab:gt-scale-absolute}).
@@ -1509,12 +1125,12 @@ articles are reused at every training-set size, the five-point curve in
 Section~\ref{sec:results-scale-curve} is not five independent samples of
 ground-truth precision: any idiosyncrasy of this particular held-out draw
 is shared by every point on it, so the curve should be read as showing how
-the trained models' behaviour changes on one fixed evaluation instrument,
+the trained models' behavior changes on one fixed evaluation instrument,
 not as an average over repeated independent draws of the ground truth
 itself. Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-limitations}
 records both points.
 
-\begin{caveat}[The reversal is characterised, not explained]
+\begin{caveat}[The reversal is characterized, not explained]
 RQ4 establishes that the advantage is real at small scale, that it
 reverses at large scale, and roughly where the crossover falls. It does
 not establish \emph{why}. Two candidate mechanisms have been eliminated,
@@ -1545,11 +1161,9 @@ RQ1 &
   At $n=1{,}000$, GCA leads in all 20 runs of the extended campaign
   (Section~\ref{sec:results-extended-campaign}) with a mean difference of
   $+3.95$ percentage points, a run-level two-sided Wilcoxon $p<0.001$, a
-  bootstrap 95\% CI entirely above zero, and a large standardised effect
-  ($d=+2.22$, $r_{\text{rb}}=+1.00$). An earlier six-run campaign gave a
-  consistent but structurally underpowered estimate ($+3.08$pp,
-  $p=0.0625$). Twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$
-  (Section~\ref{sec:results-scale}), the same resolution as $n=1{,}000$,
+  bootstrap 95\% CI entirely above zero, and a large standardized effect
+  ($d=+2.22$, $r_{\text{rb}}=+1.00$). Twenty-run campaigns at $n=5{,}000$ and
+  $n=10{,}000$ (Section~\ref{sec:results-scale}), at the same resolution,
   confirm the advantage is genuinely absent at those scales, not merely
   unreproduced: mean gaps of $-0.22$pp ($p=0.3410$) and $-0.11$pp
   ($p=0.5882$), with confidence intervals that do not overlap the
@@ -1557,12 +1171,15 @@ RQ1 &
   $\pm0.61$pp and $\pm0.36$pp (Section~\ref{sec:results-effect-sizes}). \\
 RQ2 &
   Aggregation strategy and evaluator mode are associated with substantial
-  outcome differences. The evaluator-mode comparison is exploratory, because
-  every mode except the subsequently selected \texttt{nli} configuration was
-  evaluated only once. \\
+  outcome differences (Section~\ref{sec:results-config-selection}). The
+  aggregation result is the firmer of the two: the weakest-link penalty
+  measurably hurt GCA relative to the simple mean. The evaluator-mode
+  comparison is exploratory, each mode having been run once, and the
+  confirmatory campaigns do not support the mode-based account originally
+  drawn from it (Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation}). \\
 RQ3 &
   Stable at fixed scale, not stable across scale. All 20 runs at $n=1{,}000$
-  favour GCA (SD 1.78pp); twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$
+  favor GCA (SD 1.78pp); twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$
   are similarly consistent around a mean of approximately zero (SD 1.03pp and
   0.67pp). The advantage is confirmed present at $n=1{,}000$ and confirmed
   absent at the two larger, nested dataset sizes, with non-overlapping

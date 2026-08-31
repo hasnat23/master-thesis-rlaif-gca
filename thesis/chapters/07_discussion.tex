@@ -9,7 +9,7 @@ configuration, at one dataset size, preferences constructed by sentence-level
 aggregation are more consistently recoverable by a Bradley--Terry reward model
 than preferences constructed holistically from the same evaluator and the same
 candidate summaries. The difference averages $+3.95$ percentage points over
-twenty independently seeded runs and favours GCA in every one of them, with a
+twenty independently seeded runs and favors GCA in every one of them, with a
 run-level Wilcoxon $p<0.001$ (Chapter~\ref{ch:results},
 Section~\ref{sec:results-extended-campaign}).
 
@@ -27,84 +27,29 @@ terms, since both reward models remain near chance
 signal, and the remainder of this chapter examines the conditions under which it
 does.
 
-\section{Why Granularity Interacts With Evaluator Design}
+\section{Evaluator-Internal Decomposition: A Hypothesis the Data Do Not Support}
 \label{sec:disc-interpretation}
 
-\begin{caveat}[This section's account is contradicted by the confirmatory
-data, not merely unconfirmed]
-The account originally built in this section, that GCA's advantage
-specifically requires the \texttt{nli} evaluation mode because \texttt{nli}
-lacks the internal sentence decomposition that \texttt{nli\_sp} performs,
-was developed from the single-run mode sweep in
-Section~\ref{sec:results-mode-sweep}, before Chapter~\ref{ch:implementation},
-Section~\ref{sec:impl-preferences} found that the twenty-run confirmatory
-campaign at $n=1{,}000$, the actual headline result of this thesis, was
-trained under \texttt{nli\_sp} throughout, not \texttt{nli}. On the
-account below, a robust GCA advantage under \texttt{nli\_sp} should not
-occur. One did: $+3.95$ percentage points, GCA ahead in all twenty runs,
-$p<0.001$. The account is therefore not an untested hypothesis so much as
-a hypothesis this thesis's own confirmatory data speaks against. It is
-retained in this section, with that contradiction stated plainly
-throughout, because the reasoning about how AlignScore's modes work is
-independently correct and documents a real empirical check, and because
-removing it would obscure how the interpretation of this thesis's results
-changed once the discrepancy was found.
-\end{caveat}
+One interpretation of the mode sweep in Chapter~\ref{ch:results},
+Section~\ref{sec:results-mode-sweep} shaped this thesis's design and is worth
+stating, and then retracting, explicitly: that GCA's advantage requires the
+\texttt{nli} evaluation mode, because \texttt{nli} lacks the internal sentence
+decomposition that \texttt{nli\_sp} performs. On this account, external and
+evaluator-internal decomposition act as partial substitutes, so applying GCA on
+top of a judge that already decomposes internally adds little.
 
-The advantage reported in Chapter~\ref{ch:results},
-Section~\ref{sec:results-final-campaign} was originally thought not to be a
-property of GCA in the abstract, but to appear only under a specific
-combination of two design choices, simple-mean aggregation ($\alpha=0.0$)
-and the AlignScore \texttt{nli} evaluation mode; Section~\ref{sec:results-alpha0-validation}
-had already shown that the aggregation-formula change alone was not
-sufficient, since holistic still led at $\alpha=0.0$ under \texttt{nli\_sp}
-in that single exploratory run. The remainder of this section reconstructs
-why the judge mode was thought to make the difference, before addressing,
-at the end, why the confirmatory data no longer support that account.
-
-AlignScore's implementation \citep{zha2023alignscore} suggests a plausible
-mechanism, though the present experiments do not test it directly. The \texttt{\_sp} suffix in \texttt{nli\_sp} enables
-a preprocessing and aggregation step that is internal to AlignScore itself: the
-context is split into roughly 350-token chunks and the claim is split into
-sentences, and the final score is computed as, in the library's own
-\texttt{inference\_per\_example} function, the maximum entailment score across
-context chunks for each claim sentence, averaged across claim sentences
-(\texttt{.max(dim=0).values.mean()}). Plain \texttt{nli} mode skips this
-entirely and scores the full context against the full claim in one pass. The
-chunk-then-aggregate pattern is not unique to AlignScore: SummaC applies the same
-idea, segmenting document and summary and reducing a matrix of sentence-level
-entailment scores to a single figure \citep{laban2022summac}. What differs
-between evaluators is where that decomposition happens, which is precisely the
-distinction this section turns on.
-
-This has a direct consequence for what the holistic and GCA conditions actually
-compute under each mode. Under \texttt{nli\_sp}, a holistic call already
-decomposes the candidate summary into sentences internally, scores each one
-against the best-matching chunk of the article, and averages the results, which
-is functionally close to what GCA does \emph{externally} at $\alpha=0.0$: score
-each summary sentence against the article and take the mean. When GCA is applied
-on top of a judge that is already doing something close to sentence-level
-decomposition and mean-pooling internally, its external decomposition adds little
-genuinely new information, which is consistent with holistic and GCA performing
-similarly, and even favoring holistic, under \texttt{nli\_sp}
-(Table~\ref{tab:mode-sweep}). Under plain \texttt{nli}, by contrast, a holistic
-call scores the entire summary against the (length-truncated) article as one
-atomic unit, with no internal sentence decomposition at all. Here, GCA's external
-per-sentence scoring is the only source of sentence-level localization in the
-pipeline, and it is exactly under this mode that GCA shows a measurable
-advantage.
-
-The stored $n=200$ preference data allow one component of this account to be
-checked directly rather than inferred. If a holistic \texttt{nli\_sp} call
-internally splits the claim into sentences and averages, then the holistic score
-of a summary should closely track the mean of the separately computed
-per-sentence scores of that same summary. Across all 400 summaries in that set
-the two quantities correlate at $r = 0.983$, agree to within $0.001$ for 234 of
-400 summaries, and have a median absolute difference of $0.000$
-(Figure~\ref{fig:mean-vs-holistic}). Under \texttt{nli\_sp}, holistic scoring and
-mean-aggregated sentence scoring are therefore close to the same computation,
-which is consistent with the observation that GCA at $\alpha=0.0$ adds little
-under that mode.
+The mechanism is plausible and one component of it is measurable. The
+\texttt{\_sp} suffix enables a preprocessing step internal to AlignScore
+\citep{zha2023alignscore}: the context is split into roughly 350-token chunks and
+the claim into sentences, and the score is the maximum entailment across chunks
+per claim sentence, averaged over claim sentences. Plain \texttt{nli} skips this
+and scores the full context against the full claim in one pass. A holistic
+\texttt{nli\_sp} call should therefore closely track the mean of separately
+computed per-sentence scores of the same summary, and on the stored $n=200$ data
+it does: across all 400 summaries the two quantities correlate at $r=0.983$,
+agree to within $0.001$ for 234 of 400, and have a median absolute difference of
+$0.000$ (Figure~\ref{fig:mean-vs-holistic}). Under \texttt{nli\_sp}, holistic
+scoring and mean-aggregated sentence scoring are close to the same computation.
 
 \begin{figure}[htbp]
 \centering
@@ -133,114 +78,82 @@ could not be run for the unsplit mode.}
 \label{fig:mean-vs-holistic}
 \end{figure}
 
-This measurement supports the part of the account concerning \texttt{nli\_sp}'s
-internal behaviour considered on its own, but the account as a whole was
-always an interpretation of an exploratory sweep, and even on its own terms
-three limitations constrain it. The mode comparison rests on a single run
-per mode; no ablation isolates the components of the \texttt{\_sp}
-preprocessing, such as chunk size, from the mode change as a whole; and
-nothing verifies empirically that \texttt{nli\_sp}'s internal aggregation
-and GCA's external aggregation produce comparable scores rather than
-merely comparable rankings.
-
-A fourth point is decisive rather than merely limiting. The claim that
-``only the selected \texttt{nli} configuration received repeated-run
-validation'' is what Chapter~\ref{ch:implementation},
-Section~\ref{sec:impl-preferences} found to be false: the twenty-run
-campaign believed to be that validation was actually run under
-\texttt{nli\_sp}, and it reproduced a GCA advantage of similar direction
-and larger magnitude than the single \texttt{nli} run that motivated
-locking the mode in the first place ($+3.95$ points over twenty runs under
-\texttt{nli\_sp}, against $+6.0$ points from a single \texttt{nli} run and
-$+1.3$ points from its confirmation rerun). Read alongside the six-run
-campaign, which genuinely was trained under \texttt{nli}
-(Section~\ref{sec:results-final-campaign}) and also showed a consistent GCA
-advantage ($+3.08$ points, five of six runs), the confirmatory evidence
-available across both modes now points the same way: GCA leads at
-$n=1{,}000$ under \texttt{nli} \emph{and} under \texttt{nli\_sp} once each
-is tested with enough runs to distinguish a real effect from noise. That
-is the opposite of what this section's account predicts, which requires
-the advantage to appear under \texttt{nli} and not under \texttt{nli\_sp}.
-The single-run \texttt{nli\_sp} result that seemed to confirm the account
-($-2.1$ points, Table~\ref{tab:mode-sweep}) is, on this reading, another
-instance of the single-run instability documented directly in
-Section~\ref{sec:disc-stochasticity}, not a stable property of the mode.
+What the account cannot survive is this thesis's own confirmatory evidence. It
+predicts a GCA advantage under \texttt{nli} and none under \texttt{nli\_sp}.
+Both halves of that prediction fail. The twenty-run campaign was itself trained
+under \texttt{nli\_sp} (Chapter~\ref{ch:implementation},
+Section~\ref{sec:impl-preferences}) and produced a GCA advantage of $+3.95$
+points with GCA ahead in all twenty runs; the six-run campaign, genuinely
+trained under \texttt{nli} (Appendix~\ref{app:exploratory},
+Section~\ref{sec:results-final-campaign}), produced $+3.08$ points with GCA
+ahead in five of six. Once each mode is tested with enough runs to distinguish
+an effect from noise, GCA leads under both. The single-run \texttt{nli\_sp}
+result that appeared to confirm the account ($-2.1$ points,
+Table~\ref{tab:mode-sweep}) is best read as another instance of the single-run
+instability documented in Section~\ref{sec:disc-stochasticity}, not as a stable
+property of the mode.
 
 The proposition that evaluator-internal decomposition reduces the marginal
-benefit of external GCA is therefore not a finding of this thesis and is
-not, on the evidence now available, a well-supported hypothesis either. It
-is retained above as an account of AlignScore's internal behaviour, which
-the $r=0.983$ correlation genuinely establishes, and as a candidate
-explanation that a future, correctly-configured repetition of these
-campaigns could still test properly; what it cannot currently explain is
-why the confirmatory campaign that was believed to isolate this factor
-shows the same effect the factor was invoked to explain away
-(Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-future}).
+benefit of external GCA is therefore not a finding of this thesis, and on the
+evidence now available it is not a well-supported hypothesis either. Two
+things survive. The $r=0.983$ correlation is a genuine measurement of what
+\texttt{nli\_sp} computes, independent of what it implies for GCA. And the
+proposition remains a candidate worth testing under a correctly-configured
+repetition (Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-future}), since
+what refutes it here is a pair of campaigns neither of which was designed to
+isolate the mode. The broader methodological point in
+Section~\ref{sec:disc-implications}, that a judge's internal behavior should be
+checked before an effect is attributed to one's own pipeline, stands on the
+measurement rather than on the refuted account.
+
 
 \section{How Much Weight the Statistical Evidence Can Carry}
 \label{sec:disc-stats-caveat}
 
-The $n=1{,}000$ result was first assessed from a fold-level interval and a
-Wilcoxon $p$-value of 0.0034, computed over 30 pooled fold-level differences from
-six runs. It is necessary to state plainly how much that figure could support, and
-then to describe what changed once the campaign was extended.
+Two properties of the reported statistics govern how much they can be asked to
+support: the unit at which independence holds, and the difference between
+statistical significance and practical size.
 
-Those 30 differences are not 30 independent observations. Within a single run the
-five cross-validation folds partition one dataset: any two folds share four fifths
-of their training data, and all five evaluate models trained from the same pool of
-preference pairs. Their errors are correlated, so a test assuming independence
-treats the evidence as stronger than it is. The effective sample size lies between
-the number of runs and the number of folds, and closer to the former. The
-fold-level $p$-value is therefore anti-conservative and is reported as an
-exploratory summary, not as a hypothesis test, at either campaign size.
+The unit of independent replication is the run, not the cross-validation fold.
+Within a single run the five folds partition one dataset: any two folds share
+four fifths of their training data, and all five evaluate models trained from
+the same pool of preference pairs. Their errors are correlated, so a test
+assuming independence treats the evidence as stronger than it is, and the
+effective sample size lies between the number of runs and the number of folds,
+closer to the former. Every fold-level interval and $p$-value in this thesis is
+therefore reported as an exploratory summary of spread, never as a hypothesis
+test, and every confirmatory statistic is computed over run-level differences
+(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-rm-eval}). This
+distinction is not cosmetic: on the six-run precursor campaign the fold-pooled
+$p$-value was 0.0034 while the correct run-level test could not fall below
+0.0625, a difference of more than an order of magnitude arising purely from the
+unit of analysis (Appendix~\ref{app:exploratory},
+Section~\ref{sec:results-final-campaign}).
 
-The appropriate unit of independent replication is the run. Applying the two-sided
-Wilcoxon signed-rank test to the six run-level differences from the original
-campaign ($+0.060$, $+0.013$, $-0.010$, $+0.051$, $+0.032$, $+0.039$) gives
-$p = 0.0625$, which does not meet the conventional $0.05$ threshold. With six
-observations, five of them positive, $0.0625$ is in fact the smallest two-sided
-value the test can return, so that outcome reflected the number of runs available
-at least as much as the size of the effect: no result with five wins and one loss
-out of six paired observations can reach significance, regardless of how large or
-small the true difference is.
-
-This is a genuine limitation of a six-run design, not a property of the
-underlying effect, and Chapter~\ref{ch:results},
-Section~\ref{sec:results-extended-campaign} reports what happened when it was
-addressed directly: the campaign was extended to twenty independently seeded
-runs under a corrected, fully deterministic training procedure. GCA led in all
-twenty, with a mean gap of $+3.95$ percentage points, a bootstrap 95\% confidence
-interval of $[+3.19, +4.70]$ points that does not cross zero, and a run-level
-two-sided Wilcoxon $p < 0.001$. This does meet the conventional significance
-threshold, and the effect size is close to the original six-run estimate,
-indicating that the earlier campaign's direction was not an artifact of having
-too few runs to trust, only too few to prove.
-
-Significance alone understates how consistent the difference is. Measured
-against the run-to-run spread it must be distinguished from, the effect is
-large: Cohen's $d = +2.22$, and the rank-biserial correlation attains its
-maximum of $+1.00$ because no run in the campaign favours holistic
-(Chapter~\ref{ch:results}, Section~\ref{sec:results-effect-sizes}). The
-$p$-value and the effect size are answering different questions here, and both
-are needed. What is large is the difference relative to the noise in the
-measurement; what remains small, as the next section discusses, is the
+At the run level, the twenty-run campaign gives a mean gap of $+3.95$
+percentage points, a bootstrap 95\% confidence interval of $[+3.19, +4.70]$
+points that does not cross zero, and a two-sided Wilcoxon $p < 0.001$
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-extended-campaign}).
+Significance alone understates how consistent the difference is: measured
+against the run-to-run spread it must be distinguished from, Cohen's $d = +2.22$
+and the rank-biserial correlation attains its maximum of $+1.00$, because no run
+favors holistic. The $p$-value and the effect size answer different questions
+and both are needed. What is large is the difference relative to the noise in
+the measurement; what remains small, as the next section discusses, is the
 difference in absolute terms.
 
-Reaching significance changes what can be claimed, but it does not remove the
-need for the qualifications that surrounded the six-run result. Statistical
-significance at the run level establishes that GCA preferences are
-\emph{consistently more learnable} than holistic preferences by this
-reward-model architecture, under this evaluator configuration, at this dataset
-size, to a degree unlikely to arise from run-to-run noise alone. It does not by
-itself establish a large effect (Section~\ref{sec:disc-weak-signal} addresses
-the absolute accuracy level), an effect that generalizes to other scales
-(Section~\ref{sec:disc-scale}), or a mechanism (Section~\ref{sec:disc-interpretation}
-remains an interpretation, not confirmed by the extended campaign). What the
-evidence now supports is a directionally consistent, statistically significant
-advantage of approximately three to four percentage points under this
-configuration, a materially stronger claim than the six-run campaign could
-support, but one that is still scoped to the conditions under which it was
-measured.
+Reaching significance changes what can be claimed, but not by as much as it may
+appear. It establishes that GCA preferences are \emph{consistently more
+learnable} than holistic preferences by this reward-model architecture, under
+this evaluator configuration, at this dataset size, to a degree unlikely to
+arise from run-to-run noise alone. It does not by itself establish a large
+effect (Section~\ref{sec:disc-weak-signal}), an effect that generalizes to other
+scales (Section~\ref{sec:disc-scale}), or a mechanism
+(Section~\ref{sec:disc-interpretation}). What the evidence supports is a
+directionally consistent, statistically significant advantage of approximately
+three to four percentage points under this configuration, scoped to the
+conditions under which it was measured.
+
 
 \section{Both Reward Models Are Weak in Absolute Terms}
 \label{sec:disc-weak-signal}
@@ -541,7 +454,7 @@ about how much sentence-level decomposition the judge was already doing
 internally. Anyone comparing supervision granularities on top of a judge with
 its own internal aggregation behavior should check what that judge already does
 before attributing an effect to the granularity of their own pipeline. Surveys of
-automatic judging emphasise sensitivity to prompt and configuration choices
+automatic judging emphasize sensitivity to prompt and configuration choices
 \citep{zheng2023judging, gu2024survey}; the present result adds that a judge's
 internal decomposition can also absorb the very manipulation an experiment
 intends to study.
@@ -562,7 +475,7 @@ The twenty repeated runs in Chapter~\ref{ch:results},
 Section~\ref{sec:results-extended-campaign} establish that the difference between
 the two preference sets is repeatedly observed: it survives changes in fold
 assignment and appears in every run of the campaign, so it is not confined to a
-single favourable run.
+single favorable run.
 
 Reproducibility and correctness are separate properties, however. That a
 preference relation is consistently recoverable says nothing about whether the
@@ -583,46 +496,28 @@ annotators relocates that problem rather than removing it.
 \section{Stochastic Variation Between Runs}
 \label{sec:disc-stochasticity}
 
-Run-to-run variation is large enough in this setting to determine what conclusions
-can be drawn, and it deserves treatment as a finding rather than as an
-inconvenience. Two same-configuration runs differed by 4.7 percentage points
-($+0.060$ versus $+0.013$), and across the six runs the gap ranged from $-0.010$
-to $+0.060$. A study reporting only one of these runs could honestly have
-concluded either that GCA helps substantially or that it does not help at all.
+Run-to-run variation is large enough in this setting to determine what
+conclusions can be drawn, and it deserves treatment as a finding rather than as
+an inconvenience. In the six-run precursor campaign, two runs launched at the
+same seed differed by 4.7 percentage points ($+0.060$ versus $+0.013$), and the
+gap across those six runs ranged from $-0.010$ to $+0.060$
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-final-campaign}). A
+study reporting only one of them could honestly have concluded either that GCA
+helps substantially or that it does not help at all.
 
-This is a known hazard rather than a peculiarity of the present setup. Fine-tuning
-pretrained language models is sensitive to random seed alone, with weight
-initialization and data order contributing comparably to the variance of
+This is a known hazard rather than a peculiarity of the present setup.
+Fine-tuning pretrained language models is sensitive to random seed alone, with
+weight initialization and data order contributing comparably to the variance of
 out-of-sample performance \citep{dodge2020finetuning}, and reporting score
 distributions across several runs rather than a single figure has been urged for
-precisely this reason \citep{reimers2017reporting}. The repeated-run design used
-here follows that recommendation, and the spread it exposes is the reason this
-thesis reports a distribution of gaps rather than a single headline number.
-
-This variation traced back to an implementation property documented in
-Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}: in the
-original six-run campaign, the seed argument fixed the cross-validation fold
-assignment through Python's standard random number generator, but PyTorch's
-generator was not seeded in the cross-validation path. Several sources of
-training stochasticity were therefore uncontrolled, including reward-head weight
-initialization, the order in which training batches are drawn, and dropout
-masks. Runs were consequently not exactly reproducible from a seed value alone.
-This had an interpretive consequence at the time: the two executions at seed 42
-were genuine repetitions rather than duplicates, because they shared the fold
-assignment but not the training stochasticity, and the 4.7-point spread between
-them reflects that uncontrolled stochasticity rather than fold assignment alone.
-
-This property has since been fixed: PyTorch and CUDA are now seeded per fold,
-with an explicit generator for the training \texttt{DataLoader} and seeded
-worker initialization, so a run is fully determined by its seed on fixed
-hardware. The extended twenty-run campaign in Chapter~\ref{ch:results},
-Section~\ref{sec:results-extended-campaign} was carried out under this corrected
-procedure; each of its twenty seeds is consequently a genuinely independent and
-exactly reproducible sample, which is what made it meaningful to extend the
-campaign at all. The fix does not retroactively change the original six runs,
-which remain a documented instance of exactly the seed-sensitivity the
-literature describes, but it does mean the concern raised in this section no
-longer applies to the results this thesis reports as its headline finding.
+precisely this reason \citep{reimers2017reporting}. Here the variation had a
+specific and locatable cause: PyTorch's generator was not seeded in the
+cross-validation path, so weight initialization, batch order and dropout varied
+between executions regardless of the seed value
+(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}). That
+property was fixed before the twenty-run campaign, each of whose seeds is
+consequently an independent and exactly reproducible sample, so the concern no
+longer applies to the results reported as headline findings.
 
 The practical implication generalizes beyond this study regardless of the fix.
 At the accuracy levels and dataset sizes involved here, differences of one to two
@@ -631,6 +526,7 @@ under-seeded run can produce by chance. Comparisons of preference-construction
 methods reported from single training runs at this scale, without controlling
 every source of training randomness, should be treated with corresponding
 caution.
+
 
 \section{Confounds That Remain}
 \label{sec:disc-confounds}
@@ -703,6 +599,6 @@ context window, might recover more of the preference relation and thereby narrow
 or widen the difference between conditions.
 
 Taken together, these dependencies mean the study is best read as characterizing
-behaviour under one specific configuration, and as motivating a hypothesis about
+behavior under one specific configuration, and as motivating a hypothesis about
 the interaction between external and evaluator-internal decomposition, rather than
 as establishing a quantity that transfers directly to other setups.

@@ -59,35 +59,22 @@ reported throughout Chapter~\ref{ch:results}.
 \section{Direct Preference Optimization (DPO)}
 \label{sec:bg-dpo}
 
-This section is included as background on the study's earlier design rather than
-as part of its final methodology; DPO is not used in the main experiments
-(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-evolution}).
-
 Direct Preference Optimization (DPO) replaces RLHF's reward-model-plus-reinforcement-learning
-pipeline with a single closed-form supervised objective on a policy $\pi_\theta$,
-defined relative to a fixed reference policy $\pi_{\text{ref}}$
-\citep{rafailov2023dpo}:
-\begin{equation}
-  \mathcal{L}_{\text{DPO}}(\theta) = - \, \mathbb{E}_{(x, w, l) \sim \mathcal{D}}
-  \left[
-    \log \sigma \left(
-      \beta \log \frac{\pi_\theta(w \mid x)}{\pi_{\text{ref}}(w \mid x)}
-      - \beta \log \frac{\pi_\theta(l \mid x)}{\pi_{\text{ref}}(l \mid x)}
-    \right)
-  \right],
-  \label{eq:dpo-loss}
-\end{equation}
-where $x$ is the source article, $w$ and $l$ are the chosen and rejected
-summaries, and $\beta$ bounds divergence from the reference policy. The relevant
-point for this thesis is structural: Equation~\ref{eq:dpo-loss} consumes exactly the same pairwise
-preference pairs used to train the reward models in
+pipeline with a single closed-form supervised objective on a policy, defined
+relative to a fixed reference policy \citep{rafailov2023dpo}. It is included
+here only as background on the study's earlier design: DPO was the objective
+originally proposed for this thesis and produced the early results reported in
+Appendix~\ref{app:exploratory}, Section~\ref{sec:results-early}, but it is not
+used in the final experiments (Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-evolution}).
+
+The relevant point is structural. The DPO objective consumes exactly the same
+pairwise preference pairs used to train the reward models in
 Section~\ref{sec:bg-bradley-terry}, but converts them directly into a policy
 update, so the quality of the preference data and the behavior of the optimizer
 both influence the resulting summaries. Separating those two influences is what
-motivated measuring the preference data on its own
-(Section~\ref{sec:methodology-evolution}). Early DPO results obtained during the
-project are reported for context in Chapter~\ref{ch:results},
-Section~\ref{sec:results-early}.
+motivated measuring the preference data on its own, which is what the final
+study does.
 
 \section{AlignScore: Factual Consistency Scoring}
 \label{sec:bg-alignscore}
@@ -181,13 +168,13 @@ analysis moved from the former to the latter.
 
 \textbf{Effect size.} A $p$-value indicates whether a difference is
 distinguishable from zero, not how large it is, so both are reported. For paired
-differences $\{d_1, \ldots, d_n\}$ the standardised effect size is Cohen's $d =
+differences $\{d_1, \ldots, d_n\}$ the standardized effect size is Cohen's $d =
 \bar{d} / s_d$, the mean difference expressed in units of its own standard
 deviation \citep{cohen1988statistical}. Alongside it, the matched-pairs
 rank-biserial correlation is reported as the effect size native to the Wilcoxon
 test: it is the difference between the sums of positive and negative signed
-ranks, divided by their total, and therefore ranges from $-1$ (every run favours
-one condition) to $+1$ (every run favours the other), capturing consistency of
+ranks, divided by their total, and therefore ranges from $-1$ (every run favors
+one condition) to $+1$ (every run favors the other), capturing consistency of
 direction independently of magnitude.
 
 \textbf{Equivalence testing.} A non-significant result does not by itself

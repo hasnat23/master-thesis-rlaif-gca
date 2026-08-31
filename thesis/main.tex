@@ -113,22 +113,22 @@ feedback granularity is isolated as the primary experimental variable.
 as reward-model pairwise validation accuracy. Across twenty independently
 seeded runs at $n=1{,}000$, GCA led in every
 run, a mean advantage of 3.95 percentage points (bootstrap 95\% CI $[+3.19,
-+4.70]$, run-level Wilcoxon $p<0.001$, Cohen's $d=2.22$). \textbf{RQ3} asks whether
-this advantage is stable across dataset scale; it is not. Twenty-run campaigns at
-$n=5{,}000$ and $n=10{,}000$, under the same corrected procedure, give mean
-gaps of $-0.22$ and $-0.11$ percentage points, both statistically
-indistinguishable from zero, with equivalence tests excluding any effect
-larger than $\pm0.61$ and $\pm0.36$ points: the advantage is absent, not
-merely undetected. Absolute accuracy improves for both conditions as data
-grows even as their difference vanishes.
++4.70]$, run-level Wilcoxon $p<0.001$, Cohen's $d=2.22$).
 
 \textbf{RQ2} asks how evaluator configuration and aggregation strategy affect this
-comparison. Both matter substantially: an early weakest-link penalty formula
-hurt GCA relative to a simple mean, and a sweep across four AlignScore modes
-finds GCA's advantage appears only under modes that do not themselves decompose
-the input internally, suggesting external and evaluator-internal decomposition
-act as partial substitutes. Each mode was tested once, so this is
-associational, not confirmed.
+comparison. The aggregation rule matters substantially: an early weakest-link
+penalty formula measurably hurt GCA relative to a simple mean. A single-run
+sweep across four AlignScore modes suggested the evaluator mode matters too,
+but the confirmatory campaigns do not bear that out, so it is reported as
+exploratory rather than established.
+
+\textbf{RQ3} asks whether the RQ1 advantage is stable across dataset scale; it is
+not. Twenty-run campaigns at $n=5{,}000$ and $n=10{,}000$, at the same
+resolution, give mean gaps of $-0.22$ and $-0.11$ percentage points, both
+statistically indistinguishable from zero, with equivalence tests excluding
+any effect larger than $\pm0.61$ and $\pm0.36$ points: the advantage is
+absent, not merely undetected. Absolute accuracy improves for both conditions
+as data grows even as their difference vanishes.
 
 \textbf{RQ4} asks whether the RQ1 advantage also holds against an independent,
 held-out ground truth: 500 articles disjoint from every training set, scored by
@@ -185,5 +185,6 @@ factually consistent, both future work.
 
 \appendix
 \input{chapters/appendix_a_availability}
+\input{chapters/appendix_d_exploratory}
 
 \end{document}

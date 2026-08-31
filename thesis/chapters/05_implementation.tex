@@ -138,7 +138,7 @@ different seeds and are not part of the final comparison.
 $n$ & Subset seed & Purpose & Notes \\
 \midrule
 200    & 42  & Early DPO-based prototype & Superseded; see
-  Chapter~\ref{ch:results}, Section~\ref{sec:results-early} \\
+  Appendix~\ref{app:exploratory}, Section~\ref{sec:results-early} \\
 495    & 100 & First Bradley--Terry RM training set & Drawn with a different seed
   from the $n=200$ set \\
 1{,}000 & 200 & Final repeated-run campaign & 6 RM training runs; seeds 42, 42, 7, 100,
@@ -333,8 +333,8 @@ Reward-model training is implemented in \url{src/reward_model/train.py}
 by \url{src/reward_model/run_training.py}, which trains the holistic and GCA
 conditions from a single invocation. Two training modes are used in this thesis,
 selected by whether \texttt{run\_training.py} is invoked with \texttt{--kfold}.
-Every RQ1--RQ3 result (Chapter~\ref{ch:results}, Sections~\ref{sec:results-rm-baseline}
-to~\ref{sec:results-effect-sizes}) uses $k$-fold cross-validation
+Every RQ1--RQ3 result (Chapter~\ref{ch:results}, and the superseded campaigns
+in Appendix~\ref{app:exploratory}) uses $k$-fold cross-validation
 (\texttt{\_kfold\_cv} in \texttt{run\_training.py}): the preference pairs are
 shuffled using a seeded \texttt{random.Random} instance, split into $k=5$
 contiguous folds, and for each fold a freshly initialized reward model is trained
@@ -356,7 +356,7 @@ be interpreted. The \texttt{--seed} argument is passed to Python's
 $k$-fold path (and the train/seed initialization in the non-$k$-fold path).
 
 In the version of \texttt{\_kfold\_cv} used for the original six-run campaign
-(Chapter~\ref{ch:results}, Section~\ref{sec:results-final-campaign}),
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-final-campaign}),
 PyTorch's own generator was not seeded anywhere in the cross-validation path,
 so every other source of stochasticity was uncontrolled: the randomly
 initialized reward head, the shuffling of training batches by the
@@ -376,7 +376,7 @@ seed value on fixed hardware, and this is the training procedure that
 produced every twenty-run campaign reported in Chapter~\ref{ch:results}
 (Sections~\ref{sec:results-extended-campaign}
 and~\ref{sec:results-scale} onward) and the reproduction instructions in
-Appendix~\ref{app:reproduction}. The original, unseeded behaviour is
+Appendix~\ref{app:reproduction}. The original, unseeded behavior is
 retained here as the explanation for why the six-run campaign's individual
 runs differ even at a repeated seed value, and is discussed further as a
 source of run-to-run variation in Chapter~\ref{ch:discussion},
@@ -397,7 +397,7 @@ result reported in this thesis overrides this default and passes
 \texttt{--backbone FacebookAI/roberta-base} explicitly; the \texttt{deberta-v3-base}
 default was never actually used to produce a reported number. The one exception is
 the very first Bradley--Terry result on the $n=495$ set
-(Chapter~\ref{ch:results}, Section~\ref{sec:results-rm-baseline}), which predates
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-rm-baseline}), which predates
 the standardization on \texttt{roberta-base} and is reported as such.
 
 \paragraph{Source-document truncation.} The reward model does not see the full
@@ -451,7 +451,7 @@ well, with an explicit generator for the training \texttt{DataLoader} and
 seeded worker processes. Under this corrected procedure a run is fully
 determined by its seed value on fixed hardware. This was not always the case:
 the original six-run campaign at $n=1{,}000$
-(Chapter~\ref{ch:results}, Section~\ref{sec:results-final-campaign}) predates
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-final-campaign}) predates
 the fix, and two executions with identical arguments could differ under that
 earlier version of the code, which is why that campaign's per-run figures do
 not exactly reproduce from the seed value alone. Every pipeline script writes
