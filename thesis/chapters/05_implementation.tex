@@ -4,11 +4,12 @@
 \section{Pipeline Overview}
 \label{sec:impl-pipeline}
 
-Figure~\ref{fig:pipeline} shows the final pipeline. It differs from the pipeline
-described in the original proposal in exactly the ways described in
-Chapter~\ref{ch:methodology}: there is no DPO fine-tuning stage, no MoDPO
-\citep{zhou2024modpo} branch,
-and no cross-summary sentence-alignment step. The pipeline has four stages. First,
+Figure~\ref{fig:pipeline} (Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-design}) shows the final pipeline. It differs
+from the pipeline described in the original proposal in exactly the ways
+described in Section~\ref{sec:methodology-evolution}: there is no DPO
+fine-tuning stage, no MoDPO \citep{zhou2024modpo} branch, and no
+cross-summary sentence-alignment step. The pipeline has four stages. First,
 a fixed number of CNN/DailyMail articles are selected deterministically
 (Section~\ref{sec:impl-data}). Second, two candidate summaries are generated per
 article at different sampling temperatures (Section~\ref{sec:impl-generation}).
@@ -17,64 +18,6 @@ sentence level with GCA aggregation, to produce two separate preference datasets
 (Section~\ref{sec:impl-preferences}). Fourth, a Bradley--Terry reward model is
 trained independently on each preference dataset and the two are compared
 (Section~\ref{sec:impl-rm-training}).
-
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[
-  node distance=7mm and 8mm,
-  box/.style={draw, rounded corners, align=center, font=\footnotesize,
-    minimum width=34mm, minimum height=9mm, inner sep=2mm},
-  shared/.style={box, fill=gray!12},
-  hol/.style={box, fill=blue!8},
-  gca/.style={box, fill=orange!10},
-  end/.style={box, fill=gray!12, minimum width=48mm},
-  arr/.style={-{Stealth[length=2mm]}, thick},
-]
-
-% shared stages
-\node[shared] (data)   {1. Data Loader\\\footnotesize CNN/DailyMail, seeded subset};
-\node[shared, below=of data]  (gen)   {2. Candidate Generation\\\footnotesize Mistral-7B, $T{=}0.7$ / $T{=}1.0$};
-\node[shared, below=of gen]   (pair)  {3. Candidate Pairing\\\footnotesize Summary A, Summary B};
-
-% branch anchor row
-\node[hol, below left=12mm and -8mm of pair]  (hscore) {4A. Holistic Scoring\\\footnotesize AlignScore on full summary};
-\node[gca, below right=12mm and -8mm of pair] (seg)    {4B. Sentence Segmentation};
-
-\node[hol, below=of hscore] (hpref)  {5A. Holistic Preference\\\footnotesize margin $=0$};
-\node[gca, below=of seg]    (gscore) {5B. Sentence-Level Scoring\\\footnotesize AlignScore per sentence};
-
-\node[gca, below=of gscore] (gagg)   {6B. GCA Aggregation\\\footnotesize $\alpha{=}0.0$ (simple mean)};
-\node[gca, below=of gagg]   (gpref)  {7B. GCA Preference\\\footnotesize margin $=0$};
-
-\node[hol, below=18mm of hpref] (hrm) {8A. Bradley--Terry RM\\\footnotesize \emph{RM-Holistic}, 5-fold CV};
-\node[gca, below=of gpref]      (grm) {8B. Bradley--Terry RM\\\footnotesize \emph{RM-GCA}, 5-fold CV};
-
-\node[end, below=12mm of grm] (eval) {9. Evaluation and Comparison\\\footnotesize pairwise accuracy, bootstrap CI, Wilcoxon test};
-
-% arrows
-\draw[arr] (data) -- (gen);
-\draw[arr] (gen) -- (pair);
-\draw[arr] (pair) -| (hscore);
-\draw[arr] (pair) -| (seg);
-\draw[arr] (hscore) -- (hpref);
-\draw[arr] (seg) -- (gscore);
-\draw[arr] (gscore) -- (gagg);
-\draw[arr] (gagg) -- (gpref);
-\draw[arr] (hpref) -- (hrm);
-\draw[arr] (gpref) -- (grm);
-\draw[arr] (hrm) |- (eval);
-\draw[arr] (grm) -- (eval);
-
-\end{tikzpicture}
-\caption[The final experimental pipeline]{The final pipeline. Shared setup (grey) produces one candidate pool from
-which two independent preference-construction branches run: holistic (blue) and
-GCA (orange). Each branch trains its own Bradley--Terry reward model under an
-identical recipe, and the two are compared in the final evaluation step. Compare
-to the pipeline described in the original proposal (Chapter~\ref{ch:methodology}),
-which additionally included a DPO fine-tuning stage and a cross-summary
-sentence-alignment step, neither of which appears here.}
-\label{fig:pipeline}
-\end{figure}
 
 Table~\ref{tab:pipeline-io} states the input and output of every stage in
 Figure~\ref{fig:pipeline} explicitly. Stages 4A/5A form the holistic branch,

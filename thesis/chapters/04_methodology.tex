@@ -45,7 +45,7 @@ preferences, because they localize the factuality signal within a long output.
 \textbf{H2} is that the evaluator's configuration affects whether any such
 difference is observable at all, so that granularity cannot be assessed
 independently of the judge it is applied on top of. \textbf{H3} is not a
-prediction about the world but a precaution against generalising from one
+prediction about the world but a precaution against generalizing from one
 setting: that effects observed at one dataset scale need not persist at
 another, and so must be checked rather than assumed. It is stated alongside the
 other two because it turned out to determine the shape of the final result.
@@ -55,9 +55,72 @@ Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-hypotheses}.
 \section{Study Design}
 \label{sec:methodology-design}
 
-The comparison is between two procedures for converting factuality scores into
-pairwise preference labels. For every source article, two candidate summaries are
-generated once and reused by both conditions:
+Figure~\ref{fig:pipeline} gives an overview of the full experimental pipeline
+before the individual stages are described. The comparison is between two
+procedures for converting factuality scores into pairwise preference labels.
+For every source article, two candidate summaries are generated once and
+reused by both conditions:
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=7mm and 8mm,
+  box/.style={draw, rounded corners, align=center, font=\footnotesize,
+    minimum width=34mm, minimum height=9mm, inner sep=2mm},
+  shared/.style={box, fill=gray!12},
+  hol/.style={box, fill=blue!8},
+  gca/.style={box, fill=orange!10},
+  end/.style={box, fill=gray!12, minimum width=48mm},
+  arr/.style={-{Stealth[length=2mm]}, thick},
+]
+
+% shared stages
+\node[shared] (data)   {1. Data Loader\\\footnotesize CNN/DailyMail, seeded subset};
+\node[shared, below=of data]  (gen)   {2. Candidate Generation\\\footnotesize Mistral-7B, $T{=}0.7$ / $T{=}1.0$};
+\node[shared, below=of gen]   (pair)  {3. Candidate Pairing\\\footnotesize Summary A, Summary B};
+
+% branch anchor row
+\node[hol, below left=12mm and -8mm of pair]  (hscore) {4A. Holistic Scoring\\\footnotesize AlignScore on full summary};
+\node[gca, below right=12mm and -8mm of pair] (seg)    {4B. Sentence Segmentation};
+
+\node[hol, below=of hscore] (hpref)  {5A. Holistic Preference\\\footnotesize margin $=0$};
+\node[gca, below=of seg]    (gscore) {5B. Sentence-Level Scoring\\\footnotesize AlignScore per sentence};
+
+\node[gca, below=of gscore] (gagg)   {6B. GCA Aggregation\\\footnotesize $\alpha{=}0.0$ (simple mean)};
+\node[gca, below=of gagg]   (gpref)  {7B. GCA Preference\\\footnotesize margin $=0$};
+
+\node[hol, below=18mm of hpref] (hrm) {8A. Bradley--Terry RM\\\footnotesize \emph{RM-Holistic}, 5-fold CV};
+\node[gca, below=of gpref]      (grm) {8B. Bradley--Terry RM\\\footnotesize \emph{RM-GCA}, 5-fold CV};
+
+\node[end, below=12mm of grm] (eval) {9. Evaluation and Comparison\\\footnotesize pairwise accuracy, bootstrap CI, Wilcoxon test};
+
+% arrows
+\draw[arr] (data) -- (gen);
+\draw[arr] (gen) -- (pair);
+\draw[arr] (pair) -| (hscore);
+\draw[arr] (pair) -| (seg);
+\draw[arr] (hscore) -- (hpref);
+\draw[arr] (seg) -- (gscore);
+\draw[arr] (gscore) -- (gagg);
+\draw[arr] (gagg) -- (gpref);
+\draw[arr] (hpref) -- (hrm);
+\draw[arr] (gpref) -- (grm);
+\draw[arr] (hrm) |- (eval);
+\draw[arr] (grm) -- (eval);
+
+\end{tikzpicture}
+\caption[The final experimental pipeline]{The final pipeline. Shared setup (grey) produces one candidate pool from
+which two independent preference-construction branches run: holistic (blue) and
+GCA (orange). Each branch trains its own Bradley--Terry reward model under an
+identical recipe, and the two are compared in the final evaluation step. Compare
+to the pipeline described in the original proposal
+(Section~\ref{sec:methodology-evolution}), which additionally included a DPO
+fine-tuning stage and a cross-summary sentence-alignment step, neither of
+which appears here. Chapter~\ref{ch:implementation},
+Section~\ref{sec:impl-pipeline} walks through every stage's concrete input
+and output.}
+\label{fig:pipeline}
+\end{figure}
 
 \begin{description}
   \item[Holistic.] The complete candidate summary is scored against the source

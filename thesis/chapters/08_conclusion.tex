@@ -272,6 +272,26 @@ an unqualified positive finding that the fuller evidence does not support.
     (Chapter~\ref{ch:results}, Section~\ref{sec:results-gt-1000}), could
     in principle reflect this asymmetry rather than a general precision
     advantage, and the data collected here cannot rule that out.
+  \item \label{lim:mean-does-not-penalize}
+    \textbf{The locked aggregation rule does not solve the problem that
+    motivated it.} The thesis is motivated by a summary that is mostly
+    accurate but contains one fabricated sentence, which a holistic judge may
+    still prefer over a uniformly mediocre but non-fabricating alternative
+    (Chapter~\ref{ch:introduction}, Section~\ref{sec:intro-motivation}). The
+    locked configuration, however, is the simple mean ($\alpha=0.0$), and a
+    mean dilutes a single low-scoring sentence in exactly the way a holistic
+    judgment does; Figure~\ref{fig:gca-worked}
+    (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-design})
+    shows this directly, with the weakest-link penalty formula, not the
+    locked mean, producing the sentence-level sensitivity the motivating
+    example calls for. That penalty formula was tested and rejected for
+    performing worse overall (Chapter~\ref{ch:results},
+    Section~\ref{sec:results-formula-opt}). What this thesis's confirmed
+    result actually establishes, then, is that GCA's benefit at $n=1{,}000$
+    comes from scoring sentences independently and averaging the result, not
+    from penalizing the weakest one; the fabrication-masking scenario that
+    motivated the project in the first place remains unresolved by the
+    configuration that was found to work best.
   \item \textbf{Preference learnability is not factual correctness.} The
     dependent variable measures how consistently a preference relation can be
     recovered by the chosen architecture, not whether the preferences are
@@ -385,107 +405,56 @@ an unqualified positive finding that the fuller evidence does not support.
 \section{Future Work}
 \label{sec:concl-future}
 
+The items below concern what someone could build on top of this work, given
+that it works, rather than the open methodological questions of whether it
+does; those are catalogued as limitations above and are prerequisites for
+the confirmatory result to be trusted at face value, not directions for
+extending it.
+
 \begin{itemize}
-  \item \textbf{Re-run the confirmatory campaigns under the intended
-    configuration.} Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}
-    reports that the twenty-run campaigns at all three scales, the
-    $n=2{,}000$/$n=3{,}000$ crossover checks, and the RQ4 checkpoints were
-    trained under AlignScore's \texttt{nli\_sp} mode rather than the
-    intended, selected \texttt{nli} mode, and, at $n=1{,}000$, under
-    $\alpha=0.5$ rather than $\alpha=0.0$. Repeating these campaigns on the
-    correctly-configured preference data, which already exists at
-    \url{data/preferences_1000_alpha0_mode_nli/} for $n=1{,}000$ and would
-    need to be rebuilt with the mode flag corrected for $n=5{,}000$ and
-    $n=10{,}000$, is the most direct way to establish whether the reported
-    effects, and specifically the evaluator-mode interpretation in
-    Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation},
-    hold under the configuration this thesis intended to test throughout.
-  \item \textbf{Separate optimizer steps from dataset size.} Epoch count is
-    fixed at every training-set size, but because
-    \texttt{total\_steps~=~len(train\_loader)~*~epochs}
-    (Chapter~\ref{ch:results}, Section~\ref{sec:results-scale}), the number
-    of gradient updates scales with $n$: a model trained at $n=10{,}000$
-    receives roughly ten times the optimizer steps of one trained at
-    $n=1{,}000$, not only ten times the distinct data. This thesis does not
-    separate the two. It is a plausible contributor to why absolute
-    accuracy rises with $n$ for both conditions alike, and, more
-    specifically, a candidate contributor to the RQ4 reversal: if holistic
-    and GCA converge at different rates per optimizer step, for instance
-    because a coarser holistic signal is easier to fit with additional
-    updates than GCA's finer one, that would be consistent with holistic's
-    steeper absolute improvement documented in
-    Section~\ref{sec:results-gt-scale}. Testing this means training at
-    matched step counts rather than matched epoch counts across scales,
-    which was not attempted here.
-  \item \textbf{Remove the temperature confound at source.} Summary length and
-    sentence count have been ruled out as carriers of the preference signal:
-    classifiers using them reach chance accuracy against the evaluator's own
-    decisions (Chapter~\ref{ch:methodology},
-    Table~\ref{tab:surface-baselines}). Subtler temperature correlates, such as
-    word-frequency profiles, hedging, or named-entity density, were not tested
-    and remain open. Generating both candidates at a single decoding
-    temperature, and comparing the resulting preference sets against the current
-    ones, would settle the question for all such features at once rather than
-    one at a time (Section~\ref{sec:disc-confounds}).
-  \item \textbf{Measure the effect of source truncation.} A preliminary ablation
-    varied the retained article length under the RoBERTa-base backbone
-    (500 / 1{,}000 / 2{,}000 characters, three seeds each) and found accuracy
-    was, if anything, \emph{higher} with less retained context, the opposite of
-    what the truncation hypothesis predicts. This is plausibly because the
-    512-token cap already binds at 2{,}000 characters, so shortening the budget
-    changes how consistently the retained prefix is truncated across examples
-    rather than simply removing evidence; it does not yet isolate whether more
-    context would help under a backbone that is not capped at 512 tokens.
-    Completing the two \texttt{deberta-v3-base} arms of the same ablation
-    (512 vs. 1{,}024 tokens, holding the backbone fixed) would separate that
-    question from the backbone change and was not completed in this thesis due
-    to an unavailable model-download mirror at the time of writing.
-  \item \textbf{Test the decomposition-interaction mechanism directly.}
-    Section~\ref{sec:disc-interpretation} infers from AlignScore's documented
-    behavior that its split modes perform internally much of what GCA performs
-    externally. Comparing per-sentence scores under split and unsplit modes on the
-    same pairs would test that inference rather than rest on it.
-  \item \textbf{Independent validation of the labels.} RQ4
-    (Chapter~\ref{ch:results}, Section~\ref{sec:results-ground-truth}) evaluates
-    trained reward models against summaries and articles disjoint from every
-    training pool, but the ground-truth labels are still constructed by
-    AlignScore, the same evaluator used throughout. Human annotation of a
-    stratified sample of holistic/GCA disagreement cases, or scoring the same
-    candidate pool with a second factuality model, would provide the
-    evaluator-independent reference this study still lacks and would indicate
-    whether either construction procedure produces labels closer to human
-    judgment.
-  \item \textbf{Score the RQ4 held-out pool under a holistic ranking too.}
-    The current ground-truth criterion is built entirely from GCA's own
-    aggregation rule, so it is in-distribution for the GCA reward model and
-    out-of-distribution for holistic in a way plain data held-out-ness does
-    not correct (Chapter~\ref{ch:methodology},
-    Section~\ref{sec:methodology-ground-truth}; Limitations above).
-    Scoring the same 1{,}000 held-out summaries under a holistic ranking as
-    well, and reporting each reward model's success rate against both
-    criteria (or their intersection), would separate a genuine precision
-    advantage from an artefact of the criterion matching GCA's own
-    training objective.
-  \item \textbf{Explain the RQ4 reversal.} Two candidate explanations for why
-    GCA's ground-truth precision reverses at large training-set sizes were
-    tested and rejected: near-zero-margin training pairs
-    (Section~\ref{sec:results-gt-margin}) and a length/sentence-count
-    shortcut (Section~\ref{sec:results-gt-shortcut}). A remaining, less
-    mechanical candidate is that GCA's sentence-level aggregation lets the
-    reward model fit article-specific, within-pair regularities during
-    training (for instance, patterns tied to how a specific article's two
-    candidate summaries happen to differ) that do not generalize to the
-    ground truth's cross-article comparisons, where the summaries being
-    ranked come from different source articles entirely. Testing this would
-    require comparing reward-model accuracy on held-out same-article pairs
-    against held-out cross-article pairs drawn from the training
-    distribution itself, which was not attempted here.
-  \item \textbf{Downstream policy evaluation.} Training a summarization policy on
-    each preference set and evaluating the factual consistency of its generations
-    would test whether differences in preference learnability translate into
-    differences in generated output, which this study deliberately does not
-    address (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-evolution}).
-  \item \textbf{Error-category analysis.} Categorizing disagreement cases by
-    error type would test whether any advantage concentrates in localized errors
-    such as entity or relation mistakes, as originally hypothesized.
+  \item \textbf{Adaptive and learned aggregation rules.} This thesis compares
+    a small, fixed family of closed-form aggregation formulas parameterized
+    by a single global exponent $\alpha$ (Chapter~\ref{ch:methodology},
+    Section~\ref{sec:bg-gca}). A natural extension is an aggregation rule
+    that is not fixed in advance: a lightweight model that learns how much
+    weight to give the weakest sentence conditioned on the rest of the
+    summary, or a penalty strength calibrated per instance rather than set
+    once for the whole dataset. Limitation~\ref{lim:mean-does-not-penalize}
+    above notes that the locked mean does not, in fact, penalize the
+    fabricated-sentence case that originally motivated this line of work;
+    an adaptive rule is one way to
+    pursue that original goal without reintroducing the noise that made the
+    fixed weakest-link penalty perform worse overall
+    (Section~\ref{sec:results-formula-opt}).
+  \item \textbf{Testing whether the advantage generalizes.} The confirmed
+    $n=1{,}000$ result is obtained with one evaluator (AlignScore), one
+    dataset (CNN/DailyMail), one candidate generator (Mistral-7B-Instruct),
+    and one reward-model backbone (RoBERTa-base). Establishing that granular
+    feedback's advantage is a property of the construction method, rather
+    than of this particular combination, requires repeating the same
+    controlled comparison with at least one factor substituted at a time:
+    a different factuality judge, a different summarization domain, or a
+    different reward-model architecture. This is the comparison needed to
+    move from ``GCA outperforms holistic scoring in this setting'' toward
+    a claim about granular feedback construction in general.
+  \item \textbf{Downstream policy optimization.} Training a summarization
+    policy on each preference set, for instance via DPO, and evaluating the
+    factual consistency of its generations would test whether the
+    preference-learnability advantage measured here propagates to better
+    generation quality, which is the practical outcome the learnability
+    metric is a proxy for.
+  \item \textbf{Cheaper human validation.} Rather than a full independent
+    human audit of every judgment, an active-learning-style protocol that
+    routes only the cases where the holistic and GCA judges disagree to a
+    human annotator would give an evaluator-independent signal on exactly
+    the comparisons that matter most, at a fraction of the annotation cost
+    a full audit would require.
+  \item \textbf{Extending granular feedback beyond summarization.} The
+    decompose-then-aggregate idea behind GCA is not specific to
+    single-document summarization; it applies wherever an output is long
+    enough that a single holistic judgment can hide localized errors, such
+    as long-form question answering or multi-turn dialogue. Testing it in
+    those settings would indicate whether the narrow, conditional advantage
+    found here is a general property of granular feedback or particular to
+    summarization.
 \end{itemize}

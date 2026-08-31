@@ -450,6 +450,7 @@ bound. The tightest bound is the smallest $\delta$ at which equivalence still
 holds ($p<0.05$). MDE is the smallest true effect detectable at 80\% power given
 each campaign's observed standard deviation.}
 \label{tab:effect-sizes}
+\small
 \begin{tabular}{rrrrrrrr}
 \toprule
 $n$ & Mean gap & SD & Cohen's $d$ & $r_{\text{rb}}$ & TOST $p$ ($\pm1$pp) &
@@ -544,6 +545,18 @@ cannot separate what is due to scoring against an independent ground truth
 from what is due to training on the full set rather than four fifths of it.
 Nothing in this thesis isolates that second factor, and it is recorded as a
 limitation in Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-limitations}.
+
+One further qualification applies to every number in this section, not only
+to the training-data-fraction point above. The held-out \emph{articles} used
+below are disjoint from every training pool, but the \emph{ranking} both
+reward models are scored against is built from GCA's own aggregation rule
+(sentence-level AlignScore, mean at $\alpha=0.0$), the same rule the GCA
+reward model is trained to predict; the holistic reward model is scored
+against a criterion built from a rule it never saw
+(Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-ground-truth}).
+The results below are an evaluation on independent data, not an evaluation
+against a criterion neutral between the two conditions, and the two are not
+the same thing.
 
 Table~\ref{tab:gt-constructions} states the four ground-truth constructions
 concretely, since the difference between them drives most of the pattern
