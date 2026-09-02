@@ -263,13 +263,44 @@ Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation}, that the
 advantage: the confirmatory campaigns were not run under that mode, and that
 account is revisited in light of this finding at the same location.
 
+\paragraph{Why the aggregation exponent differs between $n=1{,}000$ and the
+larger scales, and what that means for the scale comparison.} The two
+discrepancies above do not have the same origin. The $n=5{,}000$ and
+$n=10{,}000$ preference files were built after $\alpha=0.0$ had already been
+locked in, by a script that passes \texttt{--alpha 0.0} explicitly and only
+omits the mode flag; their aggregation exponent is correct. The $n=1{,}000$
+campaign, however, read a preference file left over from before that
+decision was made, so it is not only the wrong mode but also the wrong
+exponent, $\alpha=0.5$ instead of $0.0$. This means the comparison across
+scale in Section~\ref{sec:results-scale} changes two things between
+$n=1{,}000$ and the two larger sizes, dataset size and the aggregation
+exponent, not dataset size alone, and a genuine effect of the exponent
+could in principle imitate a genuine effect of scale.
+
+Two pieces of evidence bear on this, though neither settles it. The six-run
+campaign (Appendix~\ref{app:exploratory}, Section~\ref{sec:results-final-campaign}),
+run on preference data correctly built under $\alpha=0.0$, also finds GCA
+ahead at $n=1{,}000$ (mean $+3.08$ percentage points, five of six runs), close
+in direction and magnitude to the twenty-run campaign's $+3.95$ points under
+$\alpha=0.5$. A single-run check under $\alpha=0.0$ in the mode sweep
+(Chapter~\ref{ch:results}, Table~\ref{tab:mode-sweep}, \texttt{nli} row)
+likewise favors GCA. Both configurations of $\alpha$, in other words, produce
+a positive gap at $n=1{,}000$ in the evidence collected so far, which weighs
+against the exponent alone being responsible for the advantage. What is
+missing is the comparison that would settle the question directly: a
+twenty-run campaign at $n=1{,}000$ under the correctly locked $\alpha=0.0$,
+matching the resolution of the $n=5{,}000$/$n=10{,}000$ campaigns exactly.
+Without it, the possibility that part of the decline across scale reflects
+the change in $\alpha$ rather than scale alone cannot be excluded, and this
+is recorded as a limitation
+(Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-limitations}).
+
 This was found during a final review pass after the experimental phase of
 the project had concluded. Re-running the affected campaigns under the
 correctly-configured data would settle whether the reported effects persist
-under the intended configuration, and is recorded as the first item under
-future work (Chapter~\ref{ch:conclusion}, Section~\ref{sec:concl-future});
-it was not attempted here, both because of the time remaining before
-submission and because it constitutes new experimental work beyond what had
+under the intended configuration; it was not attempted here, both because
+of the time remaining before submission and because it constitutes new
+experimental work beyond what had
 already been agreed with the supervisors for this stage of the project.
 
 \section{Reward-Model Training}
@@ -369,7 +400,9 @@ near-chance accuracies reported in Chapter~\ref{ch:results} should not be
 attributed to truncation without evidence; it is one plausible contributing factor
 among several discussed in Chapter~\ref{ch:discussion},
 Section~\ref{sec:disc-weak-signal}. Varying \texttt{--max-article-chars} while
-holding everything else fixed would isolate it, and is recorded as future work.
+holding everything else fixed would isolate it, and this is recorded as a
+limitation (Chapter~\ref{ch:conclusion},
+Limitation~\ref{lim:truncation}).
 
 \section{Compute Infrastructure}
 \label{sec:impl-infra}

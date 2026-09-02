@@ -236,16 +236,25 @@ an unqualified positive finding that the fuller evidence does not support.
     \emph{why} GCA leads at $n=1{,}000$: that account attributes the
     advantage to AlignScore's \texttt{nli} mode specifically, and the
     confirmatory campaign that was believed to test this was not run under
-    that mode. This is reported in full in
-    Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences},
-    and its consequences for the evaluator-mode interpretation are
+    that mode. A second consequence follows from the $\alpha$ discrepancy
+    specifically: because $n=1{,}000$ was built under $\alpha=0.5$ while
+    $n=5{,}000$ and $n=10{,}000$ were correctly built under $\alpha=0.0$,
+    the RQ3 scale comparison (Chapter~\ref{ch:results},
+    Section~\ref{sec:results-scale}) varies the aggregation exponent
+    alongside dataset size rather than dataset size alone, so an effect of
+    the exponent could in principle imitate an effect of scale. Existing
+    evidence, a six-run campaign correctly built under $\alpha=0.0$ that
+    also favors GCA at $n=1{,}000$, weighs against this, but no properly
+    powered campaign exists at $n=1{,}000$ under $\alpha=0.0$ to compare
+    against the larger scales on equal terms, so the possibility cannot be
+    excluded (Chapter~\ref{ch:implementation},
+    Section~\ref{sec:impl-preferences}). Both issues are reported in full
+    there, and the evaluator-mode consequence is
     addressed in Chapter~\ref{ch:discussion},
-    Section~\ref{sec:disc-interpretation}. It was not corrected by
+    Section~\ref{sec:disc-interpretation}. Neither was corrected by
     re-running the affected campaigns, both for lack of time before
     submission and because doing so is new experimental work beyond what
-    had been agreed with the supervisors at this stage of the project; it
-    is recorded as the first item under future work
-    (Section~\ref{sec:concl-future}).
+    had been agreed with the supervisors at this stage of the project.
   \item \textbf{No human factuality audit.} No independent human annotation was
     collected in the final study, so the evaluator's judgments were never checked
     against human assessments of faithfulness
@@ -260,7 +269,8 @@ an unqualified positive finding that the fuller evidence does not support.
     summaries with AlignScore-GCA, so it does not remove evaluator-dependence:
     a systematic bias in AlignScore itself would still be present in both the
     training preferences and the RQ4 ground truth alike.
-  \item \textbf{The RQ4 ground-truth criterion is GCA's own rule, not a
+  \item \label{lim:gt-criterion-not-neutral}
+    \textbf{The RQ4 ground-truth criterion is GCA's own rule, not a
     neutral one.} The ranking RQ4 scores both reward models against is
     built from GCA's aggregation formula (sentence-level AlignScore, mean
     at $\alpha=0.0$), the same rule the GCA reward model is trained to
@@ -346,7 +356,8 @@ an unqualified positive finding that the fuller evidence does not support.
     the set it was chosen on (Section~\ref{sec:methodology-ground-truth}); it
     was formulated specifically to close this gap, and does so for the
     training-data axis, though not for the evaluator-choice axis noted above.
-  \item \textbf{Candidate generation confounds temperature with condition.} The
+  \item \label{lim:temperature-confound}
+    \textbf{Candidate generation confounds temperature with condition.} The
     two candidates differ in decoding temperature, and the lower-temperature
     candidate is preferred substantially more often under both conditions and to
     differing degrees (Chapter~\ref{ch:methodology},
@@ -355,7 +366,8 @@ an unqualified positive finding that the fuller evidence does not support.
     the evaluator's decisions (Table~\ref{tab:surface-baselines}), but subtler
     temperature-correlated textual features were not tested and could still
     carry part of the label information.
-  \item \textbf{Source-document truncation.} The reward model receives only a
+  \item \label{lim:truncation}
+    \textbf{Source-document truncation.} The reward model receives only a
     truncated prefix of each article, so evidence located later in the source is
     unavailable to it (Chapter~\ref{ch:implementation},
     Section~\ref{sec:impl-rm-training}).
@@ -385,7 +397,7 @@ an unqualified positive finding that the fuller evidence does not support.
     overlapping views of one ranking, not as three independent replications.
   \item \textbf{No error-category analysis.} No analysis links the observed
     effects to specific categories of factual error; this was not part of the
-    final research questions and is listed under future work.
+    final research questions.
   \item \textbf{Unequal replication at the two intermediate scales.} The
     $n=2{,}000$ and $n=3{,}000$ points used to locate the RQ4 crossover
     (Section~\ref{sec:results-scale-curve}) were each run at five seeds rather
@@ -393,15 +405,15 @@ an unqualified positive finding that the fuller evidence does not support.
     the total experiment volume tractable in the time remaining before
     submission. They locate the crossover to a region rather than a precise
     value.
-  \item \textbf{The reversal's mechanism is unexplained.} Two candidate
+  \item \label{lim:reversal-mechanism-unexplained}
+    \textbf{The reversal's mechanism is unexplained.} Two candidate
     explanations for why GCA's ground-truth precision reverses at large
     training-set sizes were tested directly and both rejected: that its
     training pairs contain more near-zero-margin comparisons than
     holistic's (Section~\ref{sec:results-gt-margin}), and that it increasingly
     relies on a summary-length or sentence-count shortcut relative to
     holistic as training data grow (Section~\ref{sec:results-gt-shortcut}).
-    No mechanism has been confirmed; remaining candidates are discussed
-    under future work.
+    No mechanism has been confirmed.
 \end{enumerate}
 
 \section{Future Work}

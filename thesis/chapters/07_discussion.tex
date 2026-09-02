@@ -205,7 +205,8 @@ raw text. This ablation does not yet isolate that explanation from a simple
 backbone effect, since it was run only under RoBERTa-base; the two prepared but
 unexecuted arms of the same ablation, under \texttt{deberta-v3-base} at 512 and
 1{,}024 tokens, would hold the backbone fixed while varying context length and
-are recorded as future work (Chapter~\ref{ch:conclusion}). Taken as it stands,
+are recorded alongside the truncation limitation (Chapter~\ref{ch:conclusion},
+Limitation~\ref{lim:truncation}). Taken as it stands,
 this result reframes rather than resolves the truncation question: raw article
 length is not the limiting factor it was hypothesized to be, at least not in the
 straightforward way of "more characters, more evidence, higher accuracy," and the
@@ -417,8 +418,8 @@ explain the reversal, since it does not differentiate GCA from holistic, but
 it is a plausible contributor to the low absolute accuracy ceiling neither
 condition breaks (Section~\ref{sec:disc-weak-signal}). With both mechanical
 candidates ruled out, the mechanism behind the reversal remains open and is
-recorded as future work (Chapter~\ref{ch:conclusion},
-Section~\ref{sec:concl-future}).
+recorded as a limitation (Chapter~\ref{ch:conclusion},
+Limitation~\ref{lim:reversal-mechanism-unexplained}).
 
 Whatever the mechanism, the practical implication is stronger than the
 learnability result alone would suggest. Section~\ref{sec:disc-scale}'s
