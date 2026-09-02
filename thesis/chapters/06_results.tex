@@ -1,172 +1,46 @@
 \chapter{Results}
 \label{ch:results}
 
-This chapter is organized by research question. Section~\ref{sec:results-config-selection}
-states the two configuration decisions that had to be settled before any
-confirmatory campaign could be run, and reports only as much of the exploratory
-evidence as is needed to justify them. The remaining sections report the
+This chapter is organized by research question and leads with the
 confirmatory results: the RQ1 learnability comparison at $n=1{,}000$
 (Section~\ref{sec:results-extended-campaign}), its behavior across dataset
 scale for RQ3 (Section~\ref{sec:results-scale}), the effect sizes and
 equivalence tests that establish what those results do and do not bound
 (Section~\ref{sec:results-effect-sizes}), and the independent ground-truth
 evaluation answering RQ4 (Section~\ref{sec:results-ground-truth}). Every
-confirmatory figure is a twenty-run campaign; the reasoning behind that choice
-is given in Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-rm-eval},
-and the superseded experiments that motivated it, including an early DPO
-prototype, the reward-model baselines, the single-run checks that failed to
-reproduce, and the six-run precursor campaign, are recorded in
-Appendix~\ref{app:exploratory} rather than here.
-
-\section{Selecting the Final Configuration}
-\label{sec:results-config-selection}
-
-Two design decisions are not fixed by the study design and had to be settled
-empirically: how per-sentence scores are aggregated into a summary-level score
-(the exponent $\alpha$ of Chapter~\ref{ch:methodology},
-Equation~\ref{eq:gca-general}), and which AlignScore evaluation mode the judge
-is queried in (Chapter~\ref{ch:background}, Section~\ref{sec:bg-alignscore}).
-Both were settled on the $n=1{,}000$ setting, and both are exploratory in the
-sense of Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-exploratory}:
-the configuration was chosen after observing outcomes, so results on that
-setting cannot also serve as independent confirmation of the choice.
-
-\subsection{Aggregation Formula}
-\label{sec:results-formula-opt}
-
-The proposal-era weakest-link penalty ($\alpha=0.5$) produced a GCA reward model
-that \emph{underperformed} the holistic one, and GCA decisions agreed with the
-corresponding holistic decision on only 82.2\% of pairs
-(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-rm-baseline}). Nine
-aggregation strategies were therefore compared by how well each agreed with the
-holistic decision on the same 1{,}000 pairs
-(\url{analysis/test_gca_formulas.py}, \url{analysis/test_advanced_aggregation.py}).
-Table~\ref{tab:formula-comparison} reports the results; the simple mean
-($\alpha=0.0$) had the highest agreement of any strategy tested, 15.4
-percentage points above the original penalty formula.
-
-\begin{table}[htbp]
-\centering
-\caption[Agreement with the holistic decision across nine aggregation strategies]{Agreement with the holistic decision across nine GCA aggregation
-strategies, $n=1{,}000$ pairs. Plotted in rank order in
-Appendix~\ref{app:exploratory}, Figure~\ref{fig:formula-agreement}.}
-\label{tab:formula-comparison}
-\begin{tabular}{lrr}
-\toprule
-Strategy & Agreement with holistic & vs.\ $\alpha=0.5$ baseline \\
-\midrule
-Simple mean ($\alpha=0.0$)   & 97.6\% & $+15.4$ pp \\
-Confidence-weighted          & 96.0\% & $+13.8$ pp \\
-Ensemble                     & 93.3\% & $+11.1$ pp \\
-Length-weighted              & 91.5\% & $+9.3$ pp \\
-Weighted by position         & 88.2\% & $+6.0$ pp \\
-Robust mean (10\% trim)      & 85.4\% & $+3.2$ pp \\
-Harmonic mean                & 82.9\% & $+0.7$ pp \\
-Original penalty ($\alpha=0.5$) & 82.2\% & baseline \\
-Minimum                      & 78.7\% & $-3.5$ pp \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-On the strength of this result, $\alpha$ was changed from 0.5 to 0.0
-throughout the codebase. One qualification governs how the table should be read:
-the criterion is agreement with the holistic decision, which measures internal
-consistency between two procedures driven by the same evaluator, not external
-factual correctness. A strategy could agree closely with holistic scoring while
-reproducing the same errors, and nothing here would distinguish those cases. The
-criterion is used as a diagnostic for whether the penalty term was amplifying
-disagreement, not as evidence that the simple mean produces better labels.
-
-The formula change did not, on its own, produce a GCA advantage: holding the
-judge mode fixed, the gap widened slightly rather than closing
-(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-alpha0-validation}).
-That is what motivated examining the judge mode next.
-
-\subsection{Evaluator Mode}
-\label{sec:results-mode-sweep}
-
-With $\alpha=0.0$ fixed, the four AlignScore evaluation modes were compared
-under the same $n=1{,}000$ training setup. Table~\ref{tab:mode-sweep} shows
-that the choice of mode, not only the aggregation formula, is associated with
-whether GCA leads at all. The \texttt{nli} mode produced the largest GCA
-advantage; \texttt{nli\_sp}, the mode inherited from the earliest experiments,
-is one of the two modes that favor holistic.
-
-\begin{table}[htbp]
-\centering
-\caption[AlignScore evaluator-mode sweep]{AlignScore judge-mode sweep ($n=1{,}000$, $\alpha=0.0$). Each mode was
-run once; plotted in Appendix~\ref{app:exploratory},
-Figure~\ref{fig:mode-sweep}.}
-\label{tab:mode-sweep}
-\begin{tabular}{lrrr}
-\toprule
-Mode & Holistic mean acc.\ & GCA mean acc.\ & Gap (GCA $-$ Holistic) \\
-\midrule
-\texttt{nli}    & 0.523 & 0.583 & $+0.060$ \\
-\texttt{bin}    & 0.510 & 0.564 & $+0.054$ \\
-\texttt{bin\_sp} & 0.554 & 0.562 & $+0.008$ \\
-\texttt{nli\_sp} & 0.578 & 0.557 & $-0.021$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The ordering follows a systematic pattern rather than varying arbitrarily. The
-two modes in which GCA leads by a clear margin, \texttt{nli} and \texttt{bin},
-are precisely the two that operate on the context and claim without splitting
-them. The two modes in which the advantage is negligible or negative,
-\texttt{bin\_sp} and \texttt{nli\_sp}, are the split variants, in which the
-evaluator itself segments the input and aggregates over the segments
-(Chapter~\ref{ch:background}, Section~\ref{sec:bg-alignscore}). Holistic accuracy
-also rises from 0.510--0.523 in the unsplit modes to 0.554--0.578 in the split
-modes, which is consistent with the split modes supplying a stronger holistic
-signal rather than with GCA becoming worse. The pattern suggests that external
-sentence-level decomposition may contribute most where the evaluator does not
-already decompose internally, and little where it does.
-
-Two limits on this evidence must be carried forward. Each mode was run once, and
-single runs at this dataset size do not reproduce reliably
-(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-alpha0-validation}), so
-the comparison across modes is suggestive rather than established.
-And, as Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}
-reports, the confirmatory campaigns that follow did not in fact remain on the
-\texttt{nli} mode this sweep selected. Chapter~\ref{ch:discussion},
-Section~\ref{sec:disc-interpretation} sets out what the confirmatory evidence
-now permits to be concluded from Table~\ref{tab:mode-sweep}, which is
-substantially less than was originally supposed.
-
-\subsection{From Single Runs to Repeated Campaigns}
-
-Before the selected configuration could be evaluated, two single-run results had
-already failed to reproduce: a promising hyperparameter configuration reversed
-direction on a same-seed rerun, and two nominally identical \texttt{nli\_sp}
-runs differed by 0.8 and 0.4 percentage points
-(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-alpha0-validation}).
-A six-run campaign on the selected \texttt{nli}, $\alpha=0.0$ configuration
-followed, giving a mean gap of $+3.08$ percentage points with GCA ahead in five
-of six runs (Appendix~\ref{app:exploratory},
-Section~\ref{sec:results-final-campaign}). That campaign could not establish
-run-level significance at any effect size, because with six paired observations
-and one discordant run the smallest attainable two-sided Wilcoxon $p$-value is
-0.0625. Extending to twenty runs, reported next, was the direct response.
+confirmatory figure is a twenty-run campaign; the reasoning behind that
+choice is given in Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-rm-eval}. All four sections use the locked
+configuration stated in Chapter~\ref{ch:methodology},
+Table~\ref{tab:methodology-summary}; Section~\ref{sec:results-config-selection}
+then states the two decisions behind that configuration, aggregation formula
+and evaluator mode, reporting only as much exploratory evidence as is needed
+to justify them. The superseded experiments that motivated those decisions,
+including an early DPO prototype, the reward-model baselines, the single-run
+checks that failed to reproduce, and the six-run precursor campaign, are
+recorded in Appendix~\ref{app:exploratory} rather than here.
 
 \section{RQ1: Preference Learnability at \texorpdfstring{$n=1{,}000$}{n=1,000}}
 \label{sec:results-extended-campaign}
 
-Before further runs could be added, a limitation in the cross-validation
-implementation had to be fixed. The seed argument used for the six-run campaign
-controlled only the fold-assignment shuffle; PyTorch's own random-number
-generator was never seeded, so the reward head's weight initialization, the
-training \texttt{DataLoader}'s batch order, and dropout were all left
-uncontrolled (Chapter~\ref{ch:implementation},
-Section~\ref{sec:impl-rm-training}). This was corrected by seeding PyTorch and
-CUDA per fold, supplying an explicit generator to the training
-\texttt{DataLoader}, and seeding the \texttt{DataLoader} workers, so that a run
-is fully determined by its seed on fixed hardware.
-
-Under this corrected procedure, the campaign was extended to twenty runs at
-seeds 1 through 20, fixed in advance of running any of them so that no seed
-could be selected after seeing its result. Table~\ref{tab:seed-campaign-full}
-lists every run.
+The confirmatory campaign trains the locked configuration
+(Chapter~\ref{ch:methodology}, Table~\ref{tab:methodology-summary}) across
+twenty independently seeded runs at $n=1{,}000$, seeds 1 through 20, fixed
+in advance of running any of them so that no seed could be selected after
+seeing its result. It extends an earlier six-run pilot at the same
+configuration, detailed together with the configuration-selection evidence
+in Section~\ref{sec:results-config-selection} below. That pilot exposed a
+limitation in the cross-validation implementation that had to be fixed
+before further runs could be added: its seed argument controlled only the
+fold-assignment shuffle, while PyTorch's own random-number generator was
+never seeded, so the reward head's weight initialization, the training
+\texttt{DataLoader}'s batch order, and dropout were all left uncontrolled
+(Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-rm-training}). This
+was corrected by seeding PyTorch and CUDA per fold, supplying an explicit
+generator to the training \texttt{DataLoader}, and seeding the
+\texttt{DataLoader} workers, so that a run is fully determined by its seed
+on fixed hardware. Table~\ref{tab:seed-campaign-full} lists every run of
+the resulting twenty-run campaign.
 
 \begin{caveat}[The preference data for this campaign, found during final review]
 The intention, consistent with the six-run campaign it extends, was to
@@ -1162,6 +1036,141 @@ Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-gt-reversal} discusses
 what remains, and Chapter~\ref{ch:conclusion},
 Section~\ref{sec:concl-future} records the leading untested candidate.
 \end{caveat}
+
+\section{Selecting the Final Configuration}
+\label{sec:results-config-selection}
+
+The four preceding sections report the confirmatory results under the locked
+configuration stated in Chapter~\ref{ch:methodology},
+Table~\ref{tab:methodology-summary}. This section states how that
+configuration was chosen. Two design decisions are not fixed by the study
+design and had to be settled empirically: how per-sentence scores are
+aggregated into a summary-level score
+(the exponent $\alpha$ of Chapter~\ref{ch:methodology},
+Equation~\ref{eq:gca-general}), and which AlignScore evaluation mode the judge
+is queried in (Chapter~\ref{ch:background}, Section~\ref{sec:bg-alignscore}).
+Both were settled on the $n=1{,}000$ setting, and both are exploratory in the
+sense of Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-exploratory}:
+the configuration was chosen after observing outcomes, so results on that
+setting cannot also serve as independent confirmation of the choice.
+
+\subsection{Aggregation Formula}
+\label{sec:results-formula-opt}
+
+The proposal-era weakest-link penalty ($\alpha=0.5$) produced a GCA reward model
+that \emph{underperformed} the holistic one, and GCA decisions agreed with the
+corresponding holistic decision on only 82.2\% of pairs
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-rm-baseline}). Nine
+aggregation strategies were therefore compared by how well each agreed with the
+holistic decision on the same 1{,}000 pairs
+(\url{analysis/test_gca_formulas.py}, \url{analysis/test_advanced_aggregation.py}).
+Table~\ref{tab:formula-comparison} reports the results; the simple mean
+($\alpha=0.0$) had the highest agreement of any strategy tested, 15.4
+percentage points above the original penalty formula.
+
+\begin{table}[htbp]
+\centering
+\caption[Agreement with the holistic decision across nine aggregation strategies]{Agreement with the holistic decision across nine GCA aggregation
+strategies, $n=1{,}000$ pairs. Plotted in rank order in
+Appendix~\ref{app:exploratory}, Figure~\ref{fig:formula-agreement}.}
+\label{tab:formula-comparison}
+\begin{tabular}{lrr}
+\toprule
+Strategy & Agreement with holistic & vs.\ $\alpha=0.5$ baseline \\
+\midrule
+Simple mean ($\alpha=0.0$)   & 97.6\% & $+15.4$ pp \\
+Confidence-weighted          & 96.0\% & $+13.8$ pp \\
+Ensemble                     & 93.3\% & $+11.1$ pp \\
+Length-weighted              & 91.5\% & $+9.3$ pp \\
+Weighted by position         & 88.2\% & $+6.0$ pp \\
+Robust mean (10\% trim)      & 85.4\% & $+3.2$ pp \\
+Harmonic mean                & 82.9\% & $+0.7$ pp \\
+Original penalty ($\alpha=0.5$) & 82.2\% & baseline \\
+Minimum                      & 78.7\% & $-3.5$ pp \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+On the strength of this result, $\alpha$ was changed from 0.5 to 0.0
+throughout the codebase. One qualification governs how the table should be read:
+the criterion is agreement with the holistic decision, which measures internal
+consistency between two procedures driven by the same evaluator, not external
+factual correctness. A strategy could agree closely with holistic scoring while
+reproducing the same errors, and nothing here would distinguish those cases. The
+criterion is used as a diagnostic for whether the penalty term was amplifying
+disagreement, not as evidence that the simple mean produces better labels.
+
+The formula change did not, on its own, produce a GCA advantage: holding the
+judge mode fixed, the gap widened slightly rather than closing
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-alpha0-validation}).
+That is what motivated examining the judge mode next.
+
+\subsection{Evaluator Mode}
+\label{sec:results-mode-sweep}
+
+With $\alpha=0.0$ fixed, the four AlignScore evaluation modes were compared
+under the same $n=1{,}000$ training setup. Table~\ref{tab:mode-sweep} shows
+that the choice of mode, not only the aggregation formula, is associated with
+whether GCA leads at all. The \texttt{nli} mode produced the largest GCA
+advantage; \texttt{nli\_sp}, the mode inherited from the earliest experiments,
+is one of the two modes that favor holistic.
+
+\begin{table}[htbp]
+\centering
+\caption[AlignScore evaluator-mode sweep]{AlignScore judge-mode sweep ($n=1{,}000$, $\alpha=0.0$). Each mode was
+run once; plotted in Appendix~\ref{app:exploratory},
+Figure~\ref{fig:mode-sweep}.}
+\label{tab:mode-sweep}
+\begin{tabular}{lrrr}
+\toprule
+Mode & Holistic mean acc.\ & GCA mean acc.\ & Gap (GCA $-$ Holistic) \\
+\midrule
+\texttt{nli}    & 0.523 & 0.583 & $+0.060$ \\
+\texttt{bin}    & 0.510 & 0.564 & $+0.054$ \\
+\texttt{bin\_sp} & 0.554 & 0.562 & $+0.008$ \\
+\texttt{nli\_sp} & 0.578 & 0.557 & $-0.021$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The ordering follows a systematic pattern rather than varying arbitrarily. The
+two modes in which GCA leads by a clear margin, \texttt{nli} and \texttt{bin},
+are precisely the two that operate on the context and claim without splitting
+them. The two modes in which the advantage is negligible or negative,
+\texttt{bin\_sp} and \texttt{nli\_sp}, are the split variants, in which the
+evaluator itself segments the input and aggregates over the segments
+(Chapter~\ref{ch:background}, Section~\ref{sec:bg-alignscore}). Holistic accuracy
+also rises from 0.510--0.523 in the unsplit modes to 0.554--0.578 in the split
+modes, which is consistent with the split modes supplying a stronger holistic
+signal rather than with GCA becoming worse. The pattern suggests that external
+sentence-level decomposition may contribute most where the evaluator does not
+already decompose internally, and little where it does.
+
+Two limits on this evidence must be carried forward. Each mode was run once, and
+single runs at this dataset size do not reproduce reliably
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-alpha0-validation}), so
+the comparison across modes is suggestive rather than established.
+And, as Chapter~\ref{ch:implementation}, Section~\ref{sec:impl-preferences}
+reports, the confirmatory campaigns that follow did not in fact remain on the
+\texttt{nli} mode this sweep selected. Chapter~\ref{ch:discussion},
+Section~\ref{sec:disc-interpretation} sets out what the confirmatory evidence
+now permits to be concluded from Table~\ref{tab:mode-sweep}, which is
+substantially less than was originally supposed.
+
+\subsection{From Single Runs to Repeated Campaigns}
+
+Before the selected configuration could be evaluated, two single-run results had
+already failed to reproduce: a promising hyperparameter configuration reversed
+direction on a same-seed rerun, and two nominally identical \texttt{nli\_sp}
+runs differed by 0.8 and 0.4 percentage points
+(Appendix~\ref{app:exploratory}, Section~\ref{sec:results-alpha0-validation}).
+A six-run campaign on the selected \texttt{nli}, $\alpha=0.0$ configuration
+followed, giving a mean gap of $+3.08$ percentage points with GCA ahead in five
+of six runs (Appendix~\ref{app:exploratory},
+Section~\ref{sec:results-final-campaign}). That campaign could not establish
+run-level significance at any effect size, because with six paired observations
+and one discordant run the smallest attainable two-sided Wilcoxon $p$-value is
+0.0625. Extending to twenty runs, reported next, was the direct response.
 
 \section{Summary of Results}
 \label{sec:results-summary}
