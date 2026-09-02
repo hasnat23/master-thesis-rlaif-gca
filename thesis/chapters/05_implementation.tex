@@ -174,8 +174,8 @@ The command above is what \emph{should} produce the preference data behind
 every confirmatory campaign, and it is what a small number of exploratory
 runs earlier in the project, including the judge-mode sweep itself
 (Chapter~\ref{ch:results}, Section~\ref{sec:results-mode-sweep}) and the
-six-run campaign that followed it
-(Section~\ref{sec:results-final-campaign}), were in fact built from. It is
+six-run campaign that followed it (Appendix~\ref{app:exploratory},
+Section~\ref{sec:results-final-campaign}), were in fact built from. It is
 not, however, what the twenty-run extended campaigns at $n=1{,}000$,
 $n=5{,}000$, and $n=10{,}000$ were trained on, nor what the
 $n=2{,}000$/$n=3{,}000$ crossover checks (filtered from the $n=10{,}000$
@@ -195,20 +195,23 @@ training scripts that consumed them shows the following.
   \item The $n=1{,}000$ file at \url{data/preferences_1000/} is dated to
     the original, pre-optimization run of
     \url{slurm/build_preferences_1000.sh}
-    (Section~\ref{sec:results-rm-baseline}), which explicitly passes
+    (Appendix~\ref{app:exploratory},
+    Section~\ref{sec:results-rm-baseline}), which explicitly passes
     \texttt{--alpha 0.5} and, like the scale script, never sets
     \texttt{--alignscore-evaluation-mode}, so it too defaults to
     \texttt{nli\_sp}. A separate file built correctly under \texttt{nli},
     $\alpha=0.0$ exists at
     \url{data/preferences_1000_alpha0_mode_nli/}. This correct file is what
-    the six-run campaign (Section~\ref{sec:results-final-campaign}) actually
+    the six-run campaign (Appendix~\ref{app:exploratory},
+    Section~\ref{sec:results-final-campaign}) actually
     used: its four ``seed validation'' runs were each built fresh by
     \url{slurm/mode_nli_seed_confirm.sh}, which does pass
     \texttt{--alignscore-evaluation-mode nli} explicitly, and the run-metadata
     JSON files for those four runs
     (\url{outputs/mode_sweep_alpha0/mode_nli_seed\{7,100,314,2026\}/}) confirm
     both the correct configuration and an exact match to the six-run
-    figures reported in Table~\ref{tab:seed-validation}. The twenty-run
+    figures reported in Appendix~\ref{app:exploratory},
+    Table~\ref{tab:seed-validation}. The twenty-run
     extended campaign that supersedes it
     (Section~\ref{sec:results-extended-campaign}) does not share this
     property: its own stored run-metadata, for every one of its twenty
@@ -220,7 +223,8 @@ training scripts that consumed them shows the following.
     campaign that supersedes it, and every RQ4 result built on it, is not.
   \item The RQ4 held-out ground truth (Chapter~\ref{ch:methodology},
     Section~\ref{sec:methodology-ground-truth}) is not affected in the same
-    way: \url{slurm/build_ground_truth.sh} does pass
+    way: the build script
+    \url{slurm/build_ground_truth.sh} does pass
     \texttt{--alignscore-evaluation-mode nli} explicitly, and this is the
     only stage in the pipeline for which the intended and executed
     configurations agree.
@@ -307,7 +311,8 @@ initialized reward head, the shuffling of training batches by the
 \texttt{--seed} therefore changed only the fold assignment, while these other
 sources varied between process executions regardless of the seed value, which
 is why two executions launched with the same seed value produced different
-results (Section~\ref{sec:results-final-campaign}) and why the original
+results (Appendix~\ref{app:exploratory},
+Section~\ref{sec:results-final-campaign}) and why the original
 campaign could not be extended past six runs without first addressing this.
 
 This was fixed before the twenty-run campaign that produces every headline
@@ -409,7 +414,8 @@ in Table~\ref{tab:methodology-summary} (Chapter~\ref{ch:methodology}), together
 with the twenty training seeds (1--20) listed in Chapter~\ref{ch:results},
 Table~\ref{tab:seed-campaign-full}, and is implemented by
 \url{slurm/train_rm_1000.sh} and \url{slurm/seed_campaign.sh}. The six seeds
-in Table~\ref{tab:seed-validation} (42, 42, 7, 100, 314, 2026) reproduce only
+in Appendix~\ref{app:exploratory}, Table~\ref{tab:seed-validation}
+(42, 42, 7, 100, 314, 2026) reproduce only
 the earlier, superseded six-run campaign under the pre-fix code and are
 retained for that historical comparison, not as the current reproduction
 path. The codebase, including all scripts referenced in this chapter, is

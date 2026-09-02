@@ -371,10 +371,14 @@ trained on more of them at larger $n$ might be fitting that noise rather than
 genuine signal, which would predict exactly this pattern: fine at small $n$,
 where there is not enough data to fit the noise precisely, and increasingly
 harmful as $n$ grows. Checked against the stored per-pair score gaps in the
-actual training data, this does not hold: the near-tie fraction is
-statistically indistinguishable between the two conditions at every scale,
-and is if anything \emph{higher} for GCA specifically at $n=1{,}000$, where
-GCA leads (Chapter~\ref{ch:results}, Section~\ref{sec:results-gt-margin}).
+actual training data, this does not hold: at $n=5{,}000$ and $n=10{,}000$,
+the scales at which GCA actually loses, the near-tie fraction is essentially
+identical between the two conditions rather than larger for GCA, and at
+$n=1{,}000$, where GCA leads, GCA has \emph{fewer} near-tie pairs than
+holistic (21.3\% against 24.6\%). The one scale showing an appreciable gap
+between the conditions is thus the scale at which GCA wins, and the gap
+points the wrong way for the hypothesis
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-gt-margin}).
 Ruling this out is informative on its own terms: it means the reversal is
 not simply an artefact of an unfiltered margin setting that happened to
 interact badly with GCA's aggregation, but it leaves the actual mechanism

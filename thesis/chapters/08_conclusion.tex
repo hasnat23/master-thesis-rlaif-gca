@@ -71,9 +71,11 @@ around $n=3{,}000$--$5{,}000$, in which no gap is distinguishable from zero
 in either direction. Two candidate mechanisms were tested directly and both
 rejected. That GCA's uniformly unfiltered training pairs contain
 disproportionately more near-zero-margin comparisons than holistic's does
-not hold: the near-tie fraction is statistically indistinguishable between
-the two conditions at every scale, and is if anything \emph{higher} for GCA
-specifically at $n=1{,}000$, where GCA leads
+not hold: at $n=5{,}000$ and $n=10{,}000$, where GCA loses, the near-tie
+fraction is essentially identical between the two conditions, and at
+$n=1{,}000$, where GCA leads, GCA has \emph{fewer} near-tie pairs than
+holistic (21.3\% against 24.6\%), so the only appreciable gap runs opposite
+to what the hypothesis requires
 (Section~\ref{sec:results-gt-margin}). That GCA increasingly relies on a
 summary-length or sentence-count shortcut relative to holistic as training
 data grow also does not hold: scoring the held-out ground truth with the
