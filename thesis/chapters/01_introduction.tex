@@ -33,14 +33,24 @@ signal, and under what conditions.
 
 The intuition that originally motivated the design was more specific: that a
 summary which is mostly accurate but contains one fabricated sentence ought to be
-penalised relative to one that is uniformly mediocre but fabricates nothing, and
+penalized relative to one that is uniformly mediocre but fabricates nothing, and
 that a single holistic label cannot make that distinction. It is worth stating
 that intuition explicitly, because the results reported here do not bear it out.
 The aggregation rule built to act on it, a weakest-link penalty, performed
 measurably \emph{worse} than a simple mean of the same sentence scores
-(Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}), and what
-survives of the granularity question is narrower and more conditional than the
-motivating intuition suggests.
+(Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}), and the
+simple mean is the rule this thesis locks in and reports its confirmed result
+with. That matters for the motivating example above: a plain mean of sentence
+scores dilutes a single fabricated sentence in exactly the way a single
+holistic score does, so GCA under its final, locked configuration does not
+actually solve the fabricated-sentence case used to motivate it. What GCA is
+shown to do well in this thesis is something narrower, produce a more
+learnable training signal from independently scored sentences, not detect a
+single fabricated sentence that a holistic judgment would miss. This
+limitation is stated in full in Chapter~\ref{ch:conclusion},
+Section~\ref{sec:concl-limitations}, and what survives of the granularity
+question is narrower and more conditional than the motivating intuition
+suggests.
 
 \section{Problem Statement}
 \label{sec:intro-problem}
