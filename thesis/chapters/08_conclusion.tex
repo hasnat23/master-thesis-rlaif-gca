@@ -82,8 +82,8 @@ data grow also does not hold: scoring the held-out ground truth with the
 already-trained checkpoints shows the GCA-minus-holistic gap in this
 correlation peaks at $n=3{,}000$ and nearly vanishes at $n=10{,}000$, the
 opposite of what the hypothesis predicts (Section~\ref{sec:results-gt-shortcut}).
-The mechanism behind the reversal remains open and is discussed as future
-work (Section~\ref{sec:concl-future}).
+The mechanism behind the reversal remains open
+(Limitation~\ref{lim:reversal-mechanism-unexplained}).
 
 \section{Answers to the Research Questions}
 \label{sec:conclusion-rqs}
@@ -203,8 +203,9 @@ Chapter~\ref{ch:discussion}, Section~\ref{sec:disc-interpretation}). The
 six-run campaign, run under the other mode, also favored GCA. H2 is
 retained here, marked as refuted rather than removed, because the reasoning
 behind it is not itself wrong and remains worth testing under a correctly
-configured repetition (Section~\ref{sec:concl-future}); what is refuted is
-the specific claim that this thesis's own confirmatory campaigns support it.
+configured repetition (Limitation~\ref{lim:wrong-configuration}); what is
+refuted is the specific claim that this thesis's own confirmatory campaigns
+support it.
 
 \textbf{H3} (effects observed at one dataset scale need not persist at another)
 is \emph{supported, and is the hypothesis the evidence bears on most directly}.
@@ -219,7 +220,8 @@ an unqualified positive finding that the fuller evidence does not support.
 \label{sec:concl-limitations}
 
 \begin{enumerate}
-  \item \textbf{The confirmatory campaigns were not trained on the intended
+  \item \label{lim:wrong-configuration}
+    \textbf{The confirmatory campaigns were not trained on the intended
     configuration.} Found during final review, after the experimental
     phase had concluded: the twenty-run campaigns at all three scales, the
     $n=2{,}000$/$n=3{,}000$ crossover checks, and the RQ4 checkpoints were
