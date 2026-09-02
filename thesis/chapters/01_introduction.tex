@@ -137,58 +137,51 @@ models never saw and never influenced their selection
 This work makes the following contributions:
 
 \begin{enumerate}
-  \item A controlled framework for comparing holistic and sentence-level,
-    GCA-based construction of factuality preferences for abstractive
-    summarization, in which the candidate pool, evaluator, reward-model
-    architecture, and training procedure are held fixed
+  \item A controlled experimental framework for comparing holistic and
+    sentence-level (GCA) construction of factuality preferences for
+    abstractive summarization, in which the candidate pool, evaluator,
+    reward-model architecture, and training procedure are held fixed so that
+    feedback granularity is isolated as the only manipulated variable
     (Chapter~\ref{ch:methodology}).
 
-  \item A nine-strategy search over sentence-score aggregation rules, run at a
-    fixed dataset size to hold every other factor constant, which shows that
-    the aggregation rule is not a neutral implementation detail: the
-    penalty-weighted formula in the original proposal performs measurably
-    worse than a simple mean of the same sentence scores
+  \item Granular Credit Assignment (GCA) itself: a parameterized rule for
+    aggregating sentence-level factuality scores into a single preference
+    label (Chapter~\ref{ch:methodology}, Section~\ref{sec:bg-gca}), together
+    with a search protocol for selecting among alternative aggregation
+    strategies empirically rather than fixing one by assumption
     (Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}).
 
-  \item A repeated-run, multi-scale experimental campaign, twenty independent
-    training runs at each of three dataset sizes under fully seeded,
-    reproducible conditions, that establishes a statistically significant GCA
-    advantage at $n=1{,}000$ (mean $+3.95$ percentage points, run-level
-    Wilcoxon $p<0.001$) and, through equivalence testing at $n=5{,}000$ and
-    $n=10{,}000$, distinguishes a genuine absence of that advantage at larger
-    scale from a merely unreproduced one (Sections~\ref{sec:results-extended-campaign}
-    and~\ref{sec:results-scale}).
+  \item A repeated-run, multi-scale evaluation protocol, combining twenty
+    independently seeded training runs at each of three dataset sizes with
+    equivalence testing, that distinguishes a genuine absence of an effect
+    from a merely undetected one (Chapter~\ref{ch:results},
+    Sections~\ref{sec:results-extended-campaign}
+    and~\ref{sec:results-effect-sizes}).
 
-  \item An independent, held-out ground-truth evaluation (RQ4), designed and
-    run specifically to test whether the $n=1{,}000$ advantage survives
-    scoring against data the trained models never saw and never influenced
-    the selection of, rather than against their own training-style labels. It
-    holds, more sharply, against 500 articles disjoint from every training set
-    used in this thesis, and reverses rather than merely vanishing as the
-    training set grows, becoming a significant advantage for holistic scoring
-    at $n=10{,}000$ (Chapter~\ref{ch:results},
-    Section~\ref{sec:results-ground-truth}). Two candidate explanations for
-    the reversal were formulated and tested directly, and both were rejected
-    (Sections~\ref{sec:results-gt-margin} and~\ref{sec:results-gt-shortcut}).
-    The held-out \emph{articles} are disjoint from every training pool, but
-    the ranking both conditions are scored against is built from GCA's own
-    aggregation rule, which qualifies the comparison
-    (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-ground-truth}).
+  \item An independent, held-out ground-truth evaluation protocol that
+    scores trained reward models against data disjoint from every training
+    pool used in this thesis, designed to test whether a learnability
+    advantage measured under cross-validation also holds against
+    out-of-sample data (Chapter~\ref{ch:methodology},
+    Section~\ref{sec:methodology-ground-truth}).
 
-  \item A transparent account of instability, stochastic variation across runs,
-    methodological limitations, and the reproducibility of the pipeline,
-    including a data-provenance discrepancy between the intended and the
-    actually-used evaluator configuration that was found and disclosed during
-    final review rather than before submission
-    (Chapters~\ref{ch:implementation}, \ref{ch:discussion},
-    and~\ref{ch:conclusion}).
+  \item A fully seeded, reproducible experimental pipeline, released with
+    this thesis, with documented data provenance, including a discrepancy
+    between the intended and the actually-used evaluator configuration that
+    was found and disclosed during final review
+    (Chapters~\ref{ch:implementation} and~\ref{ch:conclusion}).
 \end{enumerate}
 
-These contributions concern the construction and learnability of preference data.
-The thesis does not claim that GCA yields objectively more accurate factuality
-labels, nor that it improves the factual consistency of generated summaries; the
-scope of what the experiments support is stated precisely in
-Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-scope}.
+Applying this framework produces the empirical results reported in
+Chapter~\ref{ch:results}: a statistically significant GCA advantage at
+$n=1{,}000$ that is absent at $n=5{,}000$ and $n=10{,}000$, and a
+ground-truth precision advantage at $n=1{,}000$ that reverses, rather than
+merely vanishes, by $n=10{,}000$. These results concern the construction and
+learnability of preference data. The thesis does not claim that GCA yields
+objectively more accurate factuality labels, nor that it improves the
+factual consistency of generated summaries; the scope of what the
+experiments support is stated precisely in Chapter~\ref{ch:methodology},
+Section~\ref{sec:methodology-scope}.
 
 \section{Scope}
 \label{sec:intro-scope}
