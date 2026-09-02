@@ -134,73 +134,68 @@ models never saw and never influenced their selection
 \section{Contributions}
 \label{sec:intro-contributions}
 
-This work makes the following contributions:
+This thesis makes the following scientific contributions:
 
 \begin{enumerate}
-  \item \textbf{A controlled framework for comparing feedback granularity.}
-    Holistic and sentence-level (GCA) preference construction are compared
-    with the candidate pool, evaluator, reward-model architecture, and
-    training procedure held fixed, so that granularity is the only
-    manipulated variable (Chapter~\ref{ch:methodology}).
+  \item \textbf{A controlled framework for studying feedback granularity in
+    automatic preference construction.} The thesis formulates holistic and
+    sentence-level feedback as two alternative procedures for constructing
+    factuality-oriented preference data. The source articles, candidate
+    summaries, factuality evaluator, reward-model architecture, and training
+    procedure are held fixed across both conditions, allowing the effect of
+    preference-construction granularity to be studied without simultaneously
+    modifying the downstream learning algorithm
+    (Chapter~\ref{ch:methodology}).
 
-  \item \textbf{Granular Credit Assignment as a preference-construction
-    method.} A parameterized rule for aggregating sentence-level factuality
-    scores into a summary-level preference label, with a penalty exponent
-    that interpolates between a simple mean and a weakest-link rule
-    (Chapter~\ref{ch:methodology}, Section~\ref{sec:bg-gca}).
+  \item \textbf{A Granular Credit Assignment procedure for constructing
+    pairwise preferences from sentence-level factuality evidence.} The thesis
+    introduces a decompose--score--aggregate procedure in which each candidate
+    summary is segmented into sentences, the sentences are evaluated
+    individually against the source article, and their factuality scores are
+    aggregated into a summary-level score. The resulting scores are then
+    converted into standard chosen--rejected preference pairs that can be
+    consumed by an unmodified Bradley--Terry reward model. The aggregation
+    formulation includes a parameter controlling the influence of low-scoring
+    sentences (Chapter~\ref{ch:methodology}, Section~\ref{sec:bg-gca}).
 
-  \item \textbf{The aggregation rule is a decisive design choice, not an
-    implementation detail.} Of nine aggregation strategies compared on the
-    same 1{,}000 pairs, the weakest-link penalty proposed at the outset
-    agreed with holistic decisions on 82.2\% of pairs against 97.6\% for a
-    simple mean, and produced a reward model that \emph{underperformed} the
-    holistic baseline. Choosing the aggregation rule empirically rather
-    than by intuition is what makes the rest of the comparison meaningful
-    (Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}).
+  \item \textbf{A systematic methodology for analyzing the design choices
+    involved in granular preference construction.} The thesis treats
+    sentence-score aggregation and factuality-evaluator configuration as
+    explicit methodological variables rather than fixed implementation
+    details. Multiple aggregation strategies and evaluator modes are examined
+    to determine how these choices influence the preference data subsequently
+    used for reward-model learning (Chapter~\ref{ch:results},
+    Section~\ref{sec:results-config-selection}).
 
-  \item \textbf{Granular feedback improves reward-model learnability, but
-    only where training data are scarce.} At $n=1{,}000$, GCA preferences
-    raise pairwise validation accuracy from 0.5297 to 0.5691, a gain of
-    $+3.95$ percentage points that holds in all twenty independently seeded
-    runs (run-level Wilcoxon $p<0.001$, Cohen's $d=2.22$). At $n=5{,}000$
-    and $n=10{,}000$ the advantage is not merely undetected but positively
-    excluded: equivalence tests rule out any effect larger than $\pm0.61$
-    and $\pm0.36$ percentage points (Chapter~\ref{ch:results},
-    Sections~\ref{sec:results-extended-campaign}--\ref{sec:results-effect-sizes}).
+  \item \textbf{A repeated-run and multi-scale evaluation protocol for
+    comparing preference-construction methods.} The thesis develops an
+    evaluation procedure that compares holistic and GCA-derived preferences
+    across independently seeded reward-model runs and multiple training-set
+    sizes. The run, rather than the individual cross-validation fold, is
+    treated as the unit of independent replication, and the analysis combines
+    bootstrap confidence intervals, paired non-parametric testing,
+    effect-size estimation, power analysis, and equivalence testing
+    (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-rm-eval}).
 
-  \item \textbf{Identification of a crossover at which granular feedback
-    stops helping and begins to hurt.} Scored against a held-out ground
-    truth disjoint from every training pool, GCA is $+9.25$ percentage
-    points more precise than holistic at $n=1{,}000$ ($p<0.001$), but
-    significantly \emph{less} precise at $n=10{,}000$ on three of four
-    ground-truth constructions ($p=0.010$--$0.036$), with the crossover
-    located to between $n=3{,}000$ and $n=5{,}000$. The advantage therefore
-    reverses rather than merely vanishing, which bounds the regime in which
-    granular credit assignment is worth using
-    (Chapter~\ref{ch:results}, Section~\ref{sec:results-ground-truth}).
-
-  \item \textbf{Two candidate explanations for the reversal, formulated and
-    empirically rejected.} That GCA's training pairs carry
-    disproportionately more near-tie comparisons, and that the GCA reward
-    model increasingly exploits a summary-length shortcut, both make
-    checkable predictions about where their effect should concentrate, and
-    the data contradict both (Chapter~\ref{ch:results},
-    Sections~\ref{sec:results-gt-margin} and~\ref{sec:results-gt-shortcut}).
-    The mechanism remains open, but the search space is narrower.
-
-  \item \textbf{A reproducible pipeline with documented provenance.} Every
-    reported campaign is fully seeded and exactly reproducible, and the
-    released code, data, and run metadata include a discrepancy between the
-    intended and the actually-used evaluator configuration that was found
-    and disclosed during final review
-    (Chapters~\ref{ch:implementation} and~\ref{ch:conclusion}).
+  \item \textbf{A held-out evaluation procedure for analyzing learned
+    preference rankings beyond training-style validation labels.} In addition
+    to cross-validation on preference pairs, the thesis constructs a set of
+    articles disjoint from the reward-model training pools and evaluates
+    retained reward-model checkpoints on previously unseen candidate
+    summaries. This provides an additional way to examine how reward models
+    trained from different preference-construction procedures behave outside
+    the preference pairs used during training. The asymmetry introduced by
+    constructing this evaluation criterion from sentence-level AlignScore
+    scores is explicitly documented as a limitation
+    (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-ground-truth}).
 \end{enumerate}
 
-These contributions concern the construction and learnability of preference
-data. The thesis does not claim that GCA yields objectively more accurate
-factuality labels, nor that it improves the factual consistency of generated
-summaries; the scope of what the experiments support is stated precisely in
-Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-scope}.
+The contributions of this thesis therefore concern the construction,
+analysis, and evaluation of automatically generated factuality preferences.
+The thesis does not introduce a new factuality evaluator, reward-model
+architecture, or preference-learning objective, and it does not claim that
+GCA universally produces more accurate factuality labels or more factual
+generated summaries.
 
 \section{Scope}
 \label{sec:intro-scope}
