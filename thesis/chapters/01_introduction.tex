@@ -137,51 +137,70 @@ models never saw and never influenced their selection
 This work makes the following contributions:
 
 \begin{enumerate}
-  \item A controlled experimental framework for comparing holistic and
-    sentence-level (GCA) construction of factuality preferences for
-    abstractive summarization, in which the candidate pool, evaluator,
-    reward-model architecture, and training procedure are held fixed so that
-    feedback granularity is isolated as the only manipulated variable
-    (Chapter~\ref{ch:methodology}).
+  \item \textbf{A controlled framework for comparing feedback granularity.}
+    Holistic and sentence-level (GCA) preference construction are compared
+    with the candidate pool, evaluator, reward-model architecture, and
+    training procedure held fixed, so that granularity is the only
+    manipulated variable (Chapter~\ref{ch:methodology}).
 
-  \item Granular Credit Assignment (GCA) itself: a parameterized rule for
-    aggregating sentence-level factuality scores into a single preference
-    label (Chapter~\ref{ch:methodology}, Section~\ref{sec:bg-gca}), together
-    with a search protocol for selecting among alternative aggregation
-    strategies empirically rather than fixing one by assumption
+  \item \textbf{Granular Credit Assignment as a preference-construction
+    method.} A parameterized rule for aggregating sentence-level factuality
+    scores into a summary-level preference label, with a penalty exponent
+    that interpolates between a simple mean and a weakest-link rule
+    (Chapter~\ref{ch:methodology}, Section~\ref{sec:bg-gca}).
+
+  \item \textbf{The aggregation rule is a decisive design choice, not an
+    implementation detail.} Of nine aggregation strategies compared on the
+    same 1{,}000 pairs, the weakest-link penalty proposed at the outset
+    agreed with holistic decisions on 82.2\% of pairs against 97.6\% for a
+    simple mean, and produced a reward model that \emph{underperformed} the
+    holistic baseline. Choosing the aggregation rule empirically rather
+    than by intuition is what makes the rest of the comparison meaningful
     (Chapter~\ref{ch:results}, Section~\ref{sec:results-formula-opt}).
 
-  \item A repeated-run, multi-scale evaluation protocol, combining twenty
-    independently seeded training runs at each of three dataset sizes with
-    equivalence testing, that distinguishes a genuine absence of an effect
-    from a merely undetected one (Chapter~\ref{ch:results},
-    Sections~\ref{sec:results-extended-campaign}
-    and~\ref{sec:results-effect-sizes}).
+  \item \textbf{Granular feedback improves reward-model learnability, but
+    only where training data are scarce.} At $n=1{,}000$, GCA preferences
+    raise pairwise validation accuracy from 0.5297 to 0.5691, a gain of
+    $+3.95$ percentage points that holds in all twenty independently seeded
+    runs (run-level Wilcoxon $p<0.001$, Cohen's $d=2.22$). At $n=5{,}000$
+    and $n=10{,}000$ the advantage is not merely undetected but positively
+    excluded: equivalence tests rule out any effect larger than $\pm0.61$
+    and $\pm0.36$ percentage points (Chapter~\ref{ch:results},
+    Sections~\ref{sec:results-extended-campaign}--\ref{sec:results-effect-sizes}).
 
-  \item An independent, held-out ground-truth evaluation protocol that
-    scores trained reward models against data disjoint from every training
-    pool used in this thesis, designed to test whether a learnability
-    advantage measured under cross-validation also holds against
-    out-of-sample data (Chapter~\ref{ch:methodology},
-    Section~\ref{sec:methodology-ground-truth}).
+  \item \textbf{Identification of a crossover at which granular feedback
+    stops helping and begins to hurt.} Scored against a held-out ground
+    truth disjoint from every training pool, GCA is $+9.25$ percentage
+    points more precise than holistic at $n=1{,}000$ ($p<0.001$), but
+    significantly \emph{less} precise at $n=10{,}000$ on three of four
+    ground-truth constructions ($p=0.010$--$0.036$), with the crossover
+    located to between $n=3{,}000$ and $n=5{,}000$. The advantage therefore
+    reverses rather than merely vanishing, which bounds the regime in which
+    granular credit assignment is worth using
+    (Chapter~\ref{ch:results}, Section~\ref{sec:results-ground-truth}).
 
-  \item A fully seeded, reproducible experimental pipeline, released with
-    this thesis, with documented data provenance, including a discrepancy
-    between the intended and the actually-used evaluator configuration that
-    was found and disclosed during final review
+  \item \textbf{Two candidate explanations for the reversal, formulated and
+    empirically rejected.} That GCA's training pairs carry
+    disproportionately more near-tie comparisons, and that the GCA reward
+    model increasingly exploits a summary-length shortcut, both make
+    checkable predictions about where their effect should concentrate, and
+    the data contradict both (Chapter~\ref{ch:results},
+    Sections~\ref{sec:results-gt-margin} and~\ref{sec:results-gt-shortcut}).
+    The mechanism remains open, but the search space is narrower.
+
+  \item \textbf{A reproducible pipeline with documented provenance.} Every
+    reported campaign is fully seeded and exactly reproducible, and the
+    released code, data, and run metadata include a discrepancy between the
+    intended and the actually-used evaluator configuration that was found
+    and disclosed during final review
     (Chapters~\ref{ch:implementation} and~\ref{ch:conclusion}).
 \end{enumerate}
 
-Applying this framework produces the empirical results reported in
-Chapter~\ref{ch:results}: a statistically significant GCA advantage at
-$n=1{,}000$ that is absent at $n=5{,}000$ and $n=10{,}000$, and a
-ground-truth precision advantage at $n=1{,}000$ that reverses, rather than
-merely vanishes, by $n=10{,}000$. These results concern the construction and
-learnability of preference data. The thesis does not claim that GCA yields
-objectively more accurate factuality labels, nor that it improves the
-factual consistency of generated summaries; the scope of what the
-experiments support is stated precisely in Chapter~\ref{ch:methodology},
-Section~\ref{sec:methodology-scope}.
+These contributions concern the construction and learnability of preference
+data. The thesis does not claim that GCA yields objectively more accurate
+factuality labels, nor that it improves the factual consistency of generated
+summaries; the scope of what the experiments support is stated precisely in
+Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-scope}.
 
 \section{Scope}
 \label{sec:intro-scope}
