@@ -451,12 +451,20 @@ extending it.
     different reward-model architecture. This is the comparison needed to
     move from ``GCA outperforms holistic scoring in this setting'' toward
     a claim about granular feedback construction in general.
-  \item \textbf{Downstream policy optimization.} Training a summarization
-    policy on each preference set, for instance via DPO, and evaluating the
-    factual consistency of its generations would test whether the
+  \item \textbf{Downstream policy evaluation, run as an isolated follow-up.}
+    Training a summarization policy on each preference set and evaluating
+    the factual consistency of its generations would test whether the
     preference-learnability advantage measured here propagates to better
     generation quality, which is the practical outcome the learnability
-    metric is a proxy for.
+    metric is a proxy for. This thesis deliberately excludes a
+    policy-optimization stage because combining it with the
+    preference-construction comparison made it impossible to attribute an
+    observed difference to either stage individually
+    (Chapter~\ref{ch:methodology}, Section~\ref{sec:methodology-evolution}).
+    A future study could recover this comparison without reintroducing that
+    problem by running policy optimization as a separate stage downstream
+    of, and independent from, the preference-construction comparison
+    established here, rather than folding both into one pipeline.
   \item \textbf{Cheaper human validation.} Rather than a full independent
     human audit of every judgment, an active-learning-style protocol that
     routes only the cases where the holistic and GCA judges disagree to a
