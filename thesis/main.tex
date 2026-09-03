@@ -25,6 +25,16 @@
                                           % overflow the margin (e.g. BradleyTerryRewardModel)
 \usepackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=black,
             pdfborder={0 0 0}]{hyperref} % clickable links, no colored boxes (load after natbib)
+% Embed document metadata so the PDF identifies itself in readers and library
+% catalogues rather than showing the filename.
+\hypersetup{
+  pdftitle={Benchmarking Holistic vs Sentence-Level Reward-Model Preferences
+            for Factual Summarization via Granular Credit Assignment (GCA)},
+  pdfauthor={Muhammad Hasnat},
+  pdfsubject={Master's Thesis, Web and Data Science, University of Koblenz},
+  pdfkeywords={RLAIF, reward modeling, factual consistency, summarization,
+               preference learning, Granular Credit Assignment},
+}
 \usepackage{xurl}                        % allow \url to break at /, _, - (long code paths)
 \urlstyle{tt}                            % keep \url in the same monospace style as \texttt
 \usepackage{tikz}                        % pipeline diagram (Figure 5.1)
